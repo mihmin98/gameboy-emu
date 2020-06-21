@@ -30,3 +30,14 @@
 *.exe
 *.out
 *.app
+
+# Docs folder that contains pdfs
+docs
+
+# App executable
+gameboy-emu
+
+# Build dirs
+build
+test/obj
+test/build
