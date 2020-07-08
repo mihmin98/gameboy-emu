@@ -16,9 +16,22 @@ class SM83
     void InitRegisters();
     void Cycle();
 
+    /* FLAG GETTERS AND SETTERS */
+
+    uint8_t getZeroFlag();
+    uint8_t getSubtractFlag();
+    uint8_t getHalfCarryFlag();
+    uint8_t getCarryFlag();
+    void setZeroFlag(uint8_t value);
+    void setSubtractFlag(uint8_t value);
+    void setHalfCarryFlag(uint8_t value);
+    void setCarryFlag(uint8_t value);
+    
+
     /* OPCODE INSTRUCTIONS */
 
     /* 8 BIT ARITHMETIC INSTRUCTIONS */
+
     void op_adc_a_r8(const uint8_t &r8);
     void op_adc_a_addr_hl();
     void op_adc_a_n8();
@@ -37,6 +50,7 @@ class SM83
     void op_sub_a_n8();
 
     /* 8 BIT LOGIC INSTRUCTIONS */
+
     void op_and_a_r8(const uint8_t &r8);
     void op_and_a_addr_hl();
     void op_and_a_n8();
@@ -51,11 +65,13 @@ class SM83
     void op_xor_a_n8();
 
     /* 16 BIT ARITHMETIC INSTRUCTIONS */
+
     void op_add_hl_r16(const uint8_t &r16_high, const uint8_t &r16_low);
     void op_dec_r16(uint8_t &r16);
     void op_inc_r16(uint8_t &r16);
 
     /* BIT OPERATIONS INSTRUCTIONS */
+
     void op_bit_u3_r8(uint8_t u3, const uint8_t &r8);
     void op_bit_u3_addr_hl(uint8_t u3);
     void op_res_u3_r8(uint8_t u3, uint8_t &r8);
@@ -66,6 +82,7 @@ class SM83
     void op_swap_addr_hl();
 
     /* BIT SHIFT INSTRUCTIONS */
+
     void op_rl_r8(uint8_t &r8);
     void op_rl_addr_hl();
     void op_rla();
@@ -86,6 +103,7 @@ class SM83
     void op_srl_addr_hl();
 
     /* LOAD INSTRUCTIONS */
+
     void op_ld_r8_r8(uint8_t &r8_1, const uint8_t &r8_2);
     void op_ld_r8_n8(uint8_t &r8);
     void op_ld_r16_n16(uint8_t &r16_high, uint8_t &r16_low);
@@ -106,6 +124,7 @@ class SM83
     void op_ld_a_addr_hl_dec();
 
     /* JUMP AND SUBROUTINE INSTRUCTIONS */
+
     void op_call_n16();
     void op_call_cc_n16(uint8_t flag_bit, uint8_t required_value);
     void op_jp_hl();
@@ -119,6 +138,7 @@ class SM83
     void op_rst(uint16_t addr);
 
     /* STACK OPERATIONS INSTRUCTIONS */
+
     void op_add_hl_sp();
     void op_add_sp_e8();
     void op_dec_sp();
@@ -133,6 +153,7 @@ class SM83
     void op_push_r16(const uint8_t &r16_high, const uint8_t &r16_low);
 
     /* MISC INSTRUCTIONS */
+
     void op_ccf();
     void op_cpl();
     void op_daa();
