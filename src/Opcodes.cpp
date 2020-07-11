@@ -749,3 +749,76 @@ void SM83::op_xor_a_n8()
 
     endInstruction(2);
 }
+
+/* 16 BIT ARITHMETIC INSTRUCTIONS */
+
+/**
+ *  Add the value in r16 to HL
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      N: 0
+ *      H: Set if overflow from bit 11
+ *      C: Set if overflow from bit 15
+ */
+void SM83::op_add_hl_r16(const uint8_t &r16_high, const uint8_t &r16_low)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t r16 = (r16_high << 0x8) | r16_low;
+    uint16_t hl = (H << 0x8) | L;
+
+    uint32_t result = hl + r16;
+
+    setSubtractFlag(0);
+    setHalfCarryFlag((hl & 0xFFF) + (r16 & 0xFFF) > 0xFFF);
+    setCarryFlag(result > 0xFFFF);
+
+    H = (result & 0xFF00) >> 0x8;
+    L = result & 0x00FF;
+
+    endInstruction(1);
+}
+
+/**
+ *  Decrement the value in r16 by 1
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_dec_r16(uint8_t &r16_high, uint8_t &r16_low)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t r16 = (r16_high << 0x8) | r16_low;
+    --r16;
+
+    r16_high = (r16 & 0xFF00) >> 0x8;
+    r16_low = r16 & 0x00FF;
+
+    endInstruction(1);
+}
+
+/**
+ *  Increment the value in r16 by 1
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_inc_r16(uint8_t &r16_high, uint8_t &r16_low)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t r16 = (r16_high << 0x8) | r16_low;
+    ++r16;
+
+    r16_high = (r16 & 0xFF00) >> 0x8;
+    r16_low = r16 & 0x00FF;
+
+    endInstruction(1);
+}

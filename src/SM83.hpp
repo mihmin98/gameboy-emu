@@ -77,8 +77,8 @@ class SM83
     /* 16 BIT ARITHMETIC INSTRUCTIONS */
 
     void op_add_hl_r16(const uint8_t &r16_high, const uint8_t &r16_low);
-    void op_dec_r16(uint8_t &r16);
-    void op_inc_r16(uint8_t &r16);
+    void op_dec_r16(uint8_t &r16_high, uint8_t &r16_low);
+    void op_inc_r16(uint8_t &r16_high, uint8_t &r16_low);
 
     /* BIT OPERATIONS INSTRUCTIONS */
 
