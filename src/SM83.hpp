@@ -2,7 +2,7 @@
 #define __SM83_H__
 
 #pragma once
-#include "GameBoy.hpp"
+#include <cstdint>
 
 class SM83
 {
@@ -13,8 +13,19 @@ class SM83
     uint8_t instructionCycle;
 
     SM83(uint8_t *memory);
-    void InitRegisters();
-    void Cycle();
+    void initRegisters();
+    void cycle();
+
+    // Memory read and write
+    uint8_t readmem_u8(uint16_t addr);
+    uint16_t readmem_u16(uint16_t addr);
+    void writemem_u8(uint8_t val, uint16_t addr);
+    void writemem_u16(uint16_t val, uint16_t addr);
+
+    // Returns true if it is on the last instruction cycle, also increments instructionCycle
+    bool checkInstructionCycle(uint8_t opcode_cycles);
+    // Sets instructionCycle to 0 and increments PC
+    void endInstruction(uint8_t opcode_length);
 
     /* FLAG GETTERS AND SETTERS */
 
@@ -26,7 +37,6 @@ class SM83
     void setSubtractFlag(uint8_t value);
     void setHalfCarryFlag(uint8_t value);
     void setCarryFlag(uint8_t value);
-    
 
     /* OPCODE INSTRUCTIONS */
 
