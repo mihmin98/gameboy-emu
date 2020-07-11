@@ -257,7 +257,7 @@ void SM83::op_inc_addr_hl()
         return;
 
     uint16_t hl = (H << 0x8) | L;
-    //uint8_t &byte = *(memory + hl);
+    // uint8_t &byte = *(memory + hl);
     uint8_t byte = readmem_u8(hl);
     writemem_u8(++byte, hl);
 
@@ -421,11 +421,12 @@ void SM83::op_sub_a_addr_hl()
  *      N: 1
  *      H: Set if borrow from bit 4
  *      C: Set if borrow
- */void SM83::op_sub_a_n8()
+ */
+void SM83::op_sub_a_n8()
 {
     if (!checkInstructionCycle(2))
         return;
-    
+
     uint8_t n8 = readmem_u8(PC + 1);
     uint8_t result = A - n8;
 
@@ -435,6 +436,316 @@ void SM83::op_sub_a_addr_hl()
     setCarryFlag(A < n8);
 
     A = result;
+
+    endInstruction(2);
+}
+
+/* 8 BIT LOGIC INSTRUCTIONS */
+
+/**
+ *  Bitwise AND between the value in r8 and A
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 1
+ *      C: 0
+ */
+void SM83::op_and_a_r8(const uint8_t &r8)
+{
+    A &= r8;
+
+    setZeroFlag(A == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(1);
+    setCarryFlag(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Bitwise AND between the byte pointed by HL and A
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 1
+ *      C: 0
+ */
+void SM83::op_and_a_addr_hl()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    A &= byte;
+
+    setZeroFlag(A == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(1);
+    setCarryFlag(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Bitwise AND between the value n8 and A
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 1
+ *      C: 0
+ */
+void SM83::op_and_a_n8()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t n8 = readmem_u8(PC + 1);
+
+    A &= n8;
+
+    setZeroFlag(A == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(1);
+    setCarryFlag(0);
+
+    endInstruction(2);
+}
+
+/**
+ *  Subtract the value in r8 from A and sets the flags, do not store the result
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 1
+ *      H: Set if borrow from bit 4
+ *      C: Set if borrow
+ */
+void SM83::op_cp_a_r8(const uint8_t &r8)
+{
+    uint8_t result = A - r8;
+
+    setZeroFlag(result == 0);
+    setSubtractFlag(1);
+    setHalfCarryFlag((A & 0xF) < (r8 & 0xF));
+    setCarryFlag(A < r8);
+
+    endInstruction(1);
+}
+
+/**
+ *  Subtract the byte pointed by HL from A and sets the flags, do not store the result
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 1
+ *      H: Set if borrow from bit 4
+ *      C: Set if borrow
+ */
+void SM83::op_cp_a_addr_hl()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    uint8_t result = A - byte;
+
+    setZeroFlag(result == 0);
+    setSubtractFlag(1);
+    setHalfCarryFlag((A & 0xF) < (byte & 0xF));
+    setCarryFlag(A < byte);
+
+    endInstruction(1);
+}
+
+/**
+ *  Subtract the value n8 from A and sets the flags, do not store the result
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 1
+ *      H: Set if borrow from bit 4
+ *      C: Set if borrow
+ */
+void SM83::op_cp_a_n8()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t n8 = readmem_u8(PC + 1);
+
+    uint8_t result = A - n8;
+
+    setZeroFlag(result == 0);
+    setSubtractFlag(1);
+    setHalfCarryFlag((A & 0xF) < (n8 & 0xF));
+    setCarryFlag(A < n8);
+
+    endInstruction(2);
+}
+
+/**
+ *  Store in A the bitwise OR of the value in r8 and A
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: 0
+ */
+void SM83::op_or_a_r8(const uint8_t &r8)
+{
+    A |= r8;
+
+    setZeroFlag(A == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+    setCarryFlag(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Store in A the bitwise OR of the byte pointed by HL and A
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: 0
+ */
+void SM83::op_or_a_addr_hl()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    A |= byte;
+
+    setZeroFlag(A == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+    setCarryFlag(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Store in A the bitwise OR of the value n8 and A
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: 0
+ */
+void SM83::op_or_a_n8()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t n8 = readmem_u8(PC + 1);
+
+    A |= n8;
+
+    setZeroFlag(A == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+    setCarryFlag(0);
+
+    endInstruction(2);
+}
+
+/**
+ *  Bitwise XOR between the value in r8 and A
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: 0
+ */
+void SM83::op_xor_a_r8(const uint8_t &r8)
+{
+    A ^= r8;
+
+    setZeroFlag(A == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+    setCarryFlag(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Bitwise XOR between the byte pointed by HL and A
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: 0
+ */
+void SM83::op_xor_a_addr_hl()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    A ^= byte;
+
+    setZeroFlag(A == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+    setCarryFlag(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Bitwise XOR between the value n8 and A
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: 0
+ */
+void SM83::op_xor_a_n8()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t n8 = readmem_u8(PC + 1);
+
+    A ^= n8;
+
+    setZeroFlag(A == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+    setCarryFlag(0);
 
     endInstruction(2);
 }
