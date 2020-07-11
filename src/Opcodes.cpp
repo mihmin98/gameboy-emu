@@ -822,3 +822,193 @@ void SM83::op_inc_r16(uint8_t &r16_high, uint8_t &r16_low)
 
     endInstruction(1);
 }
+
+/* BIT OPERATIONS INSTRUCTIONS */
+
+/**
+ *  Test bit u3 in register r8, set 0 flag if bit not set
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if selected bit is 0
+ *      N: 0
+ *      H: 1
+ */
+void SM83::op_bit_u3_r8(uint8_t u3, const uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t mask = 1 << u3;
+    uint8_t bit = r8 & mask;
+
+    setZeroFlag(bit == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(1);
+
+    endInstruction(2);
+}
+
+/**
+ *  Test bit u3 in byte pointed by HL, set 0 flag if bit not set
+ *  Cycles: 3
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if selected bit is 0
+ *      N: 0
+ *      H: 1
+ */
+void SM83::op_bit_u3_addr_hl(uint8_t u3)
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    uint8_t mask = 1 << u3;
+    uint8_t bit = byte & mask;
+
+    setZeroFlag(bit == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(1);
+
+    endInstruction(2);
+}
+
+/**
+ *  Set bit u3 in register r8 to 0
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      None
+ */
+void SM83::op_res_u3_r8(uint8_t u3, uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t mask = ~(1 << u3);
+    r8 &= mask;
+
+    endInstruction(2);
+}
+
+/**
+ *  Set bit u3 in byte pointed by HL to 0
+ *  Cycles: 4
+ *  Length: 2
+ *  Flags:
+ *      None
+ */
+void SM83::op_res_u3_addr_hl(uint8_t u3)
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    uint8_t mask = ~(1 << u3);
+    byte &= mask;
+
+    writemem_u8(byte, hl);
+
+    endInstruction(2);
+}
+
+/**
+ *  Set bit u3 in register r8 to 1
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      None
+ */
+void SM83::op_set_u3_r8(uint8_t u3, uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t mask = (1 << u3);
+    r8 |= mask;
+
+    endInstruction(2);
+}
+
+/**
+ *  Set bit u3 in byte pointed by HL to 1
+ *  Cycles: 4
+ *  Length: 2
+ *  Flags:
+ *      None
+ */
+void SM83::op_set_u3_addr_hl(uint8_t u3)
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    uint8_t mask = (1 << u3);
+    byte |= mask;
+
+    writemem_u8(byte, hl);
+
+    endInstruction(2);
+}
+
+/**
+ *  Swap upper 4 bits in register r8 and the lower 4 ones
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if selected bit is 0
+ *      N: 0
+ *      H: 0
+ *      C: 0
+ */
+void SM83::op_swap_r8(uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    r8 = ((r8 & 0xF0) >> 0x4) | ((r8 & 0x0F) << 0x4);
+
+    setZeroFlag(r8 == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+    setCarryFlag(0);
+
+    endInstruction(2);
+}
+
+/**
+ *  Swap upper 4 bits in byte pointed by HL and the lower 4 ones
+ *  Cycles: 4
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if selected bit is 0
+ *      N: 0
+ *      H: 0
+ *      C: 0
+ */
+void SM83::op_swap_addr_hl()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(byte);
+
+    byte = ((byte & 0xF0) >> 0x4) | ((byte & 0x0F) << 0x4);
+
+    setZeroFlag(byte == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+    setCarryFlag(0);
+
+    writemem_u8(byte, hl);
+
+    endInstruction(2);
+}
