@@ -963,7 +963,7 @@ void SM83::op_set_u3_addr_hl(uint8_t u3)
  *  Cycles: 2
  *  Length: 2
  *  Flags:
- *      Z: Set if selected bit is 0
+ *      Z: Set if result is 0
  *      N: 0
  *      H: 0
  *      C: 0
@@ -988,7 +988,7 @@ void SM83::op_swap_r8(uint8_t &r8)
  *  Cycles: 4
  *  Length: 2
  *  Flags:
- *      Z: Set if selected bit is 0
+ *      Z: Set if result is 0
  *      N: 0
  *      H: 0
  *      C: 0
@@ -1007,6 +1007,527 @@ void SM83::op_swap_addr_hl()
     setSubtractFlag(0);
     setHalfCarryFlag(0);
     setCarryFlag(0);
+
+    writemem_u8(byte, hl);
+
+    endInstruction(2);
+}
+
+/* BIT SHIFT INSTRUCTIONS */
+
+/**
+ *  Rotate bits in register r8 left through carry
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rl_r8(uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t carry = getCarryFlag();
+
+    setCarryFlag(r8 & 0x80);
+
+    r8 = (r8 << 1) | carry;
+
+    setZeroFlag(r8 == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    endInstruction(2);
+}
+
+/**
+ *  Rotate bits in byte pointed by HL left through carry
+ *  Cycles: 4
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rl_addr_hl()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    uint8_t carry = getCarryFlag();
+
+    setCarryFlag(byte & 0x80);
+
+    byte = (byte << 1) | carry;
+
+    setZeroFlag(byte == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    writemem_u8(byte, hl);
+
+    endInstruction(2);
+}
+
+/**
+ *  Rotate register A left through carry
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      Z: 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rla()
+{
+    uint8_t carry = getCarryFlag();
+
+    setCarryFlag(A & 0x80);
+
+    A = (A << 1) | carry;
+
+    setZeroFlag(0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Rotate bits in register r8 left
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rlc_r8(uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t msb = (r8 & 0x80) >> 0x7;
+
+    setCarryFlag(msb);
+
+    r8 = (r8 << 1) | msb;
+
+    setZeroFlag(r8 == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    endInstruction(2);
+}
+
+/**
+ *  Rotate bits in byte pointed by HL left
+ *  Cycles: 4
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rlc_addr_hl()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    uint8_t msb = (byte & 0x80) >> 0x7;
+
+    setCarryFlag(msb);
+
+    byte = (byte << 1) | msb;
+
+    setZeroFlag(byte == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    writemem_u8(byte, hl);
+
+    endInstruction(2);
+}
+
+/**
+ *  Rotate register A left
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      Z: 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rlca()
+{
+    uint8_t msb = (A & 0x80) >> 0x7;
+
+    setCarryFlag(msb);
+
+    A = (A << 1) | msb;
+
+    setZeroFlag(0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Rotate register r8 right through carry
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rr_r8(uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t carry = getCarryFlag();
+
+    setCarryFlag(r8 & 0x1);
+
+    r8 = (r8 >> 1) | (carry << 7);
+
+    setZeroFlag(r8 == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    endInstruction(2);
+}
+
+/**
+ *  Rotate byte pointed by HL right through carry
+ *  Cycles: 4
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rr_addr_hl()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    uint8_t carry = getCarryFlag();
+
+    setCarryFlag(byte & 0x1);
+
+    byte = (byte >> 1) | (carry << 7);
+
+    setZeroFlag(byte == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    writemem_u8(byte, hl);
+
+    endInstruction(2);
+}
+
+/**
+ *  Rotate register A right through carry
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      Z: 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rra()
+{
+    uint8_t carry = getCarryFlag();
+
+    setCarryFlag(A & 0x1);
+
+    A = (A >> 1) | (carry << 7);
+
+    setZeroFlag(0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Rotate bits in register r8 right
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rrc_r8(uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t lsb = r8 & 0x1;
+
+    setCarryFlag(lsb);
+
+    r8 = (r8 >> 1) | (lsb << 7);
+
+    setZeroFlag(r8 == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    endInstruction(2);
+}
+
+/**
+ *  Rotate bits in byte pointed by HL right
+ *  Cycles: 4
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rrc_addr_hl()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    uint8_t lsb = byte & 0x1;
+
+    setCarryFlag(lsb);
+
+    byte = (byte >> 1) | (lsb << 7);
+
+    setZeroFlag(byte == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    writemem_u8(byte, hl);
+
+    endInstruction(2);
+}
+
+/**
+ *  Rotate bits in register A right
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      Z: 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_rrca()
+{
+    uint8_t lsb = A & 0x1;
+
+    setCarryFlag(lsb);
+
+    A = (A >> 1) | (lsb << 7);
+
+    setZeroFlag(0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Shift left arithmetic register r8
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_sla_r8(uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    setCarryFlag(r8 & 0x80);
+
+    r8 <<= 1;
+
+    setZeroFlag(r8 == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    endInstruction(2);
+}
+
+/**
+ *  Shift left arithmetic byte pointed by HL
+ *  Cycles: 4
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_sla_addr_hl()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    setCarryFlag(byte & 0x80);
+
+    byte <<= 1;
+
+    setZeroFlag(byte == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    writemem_u8(byte, hl);
+
+    endInstruction(2);
+}
+
+/**
+ *  Shift right arithmetic register r8
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_sra_r8(uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    setCarryFlag(r8 & 0x1);
+
+    uint8_t msb = r8 & 0x80;
+
+    r8 = (r8 >> 1) | msb;
+
+    setZeroFlag(r8 == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    endInstruction(2);
+}
+
+/**
+ *  Shift right arithmetic byte pointed by HL
+ *  Cycles: 4
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_sra_addr_hl()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    setCarryFlag(byte & 0x80);
+
+    uint8_t msb = byte & 0x80;
+
+    byte = (byte >> 1) | msb;
+
+    setZeroFlag(byte == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    writemem_u8(byte, hl);
+
+    endInstruction(2);
+}
+
+/**
+ *  Shift right logic register r8
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_srl_r8(uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    setCarryFlag(r8 & 0x1);
+
+    r8 >>= 1;
+
+    setZeroFlag(r8 == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+
+    endInstruction(2);
+}
+
+/**
+ *  Shift right logic byte pointed by HL
+ *  Cycles: 4
+ *  Length: 2
+ *  Flags:
+ *      Z: Set if result is 0
+ *      N: 0
+ *      H: 0
+ *      C: Set according to result
+ */
+void SM83::op_srl_addr_hl()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t byte = readmem_u8(hl);
+
+    setCarryFlag(byte & 0x1);
+
+    byte >>= 1;
+
+    setZeroFlag(byte == 0);
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
 
     writemem_u8(byte, hl);
 
