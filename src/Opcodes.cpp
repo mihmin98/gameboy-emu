@@ -1533,3 +1533,352 @@ void SM83::op_srl_addr_hl()
 
     endInstruction(2);
 }
+
+/* LOAD INSTRUCTIONS */
+
+/**
+ *  Load value in register r8_2 into register r8_1
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_r8_r8(uint8_t &r8_1, const uint8_t &r8_2)
+{
+    r8_1 = r8_2;
+
+    endInstruction(1);
+}
+
+/**
+ *  Load value n8 into register r8
+ *  Cycles: 2
+ *  Length: 2
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_r8_n8(uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint8_t n8 = readmem_u8(PC + 1);
+
+    r8 = n8;
+
+    endInstruction(2);
+}
+
+/**
+ *  Load value n16 into register r16
+ *  Cycles: 3
+ *  Length: 3
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_r16_n16(uint8_t &r16_high, uint8_t &r16_low)
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    uint16_t n16 = readmem_u16(PC + 1);
+
+    r16_high = (n16 & 0xFF00) >> 0x8;
+    r16_low = n16 & 0x00FF;
+
+    endInstruction(3);
+}
+
+/**
+ *  Store value in r8 into byte pointed by HL
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_addr_hl_r8(const uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+
+    writemem_u8(r8, hl);
+
+    endInstruction(1);
+}
+
+/**
+ *  Store value n8 into byte pointed by HL
+ *  Cycles: 3
+ *  Length: 2
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_addr_hl_n8()
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    uint8_t n8 = readmem_u8(PC + 1);
+
+    writemem_u8(n8, hl);
+
+    endInstruction(2);
+}
+
+/**
+ *  Load value into register r8 from byte pointed by HL
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_r8_addr_hl(uint8_t &r8)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+
+    r8 = readmem_u8(hl);
+
+    endInstruction(1);
+}
+
+/**
+ *  Store value in register A into byte pointed by r16
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_addr_r16_a(const uint8_t &r16_high, const uint8_t &r16_low)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t r16 = (r16_high << 0x8) | r16_low;
+
+    writemem_u8(A, r16);
+
+    endInstruction(1);
+}
+
+/**
+ *  Store value in register A into byte at address n16
+ *  Cycles: 4
+ *  Length: 3
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_addr_n16_a()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t n16 = readmem_u16(PC + 1);
+
+    writemem_u8(A, n16);
+
+    endInstruction(3);
+}
+
+/**
+ *  Store value in register A into byte at address n16, n16 between 0xFF00-0xFFFF
+ *  Cycles: 3
+ *  Length: 2
+ *  Flags:
+ *      None
+ */
+void SM83::op_ldh_addr_n16_a()
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    uint8_t n8 = readmem_u8(PC + 1);
+
+    writemem_u8(A, 0xFF00 + n8);
+
+    endInstruction(2);
+}
+
+/**
+ *  Store value in register A into byte at address 0xFF00 + C
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ldh_addr_c_a()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    writemem_u8(A, 0xFF00 + C);
+
+    endInstruction(1);
+}
+
+/**
+ *  Load value in register A from byte pointed by r16
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_a_addr_r16(const uint8_t &r16_high, const uint8_t &r16_low)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t r16 = (r16_high << 0x8) | r16_low;
+
+    A = readmem_u8(r16);
+
+    endInstruction(1);
+}
+
+/**
+ *  Load value in register A from byte pointed by n16
+ *  Cycles: 4
+ *  Length: 3
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_a_addr_n16()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t n16 = readmem_u16(PC + 1);
+
+    A = readmem_u8(n16);
+
+    endInstruction(3);
+}
+
+/**
+ *  Load value in register A from byte at address n16, n16 between 0xFF00-0xFFFF
+ *  Cycles: 3
+ *  Length: 2
+ *  Flags:
+ *      None
+ */
+void SM83::op_ldh_a_addr_n16()
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    uint8_t n8 = readmem_u8(PC + 1);
+
+    A = readmem_u8(0xFF00 + n8);
+
+    endInstruction(2);
+}
+
+/**
+ *  Load value in register A from byte at address 0xFF00 + C
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ldh_a_addr_c()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    A = readmem_u8(0xFF00 + C);
+
+    endInstruction(1);
+}
+
+/**
+ *  Store value in register A into byte pointed by HL and increment HL
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_addr_hl_inc_a()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+
+    writemem_u8(A, hl++);
+
+    H = (hl & 0xFF00) >> 0x8;
+    L = hl & 0x00FF;
+
+    endInstruction(1);
+}
+
+/**
+ *  Store value in register A into byte pointed by HL and decrement HL
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_addr_hl_dec_a()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+
+    writemem_u8(A, hl--);
+
+    H = (hl & 0xFF00) >> 0x8;
+    L = hl & 0x00FF;
+
+    endInstruction(1);
+}
+
+/**
+ *  Load value in register A from byte pointed by HL and increment HL
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_a_addr_hl_inc()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+
+    A = readmem_u8(hl++);
+
+    H = (hl & 0xFF00) >> 0x8;
+    L = hl & 0x00FF;
+
+    endInstruction(1);
+}
+
+/**
+ *  Load value in register A from byte pointed by HL and decrement HL
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_a_addr_hl_dec()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+
+    A = readmem_u8(hl--);
+
+    H = (hl & 0xFF00) >> 0x8;
+    L = hl & 0x00FF;
+
+    endInstruction(1);
+}
