@@ -1882,3 +1882,266 @@ void SM83::op_ld_a_addr_hl_dec()
 
     endInstruction(1);
 }
+
+/* JUMP AND SUBROUTINE INSTRUCTIONS */
+
+/**
+ *  Call address n16. Push the address of the instruction after the call on the stack
+ *      and jump to n16
+ *  Cycles: 6
+ *  Length: 3
+ *  Flags:
+ *      None
+ */
+void SM83::op_call_n16()
+{
+    if (!checkInstructionCycle(6))
+        return;
+
+    uint16_t n16 = readmem_u16(PC + 1);
+    uint16_t ret_addr = PC + 3;
+
+    writemem_u8(ret_addr & 0xFF, --SP);
+    writemem_u8((ret_addr & 0xFF00) >> 0x8, --SP);
+
+    PC = n16;
+
+    endInstruction(0);
+}
+
+/**
+ *  Call address n16 if condition cc is met. Push the address of the instruction
+ *      after the call on the stack and jump to n16
+ *  Cycles: 6 taken / 3 untaken
+ *  Length: 3
+ *  Flags:
+ *      None
+ */
+void SM83::op_call_cc_n16(uint8_t flag_bit, uint8_t required_value)
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    if (flag_bit != required_value)
+        endInstruction(3);
+
+    if (!checkInstructionCycle(6))
+        return;
+
+    uint16_t n16 = readmem_u16(PC + 1);
+    uint16_t ret_addr = PC + 3;
+
+    writemem_u8(ret_addr & 0xFF, --SP);
+    writemem_u8((ret_addr & 0xFF00) >> 0x8, --SP);
+
+    PC = n16;
+
+    endInstruction(0);
+}
+
+/**
+ *  Jump to address in HL
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_jp_hl()
+{
+    uint16_t hl = (H << 0x8) | L;
+
+    PC = hl;
+
+    endInstruction(0);
+}
+
+/**
+ *  Jump to address n16
+ *  Cycles: 4
+ *  Length: 3
+ *  Flags:
+ *      None
+ */
+void SM83::op_jp_n16()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t n16 = readmem_u16(PC + 1);
+
+    PC = n16;
+
+    endInstruction(0);
+}
+
+/**
+ *  Jump to address n16 if condition cc is met
+ *  Cycles: 4 taken / 3 untaken
+ *  Length: 3
+ *  Flags:
+ *      None
+ */
+void SM83::op_jp_cc_n16(uint8_t flag_bit, uint8_t required_value)
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    if (flag_bit != required_value)
+        endInstruction(3);
+
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t n16 = readmem_u16(PC + 1);
+
+    PC = n16;
+
+    endInstruction(0);
+}
+
+/**
+ *  Relative jump by adding e8 to the address of the instruction following the jr.
+ *      e8 is signed byte
+ *  Cycles: 3
+ *  Length: 2
+ *  Flags:
+ *      None
+ */
+void SM83::op_jr_e8()
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    uint8_t ue8 = readmem_u8(PC + 1);
+    int8_t e8;
+    memcpy(&e8, &ue8, sizeof(uint8_t));
+
+    uint16_t addr = PC + 2;
+
+    PC = addr + e8;
+
+    endInstruction(0);
+}
+
+/**
+ *  Relative jump if cc is met by adding e8 to the address of the instruction following the jr.
+ *      e8 is signed byte
+ *  Cycles: 3 taken / 2 untaken
+ *  Length: 2
+ *  Flags:
+ *      None
+ */
+void SM83::op_jr_cc_e8(uint8_t flag_bit, uint8_t required_value)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    if (flag_bit != required_value)
+        endInstruction(2);
+
+    if (!checkInstructionCycle(3))
+        return;
+
+    uint8_t ue8 = readmem_u8(PC + 1);
+    int8_t e8;
+    memcpy(&e8, &ue8, sizeof(uint8_t));
+
+    uint16_t addr = PC + 2;
+
+    PC = addr + e8;
+
+    endInstruction(0);
+}
+
+/**
+ *  Return from subroutine if condition cc is met
+ *  Cycles: 5 taken / 2 untaken
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ret_cc(uint8_t flag_bit, uint8_t required_value)
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    if (flag_bit != required_value)
+        endInstruction(1);
+
+    if (!checkInstructionCycle(5))
+        return;
+
+    uint8_t ret_addr_low, ret_addr_high;
+    ret_addr_low = readmem_u8(SP++);
+    ret_addr_high = readmem_u8(SP++);
+
+    PC = (ret_addr_high << 0x8) | ret_addr_low;
+
+    endInstruction(0);
+}
+
+/**
+ *  Return from subroutine
+ *  Cycles: 4
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ret()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint8_t ret_addr_low, ret_addr_high;
+    ret_addr_low = readmem_u8(SP++);
+    ret_addr_high = readmem_u8(SP++);
+
+    PC = (ret_addr_high << 0x8) | ret_addr_low;
+
+    endInstruction(0);
+}
+
+/**
+ *  Return from subroutine and enable interrupts
+ *  Cycles: 4
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_reti()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    setInterruptEnable(0xFF);
+
+    uint8_t ret_addr_low, ret_addr_high;
+    ret_addr_low = readmem_u8(SP++);
+    ret_addr_high = readmem_u8(SP++);
+
+    PC = (ret_addr_high << 0x8) | ret_addr_low;
+
+    endInstruction(0);
+}
+
+/**
+ *  Call address vec
+ *  Cycles: 4
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_rst(uint16_t vec)
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint16_t ret_addr = PC + 1;
+
+    writemem_u8(ret_addr & 0xFF, --SP);
+    writemem_u8((ret_addr & 0xFF00) >> 0x8, --SP);
+
+    PC = vec;
+
+    endInstruction(0);
+}

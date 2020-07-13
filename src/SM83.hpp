@@ -3,6 +3,7 @@
 
 #pragma once
 #include <cstdint>
+#include <cstring>
 
 class SM83
 {
@@ -22,7 +23,8 @@ class SM83
     void writemem_u8(uint8_t val, uint16_t addr);
     void writemem_u16(uint16_t val, uint16_t addr);
 
-    // Returns true if it is on the last instruction cycle, also increments instructionCycle
+    // Returns true if it is on the last or after last instruction cycle, also increments
+    // instructionCycle
     bool checkInstructionCycle(uint8_t opcode_cycles);
     // Sets instructionCycle to 0 and increments PC
     void endInstruction(uint8_t opcode_length);
@@ -33,10 +35,12 @@ class SM83
     uint8_t getSubtractFlag();
     uint8_t getHalfCarryFlag();
     uint8_t getCarryFlag();
+    uint8_t getInterruptEnable();
     void setZeroFlag(uint8_t value);
     void setSubtractFlag(uint8_t value);
     void setHalfCarryFlag(uint8_t value);
     void setCarryFlag(uint8_t value);
+    void setInterruptEnable(uint8_t value);
 
     /* OPCODE INSTRUCTIONS */
 
@@ -145,7 +149,7 @@ class SM83
     void op_ret_cc(uint8_t flag_bit, uint8_t required_value);
     void op_ret();
     void op_reti();
-    void op_rst(uint16_t addr);
+    void op_rst(uint16_t vec);
 
     /* STACK OPERATIONS INSTRUCTIONS */
 
