@@ -2013,8 +2013,7 @@ void SM83::op_jr_e8()
         return;
 
     uint8_t ue8 = readmem_u8(PC + 1);
-    int8_t e8;
-    memcpy(&e8, &ue8, sizeof(uint8_t));
+    int8_t e8 = *(int8_t *)&ue8;
 
     uint16_t addr = PC + 2;
 
@@ -2043,8 +2042,7 @@ void SM83::op_jr_cc_e8(uint8_t flag_bit, uint8_t required_value)
         return;
 
     uint8_t ue8 = readmem_u8(PC + 1);
-    int8_t e8;
-    memcpy(&e8, &ue8, sizeof(uint8_t));
+    int8_t e8 = *(int8_t *)&ue8;
 
     uint16_t addr = PC + 2;
 
@@ -2144,4 +2142,264 @@ void SM83::op_rst(uint16_t vec)
     PC = vec;
 
     endInstruction(0);
+}
+
+/* STACK OPERATIONS INSTRUCTIONS */
+
+/**
+ *  Add the value in SP to HL
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      N: 0
+ *      H: Set if overflow from bit 11
+ *      C: Set if overflow from bit 15
+ */
+void SM83::op_add_hl_sp()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+
+    uint32_t result = hl + SP;
+
+    setSubtractFlag(0);
+    setHalfCarryFlag((hl & 0xFFF) + (SP & 0xFFF) > 0xFFF);
+    setCarryFlag(result > 0xFFFF);
+
+    H = (result & 0xFF00) >> 0x8;
+    L = result & 0x00FF;
+
+    endInstruction(1);
+}
+
+/**
+ *  Add signed value e8 to SP
+ *  Cycles: 4
+ *  Length: 2
+ *  Flags:
+ *      Z: 0
+ *      N: 0
+ *      H: Set if overflow from bit 3
+ *      C: Set if overflow from bit 7
+ */
+void SM83::op_add_sp_e8()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    uint8_t ue8 = readmem_u8(PC + 1);
+    int8_t e8 = *(int8_t *)&ue8;
+
+    uint32_t result = SP + e8;
+
+    setZeroFlag(0);
+    setSubtractFlag(0);
+    setHalfCarryFlag((SP ^ e8 ^ (result & 0xFFFF) & 0x10) == 0x10);
+    setCarryFlag((SP ^ e8 ^ (result & 0xFFFF) & 0x100) == 0x100);
+
+    SP = result;
+
+    endInstruction(2);
+}
+
+/**
+ *  Decrement value in SP by 1
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_dec_sp()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    --SP;
+
+    endInstruction(1);
+}
+
+/**
+ *  Increment value in SP by 1
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_inc_sp()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    ++SP;
+
+    endInstruction(1);
+}
+
+/**
+ *  Load value n16 into SP
+ *  Cycles: 3
+ *  Length: 3
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_sp_n16()
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    uint16_t n16 = readmem_u16(PC + 1);
+
+    SP = n16;
+
+    endInstruction(3);
+}
+
+/**
+ *  Store SP at address n16
+ *  Cycles: 5
+ *  Length: 3
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_addr_n16_sp()
+{
+    if (!checkInstructionCycle(5))
+        return;
+
+    uint16_t n16 = readmem_u16(PC + 1);
+
+    writemem_u16(SP, n16);
+
+    endInstruction(3);
+}
+
+/**
+ *  Add the signed value e8 to SP and store the result in HL
+ *  Cycles: 3
+ *  Length: 2
+ *  Flags:
+ *      Z: 0
+ *      N: 0
+ *      H: Set if overflow from bit 3
+ *      C: Set if overflow from bit 7
+ */
+void SM83::op_ld_hl_sp_plus_e8()
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    uint8_t ue8 = readmem_u8(PC + 1);
+    int8_t e8 = *(int8_t *)&ue8;
+
+    uint32_t result = SP + e8;
+
+    setZeroFlag(0);
+    setSubtractFlag(0);
+    setHalfCarryFlag((SP ^ e8 ^ (result & 0xFFFF) & 0x10) == 0x10);
+    setCarryFlag((SP ^ e8 ^ (result & 0xFFFF) & 0x100) == 0x100);
+
+    SP = result;
+
+    uint16_t hl = (H << 0x8) | L;
+
+    writemem_u16(SP, hl);
+
+    endInstruction(2);
+}
+
+/**
+ *  Load register HL into SP
+ *  Cycles: 2
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_ld_sp_hl()
+{
+    if (!checkInstructionCycle(2))
+        return;
+
+    uint16_t hl = (H << 0x8) | L;
+    SP = hl;
+
+    endInstruction(1);
+}
+
+/**
+ *  Pop register AF from stack
+ *  Cycles: 3
+ *  Length: 1
+ *  Flags:
+ *      Z: Set from bit 7 of popped low byte
+ *      N: Set from bit 6 of popped low byte
+ *      H: Set from bit 5 of popped low byte
+ *      C: Set from bit 4 of popped low byte
+ *      (These flags will be automatically set when the F register is loaded)
+ */
+void SM83::op_pop_af()
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    A = readmem_u8(SP++);
+    F = readmem_u8(SP++);
+
+    endInstruction(1);
+}
+
+/**
+ *  Pop register r16 from the stack
+ *  Cycles: 3
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_pop_r16(uint8_t &r16_high, uint8_t &r16_low)
+{
+    if (!checkInstructionCycle(3))
+        return;
+
+    r16_low = readmem_u8(SP++);
+    r16_high = readmem_u8(SP++);
+
+    endInstruction(1);
+}
+
+/**
+ *  Push register AF into the stack
+ *  Cycles: 4
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_push_af()
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    writemem_u8(A, --SP);
+    writemem_u8(F, --SP);
+
+    endInstruction(1);
+}
+
+/**
+ *  Push register r16 into the stack
+ *  Cycles: 4
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_push_r16(const uint8_t &r16_high, const uint8_t &r16_low)
+{
+    if (!checkInstructionCycle(4))
+        return;
+
+    writemem_u8(r16_high, --SP);
+    writemem_u8(r16_low, --SP);
+
+    endInstruction(1);
 }
