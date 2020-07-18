@@ -2403,3 +2403,157 @@ void SM83::op_push_r16(const uint8_t &r16_high, const uint8_t &r16_low)
 
     endInstruction(1);
 }
+
+/* MISC INSTRUCTIONS */
+
+/**
+ *  Complement carry flag
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      C: Inverted
+ */
+void SM83::op_ccf()
+{
+    uint8_t carry = getCarryFlag();
+
+    setCarryFlag((~carry) & 0x1);
+
+    endInstruction(1);
+}
+
+/**
+ *  Complement Accumulator
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      N: 1
+ *      H: 1
+ */
+void SM83::op_cpl()
+{
+    A = ~A;
+
+    endInstruction(1);
+}
+
+/**
+ *  Decimal Adjust Accumulator to get a correct BCD representation after an arithmetic intruction
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      Z: Set if result is 0
+ *      H: 0
+ *      C: Set or reset depending on operation
+ */
+void SM83::op_daa()
+{
+    uint8_t subtractFlag = getSubtractFlag();
+
+    if (!subtractFlag) {
+        // Addition
+        if (getCarryFlag() || A > 0x99) {
+            A += 0x60;
+            setCarryFlag(1);
+        }
+        if (getHalfCarryFlag() || (A & 0x0F) > 0x09) {
+            A += 0x06;
+        }
+    } else {
+        // Subtraction
+        if (getCarryFlag())
+            A -= 0x60;
+
+        if (getHalfCarryFlag())
+            A -= 0x06;
+    }
+
+    setZeroFlag(A == 0);
+    setHalfCarryFlag(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Disable Interrupts by clearing IME flag
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_di()
+{
+    setInterruptEnable(0);
+
+    endInstruction(1);
+}
+
+/**
+ *  Enable Interrupts by setting the IME flag. The flag is set only after the instruction following
+ * EI Cycles: 1 Length: 1 Flags: None
+ */
+void SM83::op_ei()
+{
+    ei_enable = 2;
+
+    endInstruction(1);
+}
+
+/**
+ *  Enter CPU low-power mode until an interrupt occurs
+ *  If IME is set: The CPU enters low-power mode until after an interrupt is about to be serviced
+ *                 The handler is executed normally and the CPU resumes execution after the HALT
+ *                 when that returns
+ *  If IME is not set: The behaviour depends wether an interrupt is pending:
+ *                          If none pending: As soon as an interrupt becomes pending
+ *                          the CPU resumes execution. The handler is not called
+ *                          If some pending: The CPU continues esxecution after the HALT
+ *                          but the byte after is read twice in a row (PC is not incremented)
+ *  Cycles: -
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_halt()
+{
+    // TODO
+}
+
+/**
+ *  No OPeration
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      None
+ */
+void SM83::op_nop() { endInstruction(1); }
+
+/**
+ *  Set carry flag
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags:
+ *      N: 0
+ *      H: 0
+ *      C: 1
+ */
+void SM83::op_scf()
+{
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
+    setCarryFlag(1);
+
+    endInstruction(1);
+}
+
+/**
+ *  Enter CPU very low power mode. Also used to switch between x1 and x2 speed CPU mode in GBC
+ *  Cycles: 1
+ *  Length: 2
+ *  Flags:
+ *      None
+ */
+void SM83::op_stop()
+{
+    // TODO
+}

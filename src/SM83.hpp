@@ -13,6 +13,11 @@ class SM83
     uint16_t PC, SP;
     uint8_t instructionCycle;
 
+    // Variable that when is above 1, is decremented after each intruction
+    // When it's 1, set the interrupt flag
+    // If its value is 0, then ignore
+    uint8_t ei_enable;
+
     SM83(uint8_t *memory);
     void initRegisters();
     void cycle();
