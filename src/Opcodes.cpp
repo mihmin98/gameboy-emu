@@ -2516,7 +2516,7 @@ void SM83::op_ei()
  */
 void SM83::op_halt()
 {
-    // TODO
+    halt_mode = true;
 }
 
 /**
@@ -2555,5 +2555,5 @@ void SM83::op_scf()
  */
 void SM83::op_stop()
 {
-    // TODO
+    stop_signal = true;
 }
