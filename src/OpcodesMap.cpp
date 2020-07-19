@@ -612,7 +612,775 @@ void SM83::OP_CA() { op_jp_cc_n16(getZeroFlag(), 1); }
 // Prefix CB
 void SM83::OP_CB()
 {
-    // TODO
+    uint8_t cb_opcode = readmem_u8(PC + 1);
+
+    switch (cb_opcode) {
+    case 0x00:
+        OP_CB_00();
+        break;
+    case 0x01:
+        OP_CB_01();
+        break;
+    case 0x02:
+        OP_CB_02();
+        break;
+    case 0x03:
+        OP_CB_03();
+        break;
+    case 0x04:
+        OP_CB_04();
+        break;
+    case 0x05:
+        OP_CB_05();
+        break;
+    case 0x06:
+        OP_CB_06();
+        break;
+    case 0x07:
+        OP_CB_07();
+        break;
+    case 0x08:
+        OP_CB_08();
+        break;
+    case 0x09:
+        OP_CB_09();
+        break;
+    case 0x0A:
+        OP_CB_0A();
+        break;
+    case 0x0B:
+        OP_CB_0B();
+        break;
+    case 0x0C:
+        OP_CB_0C();
+        break;
+    case 0x0D:
+        OP_CB_0D();
+        break;
+    case 0x0E:
+        OP_CB_0E();
+        break;
+    case 0x0F:
+        OP_CB_0F();
+        break;
+    case 0x10:
+        OP_CB_10();
+        break;
+    case 0x11:
+        OP_CB_11();
+        break;
+    case 0x12:
+        OP_CB_12();
+        break;
+    case 0x13:
+        OP_CB_13();
+        break;
+    case 0x14:
+        OP_CB_14();
+        break;
+    case 0x15:
+        OP_CB_15();
+        break;
+    case 0x16:
+        OP_CB_16();
+        break;
+    case 0x17:
+        OP_CB_17();
+        break;
+    case 0x18:
+        OP_CB_18();
+        break;
+    case 0x19:
+        OP_CB_19();
+        break;
+    case 0x1A:
+        OP_CB_1A();
+        break;
+    case 0x1B:
+        OP_CB_1B();
+        break;
+    case 0x1C:
+        OP_CB_1C();
+        break;
+    case 0x1D:
+        OP_CB_1D();
+        break;
+    case 0x1E:
+        OP_CB_1E();
+        break;
+    case 0x1F:
+        OP_CB_1F();
+        break;
+    case 0x20:
+        OP_CB_20();
+        break;
+    case 0x21:
+        OP_CB_21();
+        break;
+    case 0x22:
+        OP_CB_22();
+        break;
+    case 0x23:
+        OP_CB_23();
+        break;
+    case 0x24:
+        OP_CB_24();
+        break;
+    case 0x25:
+        OP_CB_25();
+        break;
+    case 0x26:
+        OP_CB_26();
+        break;
+    case 0x27:
+        OP_CB_27();
+        break;
+    case 0x28:
+        OP_CB_28();
+        break;
+    case 0x29:
+        OP_CB_29();
+        break;
+    case 0x2A:
+        OP_CB_2A();
+        break;
+    case 0x2B:
+        OP_CB_2B();
+        break;
+    case 0x2C:
+        OP_CB_2C();
+        break;
+    case 0x2D:
+        OP_CB_2D();
+        break;
+    case 0x2E:
+        OP_CB_2E();
+        break;
+    case 0x2F:
+        OP_CB_2F();
+        break;
+    case 0x30:
+        OP_CB_30();
+        break;
+    case 0x31:
+        OP_CB_31();
+        break;
+    case 0x32:
+        OP_CB_32();
+        break;
+    case 0x33:
+        OP_CB_33();
+        break;
+    case 0x34:
+        OP_CB_34();
+        break;
+    case 0x35:
+        OP_CB_35();
+        break;
+    case 0x36:
+        OP_CB_36();
+        break;
+    case 0x37:
+        OP_CB_37();
+        break;
+    case 0x38:
+        OP_CB_38();
+        break;
+    case 0x39:
+        OP_CB_39();
+        break;
+    case 0x3A:
+        OP_CB_3A();
+        break;
+    case 0x3B:
+        OP_CB_3B();
+        break;
+    case 0x3C:
+        OP_CB_3C();
+        break;
+    case 0x3D:
+        OP_CB_3D();
+        break;
+    case 0x3E:
+        OP_CB_3E();
+        break;
+    case 0x3F:
+        OP_CB_3F();
+        break;
+    case 0x40:
+        OP_CB_40();
+        break;
+    case 0x41:
+        OP_CB_41();
+        break;
+    case 0x42:
+        OP_CB_42();
+        break;
+    case 0x43:
+        OP_CB_43();
+        break;
+    case 0x44:
+        OP_CB_44();
+        break;
+    case 0x45:
+        OP_CB_45();
+        break;
+    case 0x46:
+        OP_CB_46();
+        break;
+    case 0x47:
+        OP_CB_47();
+        break;
+    case 0x48:
+        OP_CB_48();
+        break;
+    case 0x49:
+        OP_CB_49();
+        break;
+    case 0x4A:
+        OP_CB_4A();
+        break;
+    case 0x4B:
+        OP_CB_4B();
+        break;
+    case 0x4C:
+        OP_CB_4C();
+        break;
+    case 0x4D:
+        OP_CB_4D();
+        break;
+    case 0x4E:
+        OP_CB_4E();
+        break;
+    case 0x4F:
+        OP_CB_4F();
+        break;
+    case 0x50:
+        OP_CB_50();
+        break;
+    case 0x51:
+        OP_CB_51();
+        break;
+    case 0x52:
+        OP_CB_52();
+        break;
+    case 0x53:
+        OP_CB_53();
+        break;
+    case 0x54:
+        OP_CB_54();
+        break;
+    case 0x55:
+        OP_CB_55();
+        break;
+    case 0x56:
+        OP_CB_56();
+        break;
+    case 0x57:
+        OP_CB_57();
+        break;
+    case 0x58:
+        OP_CB_58();
+        break;
+    case 0x59:
+        OP_CB_59();
+        break;
+    case 0x5A:
+        OP_CB_5A();
+        break;
+    case 0x5B:
+        OP_CB_5B();
+        break;
+    case 0x5C:
+        OP_CB_5C();
+        break;
+    case 0x5D:
+        OP_CB_5D();
+        break;
+    case 0x5E:
+        OP_CB_5E();
+        break;
+    case 0x5F:
+        OP_CB_5F();
+        break;
+    case 0x60:
+        OP_CB_60();
+        break;
+    case 0x61:
+        OP_CB_61();
+        break;
+    case 0x62:
+        OP_CB_62();
+        break;
+    case 0x63:
+        OP_CB_63();
+        break;
+    case 0x64:
+        OP_CB_64();
+        break;
+    case 0x65:
+        OP_CB_65();
+        break;
+    case 0x66:
+        OP_CB_66();
+        break;
+    case 0x67:
+        OP_CB_67();
+        break;
+    case 0x68:
+        OP_CB_68();
+        break;
+    case 0x69:
+        OP_CB_69();
+        break;
+    case 0x6A:
+        OP_CB_6A();
+        break;
+    case 0x6B:
+        OP_CB_6B();
+        break;
+    case 0x6C:
+        OP_CB_6C();
+        break;
+    case 0x6D:
+        OP_CB_6D();
+        break;
+    case 0x6E:
+        OP_CB_6E();
+        break;
+    case 0x6F:
+        OP_CB_6F();
+        break;
+    case 0x70:
+        OP_CB_70();
+        break;
+    case 0x71:
+        OP_CB_71();
+        break;
+    case 0x72:
+        OP_CB_72();
+        break;
+    case 0x73:
+        OP_CB_73();
+        break;
+    case 0x74:
+        OP_CB_74();
+        break;
+    case 0x75:
+        OP_CB_75();
+        break;
+    case 0x76:
+        OP_CB_76();
+        break;
+    case 0x77:
+        OP_CB_77();
+        break;
+    case 0x78:
+        OP_CB_78();
+        break;
+    case 0x79:
+        OP_CB_79();
+        break;
+    case 0x7A:
+        OP_CB_7A();
+        break;
+    case 0x7B:
+        OP_CB_7B();
+        break;
+    case 0x7C:
+        OP_CB_7C();
+        break;
+    case 0x7D:
+        OP_CB_7D();
+        break;
+    case 0x7E:
+        OP_CB_7E();
+        break;
+    case 0x7F:
+        OP_CB_7F();
+        break;
+    case 0x80:
+        OP_CB_80();
+        break;
+    case 0x81:
+        OP_CB_81();
+        break;
+    case 0x82:
+        OP_CB_82();
+        break;
+    case 0x83:
+        OP_CB_83();
+        break;
+    case 0x84:
+        OP_CB_84();
+        break;
+    case 0x85:
+        OP_CB_85();
+        break;
+    case 0x86:
+        OP_CB_86();
+        break;
+    case 0x87:
+        OP_CB_87();
+        break;
+    case 0x88:
+        OP_CB_88();
+        break;
+    case 0x89:
+        OP_CB_89();
+        break;
+    case 0x8A:
+        OP_CB_8A();
+        break;
+    case 0x8B:
+        OP_CB_8B();
+        break;
+    case 0x8C:
+        OP_CB_8C();
+        break;
+    case 0x8D:
+        OP_CB_8D();
+        break;
+    case 0x8E:
+        OP_CB_8E();
+        break;
+    case 0x8F:
+        OP_CB_8F();
+        break;
+    case 0x90:
+        OP_CB_90();
+        break;
+    case 0x91:
+        OP_CB_91();
+        break;
+    case 0x92:
+        OP_CB_92();
+        break;
+    case 0x93:
+        OP_CB_93();
+        break;
+    case 0x94:
+        OP_CB_94();
+        break;
+    case 0x95:
+        OP_CB_95();
+        break;
+    case 0x96:
+        OP_CB_96();
+        break;
+    case 0x97:
+        OP_CB_97();
+        break;
+    case 0x98:
+        OP_CB_98();
+        break;
+    case 0x99:
+        OP_CB_99();
+        break;
+    case 0x9A:
+        OP_CB_9A();
+        break;
+    case 0x9B:
+        OP_CB_9B();
+        break;
+    case 0x9C:
+        OP_CB_9C();
+        break;
+    case 0x9D:
+        OP_CB_9D();
+        break;
+    case 0x9E:
+        OP_CB_9E();
+        break;
+    case 0x9F:
+        OP_CB_9F();
+        break;
+    case 0xA0:
+        OP_CB_A0();
+        break;
+    case 0xA1:
+        OP_CB_A1();
+        break;
+    case 0xA2:
+        OP_CB_A2();
+        break;
+    case 0xA3:
+        OP_CB_A3();
+        break;
+    case 0xA4:
+        OP_CB_A4();
+        break;
+    case 0xA5:
+        OP_CB_A5();
+        break;
+    case 0xA6:
+        OP_CB_A6();
+        break;
+    case 0xA7:
+        OP_CB_A7();
+        break;
+    case 0xA8:
+        OP_CB_A8();
+        break;
+    case 0xA9:
+        OP_CB_A9();
+        break;
+    case 0xAA:
+        OP_CB_AA();
+        break;
+    case 0xAB:
+        OP_CB_AB();
+        break;
+    case 0xAC:
+        OP_CB_AC();
+        break;
+    case 0xAD:
+        OP_CB_AD();
+        break;
+    case 0xAE:
+        OP_CB_AE();
+        break;
+    case 0xAF:
+        OP_CB_AF();
+        break;
+    case 0xB0:
+        OP_CB_B0();
+        break;
+    case 0xB1:
+        OP_CB_B1();
+        break;
+    case 0xB2:
+        OP_CB_B2();
+        break;
+    case 0xB3:
+        OP_CB_B3();
+        break;
+    case 0xB4:
+        OP_CB_B4();
+        break;
+    case 0xB5:
+        OP_CB_B5();
+        break;
+    case 0xB6:
+        OP_CB_B6();
+        break;
+    case 0xB7:
+        OP_CB_B7();
+        break;
+    case 0xB8:
+        OP_CB_B8();
+        break;
+    case 0xB9:
+        OP_CB_B9();
+        break;
+    case 0xBA:
+        OP_CB_BA();
+        break;
+    case 0xBB:
+        OP_CB_BB();
+        break;
+    case 0xBC:
+        OP_CB_BC();
+        break;
+    case 0xBD:
+        OP_CB_BD();
+        break;
+    case 0xBE:
+        OP_CB_BE();
+        break;
+    case 0xBF:
+        OP_CB_BF();
+        break;
+    case 0xC0:
+        OP_CB_C0();
+        break;
+    case 0xC1:
+        OP_CB_C1();
+        break;
+    case 0xC2:
+        OP_CB_C2();
+        break;
+    case 0xC3:
+        OP_CB_C3();
+        break;
+    case 0xC4:
+        OP_CB_C4();
+        break;
+    case 0xC5:
+        OP_CB_C5();
+        break;
+    case 0xC6:
+        OP_CB_C6();
+        break;
+    case 0xC7:
+        OP_CB_C7();
+        break;
+    case 0xC8:
+        OP_CB_C8();
+        break;
+    case 0xC9:
+        OP_CB_C9();
+        break;
+    case 0xCA:
+        OP_CB_CA();
+        break;
+    case 0xCB:
+        OP_CB_CB();
+        break;
+    case 0xCC:
+        OP_CB_CC();
+        break;
+    case 0xCD:
+        OP_CB_CD();
+        break;
+    case 0xCE:
+        OP_CB_CE();
+        break;
+    case 0xCF:
+        OP_CB_CF();
+        break;
+    case 0xD0:
+        OP_CB_D0();
+        break;
+    case 0xD1:
+        OP_CB_D1();
+        break;
+    case 0xD2:
+        OP_CB_D2();
+        break;
+    case 0xD3:
+        OP_CB_D3();
+        break;
+    case 0xD4:
+        OP_CB_D4();
+        break;
+    case 0xD5:
+        OP_CB_D5();
+        break;
+    case 0xD6:
+        OP_CB_D6();
+        break;
+    case 0xD7:
+        OP_CB_D7();
+        break;
+    case 0xD8:
+        OP_CB_D8();
+        break;
+    case 0xD9:
+        OP_CB_D9();
+        break;
+    case 0xDA:
+        OP_CB_DA();
+        break;
+    case 0xDB:
+        OP_CB_DB();
+        break;
+    case 0xDC:
+        OP_CB_DC();
+        break;
+    case 0xDD:
+        OP_CB_DD();
+        break;
+    case 0xDE:
+        OP_CB_DE();
+        break;
+    case 0xDF:
+        OP_CB_DF();
+        break;
+    case 0xE0:
+        OP_CB_E0();
+        break;
+    case 0xE1:
+        OP_CB_E1();
+        break;
+    case 0xE2:
+        OP_CB_E2();
+        break;
+    case 0xE3:
+        OP_CB_E3();
+        break;
+    case 0xE4:
+        OP_CB_E4();
+        break;
+    case 0xE5:
+        OP_CB_E5();
+        break;
+    case 0xE6:
+        OP_CB_E6();
+        break;
+    case 0xE7:
+        OP_CB_E7();
+        break;
+    case 0xE8:
+        OP_CB_E8();
+        break;
+    case 0xE9:
+        OP_CB_E9();
+        break;
+    case 0xEA:
+        OP_CB_EA();
+        break;
+    case 0xEB:
+        OP_CB_EB();
+        break;
+    case 0xEC:
+        OP_CB_EC();
+        break;
+    case 0xED:
+        OP_CB_ED();
+        break;
+    case 0xEE:
+        OP_CB_EE();
+        break;
+    case 0xEF:
+        OP_CB_EF();
+        break;
+    case 0xF0:
+        OP_CB_F0();
+        break;
+    case 0xF1:
+        OP_CB_F1();
+        break;
+    case 0xF2:
+        OP_CB_F2();
+        break;
+    case 0xF3:
+        OP_CB_F3();
+        break;
+    case 0xF4:
+        OP_CB_F4();
+        break;
+    case 0xF5:
+        OP_CB_F5();
+        break;
+    case 0xF6:
+        OP_CB_F6();
+        break;
+    case 0xF7:
+        OP_CB_F7();
+        break;
+    case 0xF8:
+        OP_CB_F8();
+        break;
+    case 0xF9:
+        OP_CB_F9();
+        break;
+    case 0xFA:
+        OP_CB_FA();
+        break;
+    case 0xFB:
+        OP_CB_FB();
+        break;
+    case 0xFC:
+        OP_CB_FC();
+        break;
+    case 0xFD:
+        OP_CB_FD();
+        break;
+    case 0xFE:
+        OP_CB_FE();
+        break;
+    }
 }
 
 // CALL Z, n16
