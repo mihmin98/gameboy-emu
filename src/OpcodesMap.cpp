@@ -770,3 +770,771 @@ void SM83::OP_FE() { op_cp_a_n8(); }
 
 // RST 0x38
 void SM83::OP_FF() { op_rst(0x38); }
+
+// RLC B
+void SM83::OP_CB_00() { op_rlc_r8(B); }
+
+// RLC C
+void SM83::OP_CB_01() { op_rlc_r8(C); }
+
+// RLC D
+void SM83::OP_CB_02() { op_rlc_r8(D); }
+
+// RLC E
+void SM83::OP_CB_03() { op_rlc_r8(E); }
+
+// RLC H
+void SM83::OP_CB_04() { op_rlc_r8(H); }
+
+// RLC L
+void SM83::OP_CB_05() { op_rlc_r8(L); }
+
+// RLC [HL]
+void SM83::OP_CB_06() { op_rlc_addr_hl(); }
+
+// RLC A
+void SM83::OP_CB_07() { op_rlc_r8(A); }
+
+// RRC B
+void SM83::OP_CB_08() { op_rrc_r8(B); }
+
+// RRC C
+void SM83::OP_CB_09() { op_rrc_r8(C); }
+
+// RRC D
+void SM83::OP_CB_0A() { op_rrc_r8(D); }
+
+// RRC E
+void SM83::OP_CB_0B() { op_rrc_r8(E); }
+
+// RRC H
+void SM83::OP_CB_0C() { op_rrc_r8(H); }
+
+// RRC L
+void SM83::OP_CB_0D() { op_rrc_r8(L); }
+
+// RRC [HL]
+void SM83::OP_CB_0E() { op_rrc_addr_hl(); }
+
+// RRC A
+void SM83::OP_CB_0F() { op_rrc_r8(A); }
+
+// RL B
+void SM83::OP_CB_10() { op_rl_r8(B); }
+
+// RL C
+void SM83::OP_CB_11() { op_rl_r8(C); }
+
+// RL D
+void SM83::OP_CB_12() { op_rl_r8(D); }
+
+// RL E
+void SM83::OP_CB_13() { op_rl_r8(E); }
+
+// RL H
+void SM83::OP_CB_14() { op_rl_r8(H); }
+
+// RL L
+void SM83::OP_CB_15() { op_rl_r8(L); }
+
+// RL [HL]
+void SM83::OP_CB_16() { op_rl_addr_hl(); }
+
+// RL A
+void SM83::OP_CB_17() { op_rl_r8(A); }
+
+// RR B
+void SM83::OP_CB_18() { op_rr_r8(B); }
+
+// RR C
+void SM83::OP_CB_19() { op_rr_r8(C); }
+
+// RR D
+void SM83::OP_CB_1A() { op_rr_r8(D); }
+
+// RR E
+void SM83::OP_CB_1B() { op_rr_r8(E); }
+
+// RR H
+void SM83::OP_CB_1C() { op_rr_r8(H); }
+
+// RR L
+void SM83::OP_CB_1D() { op_rr_r8(L); }
+
+// RR [HL]
+void SM83::OP_CB_1E() { op_rr_addr_hl(); }
+
+// RR A
+void SM83::OP_CB_1F() { op_rr_r8(A); }
+
+// SLA B
+void SM83::OP_CB_20() { op_sla_r8(B); }
+
+// SLA C
+void SM83::OP_CB_21() { op_sla_r8(C); }
+
+// SLA D
+void SM83::OP_CB_22() { op_sla_r8(D); }
+
+// SLA E
+void SM83::OP_CB_23() { op_sla_r8(E); }
+
+// SLA H
+void SM83::OP_CB_24() { op_sla_r8(H); }
+
+// SLA L
+void SM83::OP_CB_25() { op_sla_r8(L); }
+
+// SLA [HL]
+void SM83::OP_CB_26() { op_sla_addr_hl(); }
+
+// SLA A
+void SM83::OP_CB_27() { op_sla_r8(A); }
+
+// SRA B
+void SM83::OP_CB_28() { op_sra_r8(B); }
+
+// SRA C
+void SM83::OP_CB_29() { op_sra_r8(C); }
+
+// SRA D
+void SM83::OP_CB_2A() { op_sra_r8(D); }
+
+// SRA E
+void SM83::OP_CB_2B() { op_sra_r8(E); }
+
+// SRA H
+void SM83::OP_CB_2C() { op_sra_r8(H); }
+
+// SRA L
+void SM83::OP_CB_2D() { op_sra_r8(L); }
+
+// SRA [HL]
+void SM83::OP_CB_2E() { op_sra_addr_hl(); }
+
+// SRA A
+void SM83::OP_CB_2F() { op_sra_r8(A); }
+
+// SWAP B
+void SM83::OP_CB_30() { op_swap_r8(B); }
+
+// SWAP C
+void SM83::OP_CB_31() { op_swap_r8(C); }
+
+// SWAP D
+void SM83::OP_CB_32() { op_swap_r8(D); }
+
+// SWAP E
+void SM83::OP_CB_33() { op_swap_r8(E); }
+
+// SWAP H
+void SM83::OP_CB_34() { op_swap_r8(H); }
+
+// SWAP L
+void SM83::OP_CB_35() { op_swap_r8(L); }
+
+// SWAP [HL]
+void SM83::OP_CB_36() { op_swap_addr_hl(); }
+
+// SWAP A
+void SM83::OP_CB_37() { op_swap_r8(A); }
+
+// SRL B
+void SM83::OP_CB_38() { op_srl_r8(B); }
+
+// SRL C
+void SM83::OP_CB_39() { op_srl_r8(C); }
+
+// SRL D
+void SM83::OP_CB_3A() { op_srl_r8(D); }
+
+// SRL E
+void SM83::OP_CB_3B() { op_srl_r8(E); }
+
+// SRL H
+void SM83::OP_CB_3C() { op_srl_r8(H); }
+
+// SRL L
+void SM83::OP_CB_3D() { op_srl_r8(L); }
+
+// SRL [HL]
+void SM83::OP_CB_3E() { op_srl_addr_hl(); }
+
+// SRL A
+void SM83::OP_CB_3F() { op_srl_r8(A); }
+
+// BIT 0, B
+void SM83::OP_CB_40() { op_bit_u3_r8(0, B); }
+
+// BIT 0, C
+void SM83::OP_CB_41() { op_bit_u3_r8(0, C); }
+
+// BIT 0, D
+void SM83::OP_CB_42() { op_bit_u3_r8(0, D); }
+
+// BIT 0, E
+void SM83::OP_CB_43() { op_bit_u3_r8(0, E); }
+
+// BIT 0, H
+void SM83::OP_CB_44() { op_bit_u3_r8(0, H); }
+
+// BIT 0, L
+void SM83::OP_CB_45() { op_bit_u3_r8(0, L); }
+
+// BIT 0, [HL]
+void SM83::OP_CB_46() { op_bit_u3_addr_hl(0); }
+
+// BIT 0, A
+void SM83::OP_CB_47() { op_bit_u3_r8(0, A); }
+
+// BIT 1, B
+void SM83::OP_CB_48() { op_bit_u3_r8(1, B); }
+
+// BIT 1, C
+void SM83::OP_CB_49() { op_bit_u3_r8(1, C); }
+
+// BIT 1, D
+void SM83::OP_CB_4A() { op_bit_u3_r8(1, D); }
+
+// BIT 1, E
+void SM83::OP_CB_4B() { op_bit_u3_r8(1, E); }
+
+// BIT 1, H
+void SM83::OP_CB_4C() { op_bit_u3_r8(1, H); }
+
+// BIT 1, L
+void SM83::OP_CB_4D() { op_bit_u3_r8(1, L); }
+
+// BIT 1, [HL]
+void SM83::OP_CB_4E() { op_bit_u3_addr_hl(1); }
+
+// BIT 1, A
+void SM83::OP_CB_4F() { op_bit_u3_r8(1, A); }
+
+// BIT 2, B
+void SM83::OP_CB_50() { op_bit_u3_r8(2, B); }
+
+// BIT 2, C
+void SM83::OP_CB_51() { op_bit_u3_r8(2, C); }
+
+// BIT 2, D
+void SM83::OP_CB_52() { op_bit_u3_r8(2, D); }
+
+// BIT 2, E
+void SM83::OP_CB_53() { op_bit_u3_r8(2, E); }
+
+// BIT 2, H
+void SM83::OP_CB_54() { op_bit_u3_r8(2, H); }
+
+// BIT 2, L
+void SM83::OP_CB_55() { op_bit_u3_r8(2, L); }
+
+// BIT 2, [HL]
+void SM83::OP_CB_56() { op_bit_u3_addr_hl(2); }
+
+// BIT 2, A
+void SM83::OP_CB_57() { op_bit_u3_r8(2, A); }
+
+// BIT 3, B
+void SM83::OP_CB_58() { op_bit_u3_r8(3, B); }
+
+// BIT 3, C
+void SM83::OP_CB_59() { op_bit_u3_r8(3, C); }
+
+// BIT 3, D
+void SM83::OP_CB_5A() { op_bit_u3_r8(3, D); }
+
+// BIT 3, E
+void SM83::OP_CB_5B() { op_bit_u3_r8(3, E); }
+
+// BIT 3, H
+void SM83::OP_CB_5C() { op_bit_u3_r8(3, H); }
+
+// BIT 3, L
+void SM83::OP_CB_5D() { op_bit_u3_r8(3, L); }
+
+// BIT 3, [HL]
+void SM83::OP_CB_5E() { op_bit_u3_addr_hl(3); }
+
+// BIT 3, A
+void SM83::OP_CB_5F() { op_bit_u3_r8(3, A); }
+
+// BIT 4, B
+void SM83::OP_CB_60() { op_bit_u3_r8(4, B); }
+
+// BIT 4, C
+void SM83::OP_CB_61() { op_bit_u3_r8(4, C); }
+
+// BIT 4, D
+void SM83::OP_CB_62() { op_bit_u3_r8(4, D); }
+
+// BIT 4, E
+void SM83::OP_CB_63() { op_bit_u3_r8(4, E); }
+
+// BIT 4, H
+void SM83::OP_CB_64() { op_bit_u3_r8(4, H); }
+
+// BIT 4, L
+void SM83::OP_CB_65() { op_bit_u3_r8(4, L); }
+
+// BIT 4, [HL]
+void SM83::OP_CB_66() { op_bit_u3_addr_hl(4); }
+
+// BIT 4, A
+void SM83::OP_CB_67() { op_bit_u3_r8(4, A); }
+
+// BIT 5, B
+void SM83::OP_CB_68() { op_bit_u3_r8(5, B); }
+
+// BIT 5, C
+void SM83::OP_CB_69() { op_bit_u3_r8(5, C); }
+
+// BIT 5, D
+void SM83::OP_CB_6A() { op_bit_u3_r8(5, D); }
+
+// BIT 5, E
+void SM83::OP_CB_6B() { op_bit_u3_r8(5, E); }
+
+// BIT 5, H
+void SM83::OP_CB_6C() { op_bit_u3_r8(5, H); }
+
+// BIT 5, L
+void SM83::OP_CB_6D() { op_bit_u3_r8(5, L); }
+
+// BIT 5, [HL]
+void SM83::OP_CB_6E() { op_bit_u3_addr_hl(5); }
+
+// BIT 5, A
+void SM83::OP_CB_6F() { op_bit_u3_r8(5, A); }
+
+// BIT 6, B
+void SM83::OP_CB_70() { op_bit_u3_r8(6, B); }
+
+// BIT 6, C
+void SM83::OP_CB_71() { op_bit_u3_r8(6, C); }
+
+// BIT 6, D
+void SM83::OP_CB_72() { op_bit_u3_r8(6, D); }
+
+// BIT 6, E
+void SM83::OP_CB_73() { op_bit_u3_r8(6, E); }
+
+// BIT 6, H
+void SM83::OP_CB_74() { op_bit_u3_r8(6, H); }
+
+// BIT 6, L
+void SM83::OP_CB_75() { op_bit_u3_r8(6, L); }
+
+// BIT 6, [HL]
+void SM83::OP_CB_76() { op_bit_u3_addr_hl(6); }
+
+// BIT 6, A
+void SM83::OP_CB_77() { op_bit_u3_r8(6, A); }
+
+// BIT 7, B
+void SM83::OP_CB_78() { op_bit_u3_r8(7, B); }
+
+// BIT 7, C
+void SM83::OP_CB_79() { op_bit_u3_r8(7, C); }
+
+// BIT 7, D
+void SM83::OP_CB_7A() { op_bit_u3_r8(7, D); }
+
+// BIT 7, E
+void SM83::OP_CB_7B() { op_bit_u3_r8(7, E); }
+
+// BIT 7, H
+void SM83::OP_CB_7C() { op_bit_u3_r8(7, H); }
+
+// BIT 7, L
+void SM83::OP_CB_7D() { op_bit_u3_r8(7, L); }
+
+// BIT 7, [HL]
+void SM83::OP_CB_7E() { op_bit_u3_addr_hl(7); }
+
+// BIT 7, A
+void SM83::OP_CB_7F() { op_bit_u3_r8(7, A); }
+
+// RES 0, B
+void SM83::OP_CB_80() { op_res_u3_r8(0, B); }
+
+// RES 0, C
+void SM83::OP_CB_81() { op_res_u3_r8(0, C); }
+
+// RES 0, D
+void SM83::OP_CB_82() { op_res_u3_r8(0, D); }
+
+// RES 0, E
+void SM83::OP_CB_83() { op_res_u3_r8(0, E); }
+
+// RES 0, H
+void SM83::OP_CB_84() { op_res_u3_r8(0, H); }
+
+// RES 0, L
+void SM83::OP_CB_85() { op_res_u3_r8(0, L); }
+
+// RES 0, [HL]
+void SM83::OP_CB_86() { op_res_u3_addr_hl(0); }
+
+// RES 0, A
+void SM83::OP_CB_87() { op_res_u3_r8(0, A); }
+
+// RES 1, B
+void SM83::OP_CB_88() { op_res_u3_r8(1, B); }
+
+// RES 1, C
+void SM83::OP_CB_89() { op_res_u3_r8(1, C); }
+
+// RES 1, D
+void SM83::OP_CB_8A() { op_res_u3_r8(1, D); }
+
+// RES 1, E
+void SM83::OP_CB_8B() { op_res_u3_r8(1, E); }
+
+// RES 1, H
+void SM83::OP_CB_8C() { op_res_u3_r8(1, H); }
+
+// RES 1, L
+void SM83::OP_CB_8D() { op_res_u3_r8(1, L); }
+
+// RES 1, [HL]
+void SM83::OP_CB_8E() { op_res_u3_addr_hl(1); }
+
+// RES 1, A
+void SM83::OP_CB_8F() { op_res_u3_r8(1, A); }
+
+// RES 2, B
+void SM83::OP_CB_90() { op_res_u3_r8(2, B); }
+
+// RES 2, C
+void SM83::OP_CB_91() { op_res_u3_r8(2, C); }
+
+// RES 2, D
+void SM83::OP_CB_92() { op_res_u3_r8(2, D); }
+
+// RES 2, E
+void SM83::OP_CB_93() { op_res_u3_r8(2, E); }
+
+// RES 2, H
+void SM83::OP_CB_94() { op_res_u3_r8(2, H); }
+
+// RES 2, L
+void SM83::OP_CB_95() { op_res_u3_r8(2, L); }
+
+// RES 2, [HL]
+void SM83::OP_CB_96() { op_res_u3_addr_hl(2); }
+
+// RES 2, A
+void SM83::OP_CB_97() { op_res_u3_r8(2, A); }
+
+// RES 3, B
+void SM83::OP_CB_98() { op_res_u3_r8(3, B); }
+
+// RES 3, C
+void SM83::OP_CB_99() { op_res_u3_r8(3, C); }
+
+// RES 3, D
+void SM83::OP_CB_9A() { op_res_u3_r8(3, D); }
+
+// RES 3, E
+void SM83::OP_CB_9B() { op_res_u3_r8(3, E); }
+
+// RES 3, H
+void SM83::OP_CB_9C() { op_res_u3_r8(3, H); }
+
+// RES 3, L
+void SM83::OP_CB_9D() { op_res_u3_r8(3, L); }
+
+// RES 3, [HL]
+void SM83::OP_CB_9E() { op_res_u3_addr_hl(3); }
+
+// RES 3, A
+void SM83::OP_CB_9F() { op_res_u3_r8(3, A); }
+
+// RES 4, B
+void SM83::OP_CB_A0() { op_res_u3_r8(4, B); }
+
+// RES 4, C
+void SM83::OP_CB_A1() { op_res_u3_r8(4, C); }
+
+// RES 4, D
+void SM83::OP_CB_A2() { op_res_u3_r8(4, D); }
+
+// RES 4, E
+void SM83::OP_CB_A3() { op_res_u3_r8(4, E); }
+
+// RES 4, H
+void SM83::OP_CB_A4() { op_res_u3_r8(4, H); }
+
+// RES 4, L
+void SM83::OP_CB_A5() { op_res_u3_r8(4, L); }
+
+// RES 4, [HL]
+void SM83::OP_CB_A6() { op_res_u3_addr_hl(4); }
+
+// RES 4, A
+void SM83::OP_CB_A7() { op_res_u3_r8(4, A); }
+
+// RES 5, B
+void SM83::OP_CB_A8() { op_res_u3_r8(5, B); }
+
+// RES 5, C
+void SM83::OP_CB_A9() { op_res_u3_r8(5, C); }
+
+// RES 5, D
+void SM83::OP_CB_AA() { op_res_u3_r8(5, D); }
+
+// RES 5, E
+void SM83::OP_CB_AB() { op_res_u3_r8(5, E); }
+
+// RES 5, H
+void SM83::OP_CB_AC() { op_res_u3_r8(5, H); }
+
+// RES 5, L
+void SM83::OP_CB_AD() { op_res_u3_r8(5, L); }
+
+// RES 5, [HL]
+void SM83::OP_CB_AE() { op_res_u3_addr_hl(5); }
+
+// RES 5, A
+void SM83::OP_CB_AF() { op_res_u3_r8(5, A); }
+
+// RES 6, B
+void SM83::OP_CB_B0() { op_res_u3_r8(6, B); }
+
+// RES 6, C
+void SM83::OP_CB_B1() { op_res_u3_r8(6, C); }
+
+// RES 6, D
+void SM83::OP_CB_B2() { op_res_u3_r8(6, D); }
+
+// RES 6, E
+void SM83::OP_CB_B3() { op_res_u3_r8(6, E); }
+
+// RES 6, H
+void SM83::OP_CB_B4() { op_res_u3_r8(6, H); }
+
+// RES 6, L
+void SM83::OP_CB_B5() { op_res_u3_r8(6, L); }
+
+// RES 6, [HL]
+void SM83::OP_CB_B6() { op_res_u3_addr_hl(6); }
+
+// RES 6, A
+void SM83::OP_CB_B7() { op_res_u3_r8(6, A); }
+
+// RES 7, B
+void SM83::OP_CB_B8() { op_res_u3_r8(7, B); }
+
+// RES 7, C
+void SM83::OP_CB_B9() { op_res_u3_r8(7, C); }
+
+// RES 7, D
+void SM83::OP_CB_BA() { op_res_u3_r8(7, D); }
+
+// RES 7, E
+void SM83::OP_CB_BB() { op_res_u3_r8(7, E); }
+
+// RES 7, H
+void SM83::OP_CB_BC() { op_res_u3_r8(7, H); }
+
+// RES 7, L
+void SM83::OP_CB_BD() { op_res_u3_r8(7, L); }
+
+// RES 7, [HL]
+void SM83::OP_CB_BE() { op_res_u3_addr_hl(7); }
+
+// RES 7, A
+void SM83::OP_CB_BF() { op_res_u3_r8(7, A); }
+
+// SET 0, B
+void SM83::OP_CB_C0() { op_set_u3_r8(0, B); }
+
+// SET 0, C
+void SM83::OP_CB_C1() { op_set_u3_r8(0, C); }
+
+// SET 0, D
+void SM83::OP_CB_C2() { op_set_u3_r8(0, D); }
+
+// SET 0, E
+void SM83::OP_CB_C3() { op_set_u3_r8(0, E); }
+
+// SET 0, H
+void SM83::OP_CB_C4() { op_set_u3_r8(0, H); }
+
+// SET 0, L
+void SM83::OP_CB_C5() { op_set_u3_r8(0, L); }
+
+// SET 0, [HL]
+void SM83::OP_CB_C6() { op_set_u3_addr_hl(0); }
+
+// SET 0, A
+void SM83::OP_CB_C7() { op_set_u3_r8(0, A); }
+
+// SET 1, B
+void SM83::OP_CB_C8() { op_set_u3_r8(1, B); }
+
+// SET 1, C
+void SM83::OP_CB_C9() { op_set_u3_r8(1, C); }
+
+// SET 1, D
+void SM83::OP_CB_CA() { op_set_u3_r8(1, D); }
+
+// SET 1, E
+void SM83::OP_CB_CB() { op_set_u3_r8(1, E); }
+
+// SET 1, H
+void SM83::OP_CB_CC() { op_set_u3_r8(1, H); }
+
+// SET 1, L
+void SM83::OP_CB_CD() { op_set_u3_r8(1, L); }
+
+// SET 1, [HL]
+void SM83::OP_CB_CE() { op_set_u3_addr_hl(1); }
+
+// SET 1, A
+void SM83::OP_CB_CF() { op_set_u3_r8(1, A); }
+
+// SET 2, B
+void SM83::OP_CB_D0() { op_set_u3_r8(2, B); }
+
+// SET 2, C
+void SM83::OP_CB_D1() { op_set_u3_r8(2, C); }
+
+// SET 2, D
+void SM83::OP_CB_D2() { op_set_u3_r8(2, D); }
+
+// SET 2, E
+void SM83::OP_CB_D3() { op_set_u3_r8(2, E); }
+
+// SET 2, H
+void SM83::OP_CB_D4() { op_set_u3_r8(2, H); }
+
+// SET 2, L
+void SM83::OP_CB_D5() { op_set_u3_r8(2, L); }
+
+// SET 2, [HL]
+void SM83::OP_CB_D6() { op_set_u3_addr_hl(2); }
+
+// SET 2, A
+void SM83::OP_CB_D7() { op_set_u3_r8(2, A); }
+
+// SET 3, B
+void SM83::OP_CB_D8() { op_set_u3_r8(3, B); }
+
+// SET 3, C
+void SM83::OP_CB_D9() { op_set_u3_r8(3, C); }
+
+// SET 3, D
+void SM83::OP_CB_DA() { op_set_u3_r8(3, D); }
+
+// SET 3, E
+void SM83::OP_CB_DB() { op_set_u3_r8(3, E); }
+
+// SET 3, H
+void SM83::OP_CB_DC() { op_set_u3_r8(3, H); }
+
+// SET 3, L
+void SM83::OP_CB_DD() { op_set_u3_r8(3, L); }
+
+// SET 3, [HL]
+void SM83::OP_CB_DE() { op_set_u3_addr_hl(3); }
+
+// SET 3, A
+void SM83::OP_CB_DF() { op_set_u3_r8(3, A); }
+
+// SET 4, B
+void SM83::OP_CB_E0() { op_set_u3_r8(4, B); }
+
+// SET 4, C
+void SM83::OP_CB_E1() { op_set_u3_r8(4, C); }
+
+// SET 4, D
+void SM83::OP_CB_E2() { op_set_u3_r8(4, D); }
+
+// SET 4, E
+void SM83::OP_CB_E3() { op_set_u3_r8(4, E); }
+
+// SET 4, H
+void SM83::OP_CB_E4() { op_set_u3_r8(4, H); }
+
+// SET 4, L
+void SM83::OP_CB_E5() { op_set_u3_r8(4, L); }
+
+// SET 4, [HL]
+void SM83::OP_CB_E6() { op_set_u3_addr_hl(4); }
+
+// SET 4, A
+void SM83::OP_CB_E7() { op_set_u3_r8(4, A); }
+
+// SET 5, B
+void SM83::OP_CB_E8() { op_set_u3_r8(5, B); }
+
+// SET 5, C
+void SM83::OP_CB_E9() { op_set_u3_r8(5, C); }
+
+// SET 5, D
+void SM83::OP_CB_EA() { op_set_u3_r8(5, D); }
+
+// SET 5, E
+void SM83::OP_CB_EB() { op_set_u3_r8(5, E); }
+
+// SET 5, H
+void SM83::OP_CB_EC() { op_set_u3_r8(5, H); }
+
+// SET 5, L
+void SM83::OP_CB_ED() { op_set_u3_r8(5, L); }
+
+// SET 5, [HL]
+void SM83::OP_CB_EE() { op_set_u3_addr_hl(5); }
+
+// SET 5, A
+void SM83::OP_CB_EF() { op_set_u3_r8(5, A); }
+
+// SET 6, B
+void SM83::OP_CB_F0() { op_set_u3_r8(6, B); }
+
+// SET 6, C
+void SM83::OP_CB_F1() { op_set_u3_r8(6, C); }
+
+// SET 6, D
+void SM83::OP_CB_F2() { op_set_u3_r8(6, D); }
+
+// SET 6, E
+void SM83::OP_CB_F3() { op_set_u3_r8(6, E); }
+
+// SET 6, H
+void SM83::OP_CB_F4() { op_set_u3_r8(6, H); }
+
+// SET 6, L
+void SM83::OP_CB_F5() { op_set_u3_r8(6, L); }
+
+// SET 6, [HL]
+void SM83::OP_CB_F6() { op_set_u3_addr_hl(6); }
+
+// SET 6, A
+void SM83::OP_CB_F7() { op_set_u3_r8(6, A); }
+
+// SET 7, B
+void SM83::OP_CB_F8() { op_set_u3_r8(7, B); }
+
+// SET 7, C
+void SM83::OP_CB_F9() { op_set_u3_r8(7, C); }
+
+// SET 7, D
+void SM83::OP_CB_FA() { op_set_u3_r8(7, D); }
+
+// SET 7, E
+void SM83::OP_CB_FB() { op_set_u3_r8(7, E); }
+
+// SET 7, H
+void SM83::OP_CB_FC() { op_set_u3_r8(7, H); }
+
+// SET 7, L
+void SM83::OP_CB_FD() { op_set_u3_r8(7, L); }
+
+// SET 7, [HL]
+void SM83::OP_CB_FE() { op_set_u3_addr_hl(7); }
+
+// SET 7, A
+void SM83::OP_CB_FF() { op_set_u3_r8(7, A); }
