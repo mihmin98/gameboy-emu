@@ -21,29 +21,33 @@ class SM83
 
     // Interrupt Master Enable
     uint8_t ime;
-    
+
     // Variable that when is above 1, is decremented after each intruction
-    // When it's 1, set the interrupt flag
+    // When it's 1, set the ime flag
     // If its value is 0, then ignore
     uint8_t ei_enable;
 
-    // Variable that counts the number of cycle an interrupt needs to disable ime, push stack,
-    // and set the PC; an interrupt needs 5 cycles to be serviced
+    // Variable that counts the remaining number of cycle an interrupt needs to disable ime, push
+    // stack, and set the PC; an interrupt needs 5 cycles to be serviced
+    // Ignore if its value is <0
     int8_t int_cycles;
-    
+
     // Address of the interrupt to be called
     uint16_t int_addr;
 
-    bool halt_mode;
+    bool halted;
+    bool halt_bug;
+
     bool stop_signal;
 
     SM83(uint8_t *memory);
     void initRegisters();
-    
+
     void cycle();
     void executeOpcode(uint8_t opcode);
     void handleInterrupts();
-    void callInterrupt(uint16_t addr);
+    bool checkInterrupts(int8_t *int_cycles, uint16_t *int_addr);
+    bool serviceInterrupt();
 
     /* MEMORY READ AND WRITE */
 
@@ -70,7 +74,7 @@ class SM83
     void setCarryFlag(uint8_t value);
 
     /* INTERRUPT FLAGS GETTERS AND SETTERS */
-    
+
     uint8_t getInterruptEnable();
     uint8_t getVBlankInterruptEnable();
     uint8_t getLCDSTATInterruptEnable();

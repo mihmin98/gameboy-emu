@@ -1,27 +1,50 @@
 #include "SM83.hpp"
 
+/**
+ *  Main CPU loop
+ */
 void SM83::cycle()
 {
-    // Check if an interrupt is being called
-    if (int_cycles > 0) {
-        --int_cycles;
-        return;
-    } else if (int_cycles == 0) {
-        setImeFlag(0);
+    // Check if halted
+    if (halted) {
+        // Check for pending interrupts
+        // If IME = 1 then service the interrupt
+        bool pending = false;
+        if (ime == 1)
+            pending = checkInterrupts(&int_cycles, &int_addr);
+        // If IME = 0 do not service the interrupt; do not clear flags
+        else
+            pending = checkInterrupts(nullptr, nullptr);
 
-        // Push current PC on the stack
-        writemem_u8(PC & 0xFF, --SP);
-        writemem_u8((PC & 0xFF00) >> 0x8, --SP);
-
-        PC = int_addr;
-
-        --int_cycles;
-        return;
+        // If there aren't pending interrupts, continue to halt
+        if (!pending)
+            return;
     }
 
+    // Check if an interrupt is being serviced and service it
+    if (int_cycles >= 0)
+        serviceInterrupt();
+
+    // Fetch opcode
     uint8_t opcode = readmem_u8(PC);
 
+    // If the halt bug occurs, decrement PC so that it will be used twice
+    if (halt_bug)
+        --PC;
+
+    // Decode and execute
     executeOpcode(opcode);
+
+    if (halt_bug) {
+        // If the instruction has not ended, increment PC so that it will be decremented on the next
+        // cycle after the fetch, thus reading the correct current instruction opcode
+        if (instructionCycle > 0)
+            ++PC;
+
+        // If the instruction has ended, then disable the halt bug
+        else if (instructionCycle == 0)
+            halt_bug = false;
+    }
 
     // Check for IME enable after EI instruction
     if (instructionCycle == 0)
@@ -30,6 +53,7 @@ void SM83::cycle()
     if (ei_enable > 0)
         --ei_enable;
 
+    // If an instruction was just finished, check for interrupts
     if (instructionCycle == 0)
         handleInterrupts();
 }
@@ -41,45 +65,91 @@ void SM83::handleInterrupts()
         return;
 
     // Check for interrupts, going from LSB to MSB (VBlank -> Joypad)
+    checkInterrupts(&int_cycles, &int_addr);
+}
+
+/**
+ *  Check if there are pending interrupts. If yes, return true, otherwise, return false
+ *  If there is a pending interrupt and the params are not nullptr, set them to their respective
+ * values
+ *  If IME is 0, the params should be nullptr
+ */
+bool SM83::checkInterrupts(int8_t *int_cycles, uint16_t *int_addr)
+{
     // VBlank
     if (getVBlankInterruptEnable() && getVBlankInterruptFlag()) {
-        int_cycles = 5;
-        int_addr = SM83_VBLANK_INT;
-        setVBlankInterruptFlag(0);
-        return;
+        if (int_cycles != nullptr && int_addr != nullptr) {
+            *int_cycles = 5;
+            *int_addr = SM83_VBLANK_INT;
+            setVBlankInterruptFlag(0);
+        }
+        return true;
     }
 
     // LCD_STAT
     if (getLCDSTATInterruptEnable() && getLCDSTATInterruptFlag()) {
-        int_cycles = 5;
-        int_addr = SM83_LCD_STAT_INT;
+        *int_cycles = 5;
+        *int_addr = SM83_LCD_STAT_INT;
         setLCDSTATInterruptFlag(0);
-        return;
+        return true;
     }
-    
+
     // Timer
     if (getTimerInterruptEnable() && getTimerInterruptFlag()) {
-        int_cycles = 5;
-        int_addr = SM83_TIMER_INT;
-        setTimerInterruptFlag(0);
-        return;
+        if (int_cycles != nullptr && int_addr != nullptr) {
+            *int_cycles = 5;
+            *int_addr = SM83_TIMER_INT;
+            setTimerInterruptFlag(0);
+        }
+        return true;
     }
-    
+
     // Serial
     if (getSerialInterruptEnable() && getSerialInterruptFlag()) {
-        int_cycles = 5;
-        int_addr = SM83_SERIAL_INT;
-        setSerialInterruptFlag(0);
-        return;
+        if (int_cycles != nullptr && int_addr != nullptr) {
+            *int_cycles = 5;
+            *int_addr = SM83_SERIAL_INT;
+            setSerialInterruptFlag(0);
+        }
+        return true;
     }
-    
+
     // Joypad
     if (getJoypadInterruptEnable() && getJoypadInterruptFlag()) {
-        int_cycles = 5;
-        int_addr = SM83_JOYPAD_INT;
-        setJoypadInterruptFlag(0);
-        return;
+        if (int_cycles != nullptr && int_addr != nullptr) {
+            *int_cycles = 5;
+            *int_addr = SM83_JOYPAD_INT;
+            setJoypadInterruptFlag(0);
+        }
+        return true;
     }
+
+    return false;
+}
+
+/**
+ *  Services interrupt based on int_cycles and int_addr
+ *  Should be called only when int_cycles >= 0
+ */
+bool SM83::serviceInterrupt()
+{
+    if (int_cycles > 0) {
+        --int_cycles;
+        return false;
+    }
+
+    setImeFlag(0);
+
+    // Push current PC on the stack
+    writemem_u8(PC & 0xFF, --SP);
+    writemem_u8((PC & 0xFF00) >> 0x8, --SP);
+
+    PC = int_addr;
+
+    // Signal that there is no need to service an interrupt
+    int_cycles = -1;
+    
+    return true;
 }
 
 bool SM83::checkInstructionCycle(uint8_t opcode_cycles)

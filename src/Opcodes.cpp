@@ -2507,7 +2507,7 @@ void SM83::op_ei()
  *  If IME is not set: The behaviour depends wether an interrupt is pending:
  *                          If none pending: As soon as an interrupt becomes pending
  *                          the CPU resumes execution. The handler is not called
- *                          If some pending: The CPU continues esxecution after the HALT
+ *                          If some pending: The CPU continues execution after the HALT
  *                          but the byte after is read twice in a row (PC is not incremented)
  *  Cycles: -
  *  Length: 1
@@ -2516,7 +2516,49 @@ void SM83::op_ei()
  */
 void SM83::op_halt()
 {
-    halt_mode = true;
+    if (ime == 1) {
+        halted = true;
+        endInstruction(1);
+        return;
+    }
+
+    if (ime == 0) {
+        bool pending = false;
+        
+        // VBlank
+        if (getVBlankInterruptEnable() && getVBlankInterruptFlag()) {
+            pending = true;
+        }
+
+        // LCD_STAT
+        if (getLCDSTATInterruptEnable() && getLCDSTATInterruptFlag()) {
+            pending = true;
+        }
+
+        // Timer
+        if (getTimerInterruptEnable() && getTimerInterruptFlag()) {
+            pending = true;
+        }
+
+        // Serial
+        if (getSerialInterruptEnable() && getSerialInterruptFlag()) {
+            pending = true;
+        }
+
+        // Joypad
+        if (getJoypadInterruptEnable() && getJoypadInterruptFlag()) {
+            pending = true;
+        }
+
+        if (!pending) {
+            halted = true;
+            endInstruction(1);
+            return;
+        } else {
+            halted = false;
+            halt_bug = true;
+        }
+    }
 }
 
 /**
@@ -2553,7 +2595,4 @@ void SM83::op_scf()
  *  Flags:
  *      None
  */
-void SM83::op_stop()
-{
-    stop_signal = true;
-}
+void SM83::op_stop() { stop_signal = true; }
