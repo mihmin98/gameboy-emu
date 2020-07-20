@@ -999,7 +999,7 @@ void SM83::op_swap_addr_hl()
         return;
 
     uint16_t hl = (H << 0x8) | L;
-    uint8_t byte = readmem_u8(byte);
+    uint8_t byte = readmem_u8(hl);
 
     byte = ((byte & 0xF0) >> 0x4) | ((byte & 0x0F) << 0x4);
 
@@ -2196,8 +2196,8 @@ void SM83::op_add_sp_e8()
 
     setZeroFlag(0);
     setSubtractFlag(0);
-    setHalfCarryFlag((SP ^ e8 ^ (result & 0xFFFF) & 0x10) == 0x10);
-    setCarryFlag((SP ^ e8 ^ (result & 0xFFFF) & 0x100) == 0x100);
+    setHalfCarryFlag(((SP ^ e8 ^ (result & 0xFFFF)) & 0x10) == 0x10);
+    setCarryFlag(((SP ^ e8 ^ (result & 0xFFFF)) & 0x100) == 0x100);
 
     SP = result;
 
@@ -2298,8 +2298,8 @@ void SM83::op_ld_hl_sp_plus_e8()
 
     setZeroFlag(0);
     setSubtractFlag(0);
-    setHalfCarryFlag((SP ^ e8 ^ (result & 0xFFFF) & 0x10) == 0x10);
-    setCarryFlag((SP ^ e8 ^ (result & 0xFFFF) & 0x100) == 0x100);
+    setHalfCarryFlag(((SP ^ e8 ^ (result & 0xFFFF)) & 0x10) == 0x10);
+    setCarryFlag(((SP ^ e8 ^ (result & 0xFFFF)) & 0x100) == 0x100);
 
     SP = result;
 
