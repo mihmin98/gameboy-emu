@@ -5,6 +5,12 @@
 #include <cstdint>
 #include <cstring>
 
+#define SM83_VBLANK_INT 0x40
+#define SM83_LCD_STAT_INT 0x48
+#define SM83_TIMER_INT 0x50
+#define SM83_SERIAL_INT 0x58
+#define SM83_JOYPAD_INT 0x60
+
 class SM83
 {
   public:
@@ -21,14 +27,26 @@ class SM83
     // If its value is 0, then ignore
     uint8_t ei_enable;
 
+    // Variable that counts the number of cycle an interrupt needs to disable ime, push stack,
+    // and set the PC; for now, I think an interrupt needs 4 cycles to be called
+    int8_t int_cycles;
+    
+    // Address of the interrupt to be called
+    uint16_t int_addr;
+
     bool halt_mode;
     bool stop_signal;
 
     SM83(uint8_t *memory);
     void initRegisters();
+    
     void cycle();
+    void executeOpcode(uint8_t opcode);
+    void handleInterrupts();
+    void callInterrupt(uint16_t addr);
 
-    // Memory read and write
+    /* MEMORY READ AND WRITE */
+
     uint8_t readmem_u8(uint16_t addr);
     uint16_t readmem_u16(uint16_t addr);
     void writemem_u8(uint8_t val, uint16_t addr);

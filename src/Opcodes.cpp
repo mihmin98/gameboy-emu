@@ -2100,7 +2100,7 @@ void SM83::op_ret()
 }
 
 /**
- *  Return from subroutine and enable interrupts
+ *  Return from subroutine and enable interrupts, by setting the IME flag
  *  Cycles: 4
  *  Length: 1
  *  Flags:
@@ -2111,7 +2111,7 @@ void SM83::op_reti()
     if (!checkInstructionCycle(4))
         return;
 
-    setInterruptEnable(0xFF);
+    setImeFlag(1);
 
     uint8_t ret_addr_low, ret_addr_high;
     ret_addr_low = readmem_u8(SP++);
@@ -2483,7 +2483,7 @@ void SM83::op_daa()
  */
 void SM83::op_di()
 {
-    setInterruptEnable(0);
+    setImeFlag(0);
 
     endInstruction(1);
 }
