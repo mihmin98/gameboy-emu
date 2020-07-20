@@ -13,6 +13,9 @@ class SM83
     uint16_t PC, SP;
     uint8_t instructionCycle;
 
+    // Interrupt Master Enable
+    uint8_t ime;
+    
     // Variable that when is above 1, is decremented after each intruction
     // When it's 1, set the interrupt flag
     // If its value is 0, then ignore
@@ -43,12 +46,42 @@ class SM83
     uint8_t getSubtractFlag();
     uint8_t getHalfCarryFlag();
     uint8_t getCarryFlag();
-    uint8_t getInterruptEnable();
     void setZeroFlag(uint8_t value);
     void setSubtractFlag(uint8_t value);
     void setHalfCarryFlag(uint8_t value);
     void setCarryFlag(uint8_t value);
+
+    /* INTERRUPT FLAGS GETTERS AND SETTERS */
+    
+    uint8_t getInterruptEnable();
+    uint8_t getVBlankInterruptEnable();
+    uint8_t getLCDSTATInterruptEnable();
+    uint8_t getTimerInterruptEnable();
+    uint8_t getSerialInterruptEnable();
+    uint8_t getJoypadInterruptEnable();
+
+    uint8_t getInterruptFlag();
+    uint8_t getVBlankInterruptFlag();
+    uint8_t getLCDSTATInterruptFlag();
+    uint8_t getTimerInterruptFlag();
+    uint8_t getSerialInterruptFlag();
+    uint8_t getJoypadInterruptFlag();
+
+    void setImeFlag(uint8_t value);
+
     void setInterruptEnable(uint8_t value);
+    void setVBlankInterruptEnable(uint8_t value);
+    void setLCDSTATInterruptEnable(uint8_t value);
+    void setTimerInterruptEnable(uint8_t value);
+    void setSerialInterruptEnable(uint8_t value);
+    void setJoypadInterruptEnable(uint8_t value);
+
+    void setInterruptFlag(uint8_t value);
+    void setVBlankInterruptFlag(uint8_t value);
+    void setLCDSTATInterruptFlag(uint8_t value);
+    void setTimerInterruptFlag(uint8_t value);
+    void setSerialInterruptFlag(uint8_t value);
+    void setJoypadInterruptFlag(uint8_t value);
 
     /* OPCODE INSTRUCTIONS */
 
