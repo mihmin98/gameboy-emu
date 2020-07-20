@@ -1,5 +1,5 @@
 CXX 			:= g++
-CXXFLAGFS 		:= -std=c++11 -Wall -Wextra -Werror
+CXXFLAGFS 		:= -std=c++11 -Wall -Wextra
 LDFLAGS 		:= -lSDL2main -lSDL2
 BUILD 			:= ./build
 OBJ_DIR 		:= $(BUILD)/obj
