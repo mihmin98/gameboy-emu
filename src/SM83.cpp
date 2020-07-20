@@ -43,7 +43,7 @@ void SM83::handleInterrupts()
     // Check for interrupts, going from LSB to MSB (VBlank -> Joypad)
     // VBlank
     if (getVBlankInterruptEnable() && getVBlankInterruptFlag()) {
-        int_cycles = 4;
+        int_cycles = 5;
         int_addr = SM83_VBLANK_INT;
         setVBlankInterruptFlag(0);
         return;
@@ -51,7 +51,7 @@ void SM83::handleInterrupts()
 
     // LCD_STAT
     if (getLCDSTATInterruptEnable() && getLCDSTATInterruptFlag()) {
-        int_cycles = 4;
+        int_cycles = 5;
         int_addr = SM83_LCD_STAT_INT;
         setLCDSTATInterruptFlag(0);
         return;
@@ -59,7 +59,7 @@ void SM83::handleInterrupts()
     
     // Timer
     if (getTimerInterruptEnable() && getTimerInterruptFlag()) {
-        int_cycles = 4;
+        int_cycles = 5;
         int_addr = SM83_TIMER_INT;
         setTimerInterruptFlag(0);
         return;
@@ -67,7 +67,7 @@ void SM83::handleInterrupts()
     
     // Serial
     if (getSerialInterruptEnable() && getSerialInterruptFlag()) {
-        int_cycles = 4;
+        int_cycles = 5;
         int_addr = SM83_SERIAL_INT;
         setSerialInterruptFlag(0);
         return;
@@ -75,7 +75,7 @@ void SM83::handleInterrupts()
     
     // Joypad
     if (getJoypadInterruptEnable() && getJoypadInterruptFlag()) {
-        int_cycles = 4;
+        int_cycles = 5;
         int_addr = SM83_JOYPAD_INT;
         setJoypadInterruptFlag(0);
         return;

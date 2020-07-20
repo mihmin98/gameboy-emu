@@ -28,7 +28,7 @@ class SM83
     uint8_t ei_enable;
 
     // Variable that counts the number of cycle an interrupt needs to disable ime, push stack,
-    // and set the PC; for now, I think an interrupt needs 4 cycles to be called
+    // and set the PC; an interrupt needs 5 cycles to be serviced
     int8_t int_cycles;
     
     // Address of the interrupt to be called
