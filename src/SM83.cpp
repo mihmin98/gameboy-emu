@@ -152,11 +152,43 @@ bool SM83::serviceInterrupt()
     return true;
 }
 
-bool SM83::checkInstructionCycle(uint8_t opcode_cycles)
+/* MEMORY READ AND WRITE */
+// !!! These functions are not yet implemented, these are just placeholders so that we can
+// compile the program
+
+uint8_t SM83::readmem_u8(uint16_t addr)
 {
-    return instructionCycle++ == opcode_cycles;
+    return 0xFF;
 }
 
+uint16_t SM83::readmem_u16(uint16_t addr)
+{
+    return 0xFFFF;
+}
+
+void SM83::writemem_u8(uint8_t val, uint16_t addr)
+{
+    return;
+}
+
+void SM83::writemem_u16(uint16_t val, uint16_t addr)
+{
+    return;
+}
+
+/**
+ *  Returns true if the current instruction cycle is the last cycle, based on the parameter.
+ *  Automatically increments instructionCycle
+ */
+bool SM83::checkInstructionCycle(uint8_t opcode_cycles)
+{
+    return (instructionCycle++) == opcode_cycles;
+}
+
+/**
+ *  Sets the instructionCycle var to 0 and increments the PC based on the opcode_length
+ *  This should be called on the last cycle of the instruction, after all operations have finished
+ */
 void SM83::endInstruction(uint8_t opcode_length)
 {
     instructionCycle = 0;

@@ -17,6 +17,8 @@ class SM83
     uint8_t *memory;
     uint8_t A, F, B, C, D, E, H, L;
     uint16_t PC, SP;
+
+    // The current cycle the current instruction being executed is on
     uint8_t instructionCycle;
 
     // Interrupt Master Enable
@@ -35,7 +37,10 @@ class SM83
     // Address of the interrupt to be called
     uint16_t int_addr;
 
+    // Flag that says if the CPU is currently halted
     bool halted;
+
+    // Flag that says if the HALT bug is in effect
     bool halt_bug;
 
     bool stop_signal;
@@ -56,10 +61,7 @@ class SM83
     void writemem_u8(uint8_t val, uint16_t addr);
     void writemem_u16(uint16_t val, uint16_t addr);
 
-    // Returns true if it is on the last or after last instruction cycle, also increments
-    // instructionCycle
     bool checkInstructionCycle(uint8_t opcode_cycles);
-    // Sets instructionCycle to 0 and increments PC
     void endInstruction(uint8_t opcode_length);
 
     /* FLAG GETTERS AND SETTERS */
