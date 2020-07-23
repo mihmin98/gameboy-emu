@@ -1,11 +1,14 @@
 #include "ROM.hpp"
 
-ROM::ROM() 
+ROM::ROM()
 {
-    ramEnable = false;
+    rom = nullptr;
+    ram = nullptr;
 
+    ramEnable = false;
     currentROMBank = 1;
-    currentRAMBank = 1;
+    currentRAMBank = 0;
+    bankMode = 0;
 }
 
 /**
@@ -33,10 +36,14 @@ bool ROM::loadROM(std::string romPath)
 
         // After the ROM has been loaded, read the header and run the checks
         readHeader();
-        
+
         nintendoLogoOk = checkNintendoLogo();
         headerChecksumOk = checkHeaderChecksum();
         globalchecksumOk = checkGlobalChecksum();
+
+        // Allocate cartridge RAM if necessary
+        if (cartridgeRam)
+            ram = new uint8_t[ramSize];
 
         return true;
     } else {
@@ -351,3 +358,349 @@ void ROM::getHeaderChecksum() { headerChecksum = rom[0x014D]; }
  *  Reads the global checksum from bytes 0x014E, 0x014F
  */
 void ROM::getGlobalChecksum() { globalChecksum = (rom[0x014E] << 0x8) | rom[0x014F]; }
+
+/* CARTRIDGE READ AND WRITE */
+
+/**
+ *  Wrapper for calling the read on specific MBC
+ */
+uint8_t ROM::readmem(uint16_t addr)
+{
+    // There is no ROM loaded
+    if (addr < 0x8000 && rom == nullptr)
+        return 0xFF;
+
+    // There is no RAM or RAM is not enabled
+    if (addr >= 0xA000 && addr < 0xC000 && (!cartridgeRam || !ramEnable))
+        return 0xFF;
+
+    switch (mbc) {
+    case MBC::None:
+        return readmemNoMBC(addr);
+        break;
+    case MBC::MBC1:
+        return readmemMBC1(addr);
+        break;
+    case MBC::MBC2:
+        return readmemMBC2(addr);
+        break;
+    case MBC::MBC3:
+        return readmemMBC3(addr);
+        break;
+    case MBC::MBC5:
+        return readmemMBC5(addr);
+        break;
+    default:
+        return 0xFF;
+        break;
+    }
+}
+
+/**
+ * Wrapper for calling the write on specific MBC
+ */
+void ROM::writemem(uint8_t val, uint16_t addr)
+{
+    // Do nothing if there is no RAM or RAM is not enabled
+    if (addr >= 0xA000 && addr < 0xC000 && (!cartridgeRam && !ramEnable))
+        return;
+
+    switch (mbc) {
+    case MBC::None:
+        writememNoMBC(val, addr);
+        break;
+    case MBC::MBC1:
+        writememMBC1(val, addr);
+        break;
+    case MBC::MBC2:
+        writememMBC2(val, addr);
+        break;
+    case MBC::MBC3:
+        writememMBC3(val, addr);
+        break;
+    case MBC::MBC5:
+        writememMBC5(val, addr);
+        break;
+    default:
+        return;
+        break;
+    }
+}
+
+uint8_t ROM::readmemNoMBC(uint16_t addr)
+{
+    // Read the ROM portion
+    if (addr < 0x8000)
+        return rom[addr];
+
+    // Read the RAM portion
+    else if (addr >= 0xA000 && addr < 0xC000)
+        return ram[addr - 0xA000];
+}
+
+void ROM::writememNoMBC(uint8_t val, uint16_t addr)
+{
+    // Set RAM enable
+    if (addr < 0x2000) {
+        ramEnable = (val & 0x0F) == 0x0A;
+    }
+
+    // Write to RAM
+    else if (addr >= 0xA000 && addr < 0xC000) {
+        ram[addr - 0xA000] = val;
+    }
+}
+
+uint8_t ROM::readmemMBC1(uint16_t addr)
+{
+    // ROM bank 0x00/0x20/0x40/0x60
+    if (addr < 0x4000) {
+        if (bankMode == 0) {
+            // Bank 0x00
+            return rom[addr];
+        } else {
+            // Bank 0x20/0x40/0x60
+            uint8_t actualBank = currentRAMBank << 5;
+            uint32_t actualAddr = addr + 0x4000 * actualBank;
+            return rom[actualAddr];
+        }
+    }
+
+    // Switchable ROM Bank
+    else if (addr >= 0x4000 && addr < 0x8000) {
+        if (bankMode == 0) {
+            // Mode where we can use the RAM Bank register to address more banks
+            uint8_t actualBank = (currentRAMBank << 5) | currentROMBank;
+            uint32_t actualAddr = (addr - 0x4000) + 0x4000 * actualBank;
+            return rom[actualAddr];
+        } else {
+            // Mode where we can only use the ROM Bank register
+            uint8_t actualAddr = (addr - 0x4000) + 0x4000 * currentROMBank;
+            return rom[actualAddr];
+        }
+    }
+
+    // RAM
+    else if (addr >= 0xA000 && addr < 0xC000) {
+        if (bankMode == 0) {
+            // ROM Bank Mode
+            return ram[addr - 0xA000];
+        } else {
+            // RAM Bank Mode
+            uint32_t actualAddr = (addr - 0xA000) + 0x2000 * currentRAMBank;
+            return ram[actualAddr];
+        }
+    }
+}
+
+void ROM::writememMBC1(uint8_t val, uint16_t addr)
+{
+    // RAM Enable
+    if (addr < 0x2000) {
+        ramEnable = (val & 0x0A) == 0x0A;
+    }
+
+    // ROM Bank Number
+    else if (addr >= 0x2000 && addr < 0x4000) {
+        currentROMBank = val & 0x1F;
+        if (currentROMBank == 0x00)
+            currentROMBank = 0x01;
+    }
+
+    // RAM Bank or Secondary ROM Bank
+    else if (addr >= 0x4000 && addr < 0x6000) {
+        currentRAMBank = val & 0x03;
+    }
+
+    // Bank Mode
+    else if (addr >= 0x6000 && addr < 0x8000) {
+        bankMode = val;
+    }
+
+    // RAM
+    else if (addr >= 0xA000 && addr < 0xC000) {
+        if (bankMode == 0) {
+            // ROM Bank Mode
+            ram[addr - 0xA000] = val;
+        } else {
+            // RAM Bank Mode
+            uint32_t actualAddr = (addr - 0xA000) + 0x2000 * currentRAMBank;
+            ram[actualAddr] = val;
+        }
+    }
+}
+
+uint8_t ROM::readmemMBC2(uint16_t addr)
+{
+    // ROM Bank 0
+    if (addr < 0x4000)
+        return rom[addr];
+
+    // Switchable ROM Bank
+    else if (addr >= 0x4000 && addr < 0x8000) {
+        uint32_t actualAddr = (addr - 0x4000) + 0x4000 * currentROMBank;
+        return rom[actualAddr];
+    }
+
+    // RAM
+    else if (addr >= 0xA000 && addr < 0xA200) {
+        return ram[addr - 0xA000] & 0x0F;
+    }
+}
+
+void ROM::writememMBC2(uint8_t val, uint16_t addr)
+{
+    // RAM Enable
+    if (addr < 0x2000 && ((addr & 0x10) >> 4) == 0) {
+        ramEnable = (val & 0x0F) == 0x0A;
+    }
+
+    // ROM Bank
+    else if (addr >= 0x2000 && addr < 0x4000 && ((addr & 0x10) >> 4) == 1) {
+        currentROMBank = val & 0xFF;
+        if (currentROMBank == 0)
+            currentROMBank = 1;
+    }
+
+    // RAM
+    else if (addr >= 0xA000 && addr < 0xA200) {
+        ram[addr - 0xA000] = val & 0xFF;
+    }
+}
+
+uint8_t ROM::readmemMBC3(uint16_t addr)
+{
+    // ROM Bank 0
+    if (addr < 0x4000)
+        return rom[addr];
+
+    // Switchable ROM Bank
+    else if (addr >= 0x4000 && addr < 0x8000) {
+        uint32_t acutalAddr = (addr - 0x4000) + 0x4000 * currentROMBank;
+        return rom[acutalAddr];
+    }
+
+    // RAM
+    else if (addr >= 0xA000 && addr < 0xC000 && currentRAMBank < 0x4) {
+        uint32_t actualAddr = (addr - 0xA000) + 0x2000 * currentRAMBank;
+        return ram[actualAddr];
+    }
+
+    // RTC Register
+    else if (addr >= 0xA000 && addr < 0xC000 && currentRAMBank >= 0x08 && currentRAMBank < 0x0D) {
+        switch (currentRAMBank) {
+        case 0x08:
+            return rtcS;
+            break;
+        case 0x09:
+            return rtcM;
+            break;
+        case 0x0A:
+            return rtcH;
+            break;
+        case 0x0B:
+            return rtcDL;
+            break;
+        case 0x0C:
+            return rtcDH;
+            break;
+        }
+    }
+}
+
+void ROM::writememMBC3(uint8_t val, uint16_t addr)
+{
+    // RAM / Timer Enable
+    if (addr < 0x2000) {
+        ramEnable = (val & 0x0A) == 0x0A;
+    }
+
+    // ROM Bank Number
+    else if (addr >= 0x2000 && addr < 0x4000) {
+        currentROMBank = val;
+        if (currentROMBank == 0)
+            currentROMBank = 1;
+    }
+
+    // RAM Bank Number / RTC Register Select
+    else if (addr >= 0x4000 && addr < 0x6000) {
+        currentRAMBank = val;
+    }
+
+    // Latch Clock Data
+    else if (addr >= 0x6000 && addr < 0x8000) {
+        if (val == 0x01 && rtcLatchClockLastWritten == 0x00)
+            // Toggle Latch
+            rtcLatch = !rtcLatch;
+        rtcLatchClockLastWritten = val;
+    }
+
+    // RAM
+    else if (addr >= 0xA000 && addr < 0xC000 && currentRAMBank < 0x4) {
+        uint32_t actualAddr = (addr - 0xA000) + 0x2000 * currentRAMBank;
+        ram[actualAddr] = val;
+    }
+
+    // RTC Registers
+    else if (addr >= 0xA000 && addr < 0xC000 && currentRAMBank >= 0x08 && currentRAMBank < 0x0D) {
+        switch (currentRAMBank) {
+        case 0x08:
+            rtcS = val;
+            break;
+        case 0x09:
+            rtcM = val;
+            break;
+        case 0x0A:
+            rtcH = val;
+            break;
+        case 0x0B:
+            rtcDL = val;
+            break;
+        case 0x0C:
+            rtcDH = val;
+            break;
+        }
+    }
+}
+
+uint8_t ROM::readmemMBC5(uint16_t addr)
+{
+    // ROM Bank 0
+    if (addr < 0x4000)
+        return rom[addr];
+
+    // Switchable ROM Bank
+    else if (addr >= 0x4000 && addr < 0x8000) {
+        uint32_t actualAddr = (addr - 0x4000) + 0x4000 * currentROMBank;
+        return rom[actualAddr];
+    }
+
+    // RAM
+    else if (addr >= 0xA000 && addr < 0xC000) {
+        uint32_t acutalAddr = (addr - 0xA000) + 0x2000 * currentRAMBank;
+        return rom[acutalAddr];
+    }
+}
+
+void ROM::writememMBC5(uint8_t val, uint16_t addr)
+{
+    // RAM Enable
+    if (addr < 0x2000) {
+        ramEnable = (val & 0x0A) == 0x0A;
+    }
+
+    // Low 8 bits of ROM Bank number
+    else if (addr >= 0x2000 && addr < 0x3000) {
+        currentROMBank = (currentROMBank & 0x0100) | val;
+    }
+
+    // High bit (bit 9) of ROM Bank number
+    else if (addr >= 0x3000 && addr < 0x4000) {
+        currentROMBank = ((val & 0x1) << 8) | (currentROMBank & 0xFF);
+    }
+
+    // RAM
+    else if (addr >= 0xA000 && addr < 0xC000) {
+        currentRAMBank = val;
+    }
+}
