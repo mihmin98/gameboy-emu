@@ -4,6 +4,7 @@
 #pragma once
 #include <cstdint>
 #include <cstring>
+#include "Memory.hpp"
 
 #define SM83_VBLANK_INT 0x40
 #define SM83_LCD_STAT_INT 0x48
@@ -11,10 +12,12 @@
 #define SM83_SERIAL_INT 0x58
 #define SM83_JOYPAD_INT 0x60
 
+class Memory;
+
 class SM83
 {
   public:
-    uint8_t *memory;
+    Memory *memory;
     uint8_t A, F, B, C, D, E, H, L;
     uint16_t PC, SP;
 
@@ -45,7 +48,7 @@ class SM83
 
     bool stop_signal;
 
-    SM83(uint8_t *memory);
+    SM83();
     void initRegisters();
 
     void cycle();

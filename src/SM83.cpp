@@ -153,27 +153,26 @@ bool SM83::serviceInterrupt()
 }
 
 /* MEMORY READ AND WRITE */
-// !!! These functions are not yet implemented, these are just placeholders so that we can
-// compile the program
 
 uint8_t SM83::readmem_u8(uint16_t addr)
 {
-    return 0xFF;
+    return memory->readmem(addr);
 }
 
 uint16_t SM83::readmem_u16(uint16_t addr)
 {
-    return 0xFFFF;
+    return memory->readmem(addr) | (memory->readmem(addr + 1) << 0x8);
 }
 
 void SM83::writemem_u8(uint8_t val, uint16_t addr)
 {
-    return;
+    memory->writemem(val, addr);
 }
 
 void SM83::writemem_u16(uint16_t val, uint16_t addr)
 {
-    return;
+    memory->writemem(val & 0x00FF, addr);
+    memory->writemem((val & 0xFF00) >> 0x8, addr + 1);
 }
 
 /**
