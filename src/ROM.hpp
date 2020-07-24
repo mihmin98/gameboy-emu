@@ -6,6 +6,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <cstdio>
 #include <string>
 
 enum MBC { None, MBC1, MBC2, MMM01, MBC3, MBC5, MBC6, MBC7, HuC1, HuC3 };

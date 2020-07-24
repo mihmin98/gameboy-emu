@@ -436,6 +436,10 @@ uint8_t ROM::readmemNoMBC(uint16_t addr)
     // Read the RAM portion
     if (addr >= 0xA000 && addr < 0xC000)
         return ram[addr - 0xA000];
+
+    // Invalid address
+    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr); 
+    return 0xFF;
 }
 
 void ROM::writememNoMBC(uint8_t val, uint16_t addr)
@@ -491,6 +495,10 @@ uint8_t ROM::readmemMBC1(uint16_t addr)
             return ram[actualAddr];
         }
     }
+
+    // Invalid address
+    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr); 
+    return 0xFF;
 }
 
 void ROM::writememMBC1(uint8_t val, uint16_t addr)
@@ -528,6 +536,7 @@ void ROM::writememMBC1(uint8_t val, uint16_t addr)
             ram[actualAddr] = val;
         }
     }
+
 }
 
 uint8_t ROM::readmemMBC2(uint16_t addr)
@@ -546,6 +555,10 @@ uint8_t ROM::readmemMBC2(uint16_t addr)
     if (addr >= 0xA000 && addr < 0xA200) {
         return ram[addr - 0xA000] & 0x0F;
     }
+
+    // Invalid address
+    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr); 
+    return 0xFF;
 }
 
 void ROM::writememMBC2(uint8_t val, uint16_t addr)
@@ -606,6 +619,10 @@ uint8_t ROM::readmemMBC3(uint16_t addr)
             break;
         }
     }
+
+    // Invalid address
+    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr); 
+    return 0xFF;
 }
 
 void ROM::writememMBC3(uint8_t val, uint16_t addr)
@@ -680,6 +697,10 @@ uint8_t ROM::readmemMBC5(uint16_t addr)
         uint32_t acutalAddr = (addr - 0xA000) + 0x2000 * currentRAMBank;
         return rom[acutalAddr];
     }
+
+    // Invalid address
+    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr); 
+    return 0xFF;
 }
 
 void ROM::writememMBC5(uint8_t val, uint16_t addr)

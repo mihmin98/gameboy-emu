@@ -58,6 +58,10 @@ uint8_t Memory::readmem(uint16_t addr)
     // IE Register
     if (addr == 0xFFFF)
         return ieRegister;
+
+    // Invalid address
+    fprintf(stderr, "WARNING: Trying to read from invalid memory address: 0x%04X\n", addr);
+    return 0xFF;
 }
 
 void Memory::writemem(uint8_t val, uint16_t addr)
