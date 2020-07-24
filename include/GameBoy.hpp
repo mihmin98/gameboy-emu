@@ -25,9 +25,6 @@ enum EmulatorMode { GB, GBC };
 
 class GameBoy
 {
-    EmulatorMode mode = GB; // TODO: Change this later, for now I will work mostly on GB
-    uint8_t memory[GAMEBOY_MEMORY_SIZE];
-
   public:
     GameBoy();
     ~GameBoy();
