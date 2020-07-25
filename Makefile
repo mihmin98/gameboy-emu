@@ -26,6 +26,8 @@ TEST_OBJECTS	:= $(patsubst $(TEST_SRC_DIR)/%,$(TEST_OBJ_DIR)/%,$(TEST_OBJECTS))
 TEST_EXECS 		:= $(TEST_SRC:%.cpp=%.out)
 TEST_EXECS		:= $(patsubst $(TEST_SRC_DIR)/%,$(TEST_BUILD_DIR)/%,$(TEST_EXECS))
 
+TEST_GEN_SCRIPT	:= $(TEST_SRC_DIR)/generate-test-roms.py
+
 all: build $(APP_DIR)/$(APPNAME)
 
 echo:
@@ -63,7 +65,8 @@ debug: all
 release: CXXFLAGFS += -O2
 release: all
 
-test: $(TEST_EXECS)
+test: $(TEST_EXECS) $(TEST_GEN_SCRIPT)
+	$(TEST_GEN_SCRIPT)
 	$(TEST_EXECS)
 
 clean:
