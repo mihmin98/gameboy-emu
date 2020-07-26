@@ -14,6 +14,7 @@ uint8_t Memory::readmem(uint16_t addr)
 
     // VRAM
     if (addr >= 0x8000 && addr < 0xA000) {
+        currentVramBank = getCurrentVramBank();
         uint16_t actualAddr = (addr - 0x8000) + currentVramBank * 0x2000;
         return vram[actualAddr];
     }
@@ -24,6 +25,7 @@ uint8_t Memory::readmem(uint16_t addr)
     
     // Switchable WRAM Bank
     if (addr >= 0xD000 && addr < 0xE000) {
+        currentWramBank = getCurrentWramBank();
         uint16_t actualAddr = (addr - 0xD000) + currentWramBank * 0x1000;
         return wram[actualAddr];
     }
@@ -34,6 +36,7 @@ uint8_t Memory::readmem(uint16_t addr)
             return wram[addr - 0xE000];
 
         if (addr >= 0xF000 && addr < 0xFE00) {
+            currentWramBank = getCurrentWramBank();
             uint16_t actualAddr = (addr - 0xF000) + currentWramBank * 0x1000;
             return wram[actualAddr];
         }
@@ -72,6 +75,7 @@ void Memory::writemem(uint8_t val, uint16_t addr)
 
     // VRAM
     if (addr >= 0x8000 && addr < 0xA000) {
+        currentVramBank = getCurrentVramBank();
         uint16_t actualAddr = (addr - 0x8000) + currentVramBank * 0x2000;
         vram[actualAddr] = val;
     }
@@ -82,6 +86,7 @@ void Memory::writemem(uint8_t val, uint16_t addr)
     
     // Switchable WRAM Bank
     if (addr >= 0xD000 && addr < 0xE000) {
+        currentWramBank = getCurrentWramBank();
         uint16_t actualAddr = (addr - 0xD000) + currentWramBank * 0x1000;
         wram[actualAddr] = val;
     }
@@ -92,6 +97,7 @@ void Memory::writemem(uint8_t val, uint16_t addr)
             wram[addr - 0xE000] = val;
 
         if (addr >= 0xF000 && addr < 0xFE00) {
+            currentWramBank = getCurrentWramBank();
             uint16_t actualAddr = (addr - 0xF000) + currentWramBank * 0x1000;
             wram[actualAddr] = val;
         }
@@ -118,3 +124,15 @@ void Memory::writemem(uint8_t val, uint16_t addr)
         ieRegister = val;
 }
 
+uint8_t Memory::getCurrentVramBank()
+{
+    return ioRegisters[0xFF4F - 0xFF00] & 0x1;
+}
+
+uint8_t Memory::getCurrentWramBank()
+{
+    uint8_t wramBank = ioRegisters[0xFF70 - 0xFF00] & 0x7;
+    if (wramBank == 0x0)
+        return 0x1;
+    return wramBank;
+}
