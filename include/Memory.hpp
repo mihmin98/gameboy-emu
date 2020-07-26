@@ -46,6 +46,9 @@ class Memory
 
     uint8_t getCurrentVramBank();
     uint8_t getCurrentWramBank();
+
+    void setCurrentVramBank(uint8_t val);
+    void setCurrentWramBank(uint8_t val);
 };
  
 #endif // __MEMORY_H__

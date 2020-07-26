@@ -4,6 +4,8 @@ Memory::Memory()
 {
     currentVramBank = 0;
     currentWramBank = 1;
+    setCurrentVramBank(0);
+    setCurrentWramBank(1);
 }
 
 uint8_t Memory::readmem(uint16_t addr)
@@ -136,3 +138,13 @@ uint8_t Memory::getCurrentWramBank()
         return 0x1;
     return wramBank;
 }
+
+void Memory::setCurrentVramBank(uint8_t val)
+{
+    ioRegisters[0xFF4F - 0xFF00] = val & 0x1;
+}
+
+void Memory::setCurrentWramBank(uint8_t val)
+{
+    ioRegisters[0xFF70 - 0xFF00] = val & 0x3;
+} 
