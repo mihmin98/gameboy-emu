@@ -43,15 +43,15 @@ $(APP_DIR)/$(APPNAME): $(OBJECTS)
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -o $(APP_DIR)/$(APPNAME) $^ $(LDFLAGS)
 
-# Compile test sources into objects
-$(TEST_OBJECTS): $(TEST_MAIN)
+# Compile main test file into an object and compile all the other objects
+$(TEST_OBJECTS): $(TEST_MAIN) $(OBJECTS)
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGFS) $(INCLUDE) -c $< -o $@ $(LDFLAGS)
 
 # Compile and link tests to create test executables
-$(TEST_EXECS): $(TEST_SRC) $(OBJECTS) $(TEST_OBJECTS)
+$(TEST_BUILD_DIR)/%.out: $(TEST_SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGFS) $(INCLUDE) $< $(TEST_OBJECTS) $(OBJECTS) -o $@  $(LDFLAGS)
+	$(CXX) $(CXXFLAGFS) $(INCLUDE) $< $(TEST_OBJECTS) $(OBJECTS) -o $@ $(LDFLAGS)
 
 .PHONY: all build clean debug release tests
 
@@ -65,9 +65,10 @@ debug: all
 release: CXXFLAGFS += -O2
 release: all
 
-test: $(TEST_EXECS) $(TEST_GEN_SCRIPT)
+test: $(TEST_OBJECTS) $(TEST_EXECS) $(TEST_GEN_SCRIPT)
 	$(TEST_GEN_SCRIPT)
-	$(TEST_EXECS)
+	@echo -e ""
+	@for test in $(TEST_EXECS); do echo $$test; ./$$test; done
 
 clean:
 	rm $(OBJ_DIR)/*.o $(TEST_OBJ_DIR)/*.o $(TEST_BUILD_DIR)/* $(APP_DIR)/$(APPNAME)
