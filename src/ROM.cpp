@@ -42,7 +42,7 @@ bool ROM::loadROM(std::string romPath)
         globalchecksumOk = checkGlobalChecksum();
 
         // Allocate cartridge RAM if necessary
-        if (cartridgeRam)
+        if (cartridgeRam || mbc == MBC::MBC2)
             ram = new uint8_t[ramSize];
 
         return true;
@@ -64,7 +64,7 @@ bool ROM::checkNintendoLogo()
                                   0x88, 0x89, 0x00, 0x0E, 0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD,
                                   0xD9, 0x99, 0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC,
                                   0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E};
-    if (memcmp(rom + 0x0104, goodNintendoLogo, 48 * sizeof(uint8_t)))
+    if (memcmp(rom + 0x0104, goodNintendoLogo, 48 * sizeof(uint8_t)) == 0)
         return true;
     else
         return false;
@@ -76,7 +76,7 @@ bool ROM::checkNintendoLogo()
  */
 bool ROM::checkHeaderChecksum()
 {
-    uint16_t sum = 0;
+    uint8_t sum = 0;
     uint16_t i = 0x0134;
     while (i <= 0x014C)
         sum = sum - rom[i++] - 1;
@@ -177,10 +177,12 @@ void ROM::getCartridgeType()
     case 0x05:
         // MBC2
         mbc = MBC::MBC2;
+        cartridgeRam = true;
         break;
     case 0x06:
         // MBC2 + BATTERY
         mbc = MBC::MBC2;
+        cartridgeRam = true;
         cartridgeBattery = true;
         break;
     case 0x08:
@@ -322,12 +324,22 @@ void ROM::getRAMSize()
     switch (sizeByte) {
     case 0x00:
         // No RAM
+        if (mbc == MBC::MBC2) {
+            // MBC2 cartrdige says it has no RAM, but it actually has 512*4 bits RAM
+            ramSize = 512;
+            ramBanks = 1;
+        } else {
+            ramSize = 0;
+            ramBanks = 0;
+        }
         break;
     case 0x01:
         ramSize = 0x0800;
+        ramBanks = 1;
         break;
     case 0x02:
         ramSize = 0x1000;
+        ramBanks = 1;
         break;
     case 0x03:
         ramSize = 0x8000;
@@ -438,7 +450,7 @@ uint8_t ROM::readmemNoMBC(uint16_t addr)
         return ram[addr - 0xA000];
 
     // Invalid address
-    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr); 
+    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr);
     return 0xFF;
 }
 
@@ -479,7 +491,7 @@ uint8_t ROM::readmemMBC1(uint16_t addr)
             return rom[actualAddr];
         } else {
             // Mode where we can only use the ROM Bank register
-            uint8_t actualAddr = (addr - 0x4000) + 0x4000 * currentROMBank;
+            uint32_t actualAddr = (addr - 0x4000) + 0x4000 * currentROMBank;
             return rom[actualAddr];
         }
     }
@@ -497,7 +509,7 @@ uint8_t ROM::readmemMBC1(uint16_t addr)
     }
 
     // Invalid address
-    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr); 
+    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr);
     return 0xFF;
 }
 
@@ -505,7 +517,7 @@ void ROM::writememMBC1(uint8_t val, uint16_t addr)
 {
     // RAM Enable
     if (addr < 0x2000) {
-        ramEnable = (val & 0x0A) == 0x0A;
+        ramEnable = (val & 0x0F) == 0x0A;
     }
 
     // ROM Bank Number
@@ -536,7 +548,6 @@ void ROM::writememMBC1(uint8_t val, uint16_t addr)
             ram[actualAddr] = val;
         }
     }
-
 }
 
 uint8_t ROM::readmemMBC2(uint16_t addr)
@@ -557,19 +568,19 @@ uint8_t ROM::readmemMBC2(uint16_t addr)
     }
 
     // Invalid address
-    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr); 
+    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr);
     return 0xFF;
 }
 
 void ROM::writememMBC2(uint8_t val, uint16_t addr)
 {
     // RAM Enable
-    if (addr < 0x2000 && ((addr & 0x10) >> 4) == 0) {
+    if (addr < 0x2000 && (addr & 0x100) == 0) {
         ramEnable = (val & 0x0F) == 0x0A;
     }
 
     // ROM Bank
-    if (addr >= 0x2000 && addr < 0x4000 && ((addr & 0x10) >> 4) == 1) {
+    if (addr >= 0x2000 && addr < 0x4000 && (addr & 0x100) != 0) {
         currentROMBank = val & 0xFF;
         if (currentROMBank == 0)
             currentROMBank = 1;
@@ -577,7 +588,7 @@ void ROM::writememMBC2(uint8_t val, uint16_t addr)
 
     // RAM
     if (addr >= 0xA000 && addr < 0xA200) {
-        ram[addr - 0xA000] = val & 0xFF;
+        ram[addr - 0xA000] = val & 0x0F;
     }
 }
 
@@ -621,7 +632,7 @@ uint8_t ROM::readmemMBC3(uint16_t addr)
     }
 
     // Invalid address
-    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr); 
+    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr);
     return 0xFF;
 }
 
@@ -695,11 +706,11 @@ uint8_t ROM::readmemMBC5(uint16_t addr)
     // RAM
     if (addr >= 0xA000 && addr < 0xC000) {
         uint32_t acutalAddr = (addr - 0xA000) + 0x2000 * currentRAMBank;
-        return rom[acutalAddr];
+        return ram[acutalAddr];
     }
 
     // Invalid address
-    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr); 
+    fprintf(stderr, "WARNING: Trying to read from invalid ROM address: 0x%04X\n", addr);
     return 0xFF;
 }
 
@@ -707,7 +718,7 @@ void ROM::writememMBC5(uint8_t val, uint16_t addr)
 {
     // RAM Enable
     if (addr < 0x2000) {
-        ramEnable = (val & 0x0A) == 0x0A;
+        ramEnable = (val & 0x0F) == 0x0A;
     }
 
     // Low 8 bits of ROM Bank number
@@ -720,9 +731,14 @@ void ROM::writememMBC5(uint8_t val, uint16_t addr)
         currentROMBank = ((val & 0x1) << 8) | (currentROMBank & 0xFF);
     }
 
-    // RAM
-    if (addr >= 0xA000 && addr < 0xC000) {
+    // RAM Bank Number
+    if (addr >= 0x4000 && addr < 0x6000) {
         currentRAMBank = val;
     }
-}
 
+    // RAM
+    if (addr >= 0xA000 && addr < 0xC000) {
+        uint32_t acutalAddr = (addr - 0xA000) + 0x2000 * currentRAMBank;
+        ram[acutalAddr] = val;
+    }
+}

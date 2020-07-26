@@ -3,10 +3,10 @@
 
 #pragma once
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <cstdio>
 #include <string>
 
 enum MBC { None, MBC1, MBC2, MMM01, MBC3, MBC5, MBC6, MBC7, HuC1, HuC3 };
@@ -48,7 +48,7 @@ class ROM
 
     bool ramEnable;
     uint16_t currentROMBank;
-    uint8_t currentRAMBank;   // In MBC1 it can be used to select ROM banks
+    uint8_t currentRAMBank; // In MBC1 it can be used to select ROM banks
     uint8_t bankMode;
 
     // NOTE: To switch banks, there will be mem writes to a ROM area
@@ -56,6 +56,7 @@ class ROM
     // the switching
 
     /* TIMER REGISTERS */
+    // TODO: Implement the actual timer
 
     uint8_t rtcS;
     uint8_t rtcM;
@@ -65,6 +66,7 @@ class ROM
     uint8_t rtcLatchClockLastWritten;
     bool rtcLatch;
 
+    // TODO: Add destructor
     ROM();
 
     bool loadROM(std::string romPath);
@@ -111,4 +113,3 @@ class ROM
 };
 
 #endif // __ROM_H__
-
