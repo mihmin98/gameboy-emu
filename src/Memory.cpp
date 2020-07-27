@@ -147,4 +147,5 @@ void Memory::setCurrentVramBank(uint8_t val)
 void Memory::setCurrentWramBank(uint8_t val)
 {
     ioRegisters[0xFF70 - 0xFF00] = val & 0x3;
-} 
+}
+
