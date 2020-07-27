@@ -43,13 +43,13 @@ $(APP_DIR)/$(APPNAME): $(OBJECTS)
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -o $(APP_DIR)/$(APPNAME) $^ $(LDFLAGS)
 
-# Compile main test file into an object and compile all the other objects
-$(TEST_OBJECTS): $(TEST_MAIN) $(OBJECTS)
+# Compile main test file into an object
+$(TEST_OBJECTS): $(TEST_MAIN)
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGFS) $(INCLUDE) -c $< -o $@ $(LDFLAGS)
 
 # Compile and link tests to create test executables
-$(TEST_BUILD_DIR)/%.out: $(TEST_SRC_DIR)/%.cpp
+$(TEST_BUILD_DIR)/%.out: $(TEST_SRC_DIR)/%.cpp $(OBJECTS)
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGFS) $(INCLUDE) $< $(TEST_OBJECTS) $(OBJECTS) -o $@ $(LDFLAGS)
 
@@ -72,3 +72,4 @@ test: $(TEST_OBJECTS) $(TEST_EXECS) $(TEST_GEN_SCRIPT)
 
 clean:
 	rm $(OBJ_DIR)/*.o $(TEST_OBJ_DIR)/*.o $(TEST_BUILD_DIR)/* $(APP_DIR)/$(APPNAME)
+
