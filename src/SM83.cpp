@@ -1,5 +1,10 @@
 #include "SM83.hpp"
 
+SM83::SM83()
+{
+
+}
+
 /**
  *  Main CPU loop
  */
@@ -181,7 +186,7 @@ void SM83::writemem_u16(uint16_t val, uint16_t addr)
  */
 bool SM83::checkInstructionCycle(uint8_t opcode_cycles)
 {
-    return (instructionCycle++) == opcode_cycles;
+    return (++instructionCycle) == opcode_cycles;
 }
 
 /**
