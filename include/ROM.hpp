@@ -66,8 +66,8 @@ class ROM
     uint8_t rtcLatchClockLastWritten;
     bool rtcLatch;
 
-    // TODO: Add destructor
     ROM();
+    ~ROM();
 
     bool loadROM(std::string romPath);
 
@@ -113,3 +113,4 @@ class ROM
 };
 
 #endif // __ROM_H__
+

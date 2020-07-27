@@ -11,6 +11,15 @@ ROM::ROM()
     bankMode = 0;
 }
 
+ROM::~ROM()
+{
+    if (rom != nullptr)
+        delete[] rom;
+
+    if (ram != nullptr)
+        delete[] ram;
+}
+
 /**
  *  Loads the ROM at the specified path. Returns true on success
  */
@@ -742,3 +751,4 @@ void ROM::writememMBC5(uint8_t val, uint16_t addr)
         ram[acutalAddr] = val;
     }
 }
+
