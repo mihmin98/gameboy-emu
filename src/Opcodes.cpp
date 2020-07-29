@@ -1017,6 +1017,7 @@ void SM83::op_swap_addr_hl()
 
 /**
  *  Rotate bits in register r8 left through carry
+ *  Bit 7 is copied to C flag and the prev contents of C flag are copied to bit 0
  *  Cycles: 2
  *  Length: 2
  *  Flags:
@@ -1045,6 +1046,7 @@ void SM83::op_rl_r8(uint8_t &r8)
 
 /**
  *  Rotate bits in byte pointed by HL left through carry
+ *  Bit 7 is copied to C flag and the prev contents of C flag are copied to bit 0
  *  Cycles: 4
  *  Length: 2
  *  Flags:
@@ -1078,6 +1080,7 @@ void SM83::op_rl_addr_hl()
 
 /**
  *  Rotate register A left through carry
+ *  Bit 7 is copied to C flag and the prev contents of C flag are copied to bit 0
  *  Cycles: 1
  *  Length: 1
  *  Flags:
@@ -1103,6 +1106,7 @@ void SM83::op_rla()
 
 /**
  *  Rotate bits in register r8 left
+ *  Bit 7 is copied to the C flag and to bit 0
  *  Cycles: 2
  *  Length: 2
  *  Flags:
@@ -1131,6 +1135,7 @@ void SM83::op_rlc_r8(uint8_t &r8)
 
 /**
  *  Rotate bits in byte pointed by HL left
+ *  Bit 7 is copied to the C flag and to bit 0
  *  Cycles: 4
  *  Length: 2
  *  Flags:
@@ -1164,6 +1169,7 @@ void SM83::op_rlc_addr_hl()
 
 /**
  *  Rotate register A left
+ *  Bit 7 is copied to the C flag and to bit 0
  *  Cycles: 1
  *  Length: 1
  *  Flags:
@@ -1189,6 +1195,7 @@ void SM83::op_rlca()
 
 /**
  *  Rotate register r8 right through carry
+ *  Bit 0 is copied to C flag and the prev contents of C flag are copied to bit 7
  *  Cycles: 2
  *  Length: 2
  *  Flags:
@@ -1217,6 +1224,7 @@ void SM83::op_rr_r8(uint8_t &r8)
 
 /**
  *  Rotate byte pointed by HL right through carry
+ *  Bit 0 is copied to C flag and the prev contents of C flag are copied to bit 7
  *  Cycles: 4
  *  Length: 2
  *  Flags:
@@ -1250,6 +1258,7 @@ void SM83::op_rr_addr_hl()
 
 /**
  *  Rotate register A right through carry
+ *  Bit 0 is copied to C flag and the prev contents of C flag are copied to bit 7
  *  Cycles: 1
  *  Length: 1
  *  Flags:
@@ -1275,6 +1284,7 @@ void SM83::op_rra()
 
 /**
  *  Rotate bits in register r8 right
+ *  Bit 0 is copied to C flag and bit 7
  *  Cycles: 2
  *  Length: 2
  *  Flags:
@@ -1303,6 +1313,7 @@ void SM83::op_rrc_r8(uint8_t &r8)
 
 /**
  *  Rotate bits in byte pointed by HL right
+ *  Bit 0 is copied to C flag and bit 7
  *  Cycles: 4
  *  Length: 2
  *  Flags:
@@ -1336,6 +1347,7 @@ void SM83::op_rrc_addr_hl()
 
 /**
  *  Rotate bits in register A right
+ *  Bit 0 is copied to C flag and bit 7
  *  Cycles: 1
  *  Length: 1
  *  Flags:
@@ -1361,6 +1373,7 @@ void SM83::op_rrca()
 
 /**
  *  Shift left arithmetic register r8
+ *  Bit 7 is copied to C flag and a 0 is put into bit 0
  *  Cycles: 2
  *  Length: 2
  *  Flags:
@@ -1387,6 +1400,7 @@ void SM83::op_sla_r8(uint8_t &r8)
 
 /**
  *  Shift left arithmetic byte pointed by HL
+ *  Bit 7 is copied to C flag and a 0 is put into bit 0
  *  Cycles: 4
  *  Length: 2
  *  Flags:
@@ -1418,6 +1432,7 @@ void SM83::op_sla_addr_hl()
 
 /**
  *  Shift right arithmetic register r8
+ *  Bit 0 is copied to C flag and bit 7 remains unchanged
  *  Cycles: 2
  *  Length: 2
  *  Flags:
@@ -1446,6 +1461,7 @@ void SM83::op_sra_r8(uint8_t &r8)
 
 /**
  *  Shift right arithmetic byte pointed by HL
+ *  Bit 0 is copied to C flag and bit 7 remains unchanged
  *  Cycles: 4
  *  Length: 2
  *  Flags:
@@ -1479,6 +1495,7 @@ void SM83::op_sra_addr_hl()
 
 /**
  *  Shift right logic register r8
+ *  Bit 0 is copied to C flag and a 0 is put into bit 7
  *  Cycles: 2
  *  Length: 2
  *  Flags:
@@ -1505,6 +1522,7 @@ void SM83::op_srl_r8(uint8_t &r8)
 
 /**
  *  Shift right logic byte pointed by HL
+ *  Bit 0 is copied to C flag and a 0 is put into bit 7 
  *  Cycles: 4
  *  Length: 2
  *  Flags:
