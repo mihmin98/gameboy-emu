@@ -182,11 +182,15 @@ void SM83::writemem_u16(uint16_t val, uint16_t addr)
 
 /**
  *  Returns true if the current instruction cycle is the last cycle, based on the parameter.
- *  Automatically increments instructionCycle
+ *  It also returns true if the instructionCycle is greated than the parameter
+ *  Automatically increments instructionCycle if increment flag is not specified
  */
-bool SM83::checkInstructionCycle(uint8_t opcode_cycles)
+bool SM83::checkInstructionCycle(uint8_t opcode_cycles, bool increment)
 {
-    return (++instructionCycle) == opcode_cycles;
+    if (increment)
+        return (++instructionCycle) >= opcode_cycles;
+    else
+        return instructionCycle >= opcode_cycles;
 }
 
 /**

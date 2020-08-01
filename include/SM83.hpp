@@ -64,7 +64,7 @@ class SM83
     void writemem_u8(uint8_t val, uint16_t addr);
     void writemem_u16(uint16_t val, uint16_t addr);
 
-    bool checkInstructionCycle(uint8_t opcode_cycles);
+    bool checkInstructionCycle(uint8_t opcode_cycles, bool increment = true);
     void endInstruction(uint8_t opcode_length);
 
     /* FLAG GETTERS AND SETTERS */
