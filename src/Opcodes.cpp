@@ -1478,7 +1478,7 @@ void SM83::op_sra_addr_hl()
     uint16_t hl = (H << 0x8) | L;
     uint8_t byte = readmem_u8(hl);
 
-    setCarryFlag(byte & 0x80);
+    setCarryFlag(byte & 0x1);
 
     uint8_t msb = byte & 0x80;
 
@@ -1919,8 +1919,8 @@ void SM83::op_call_n16()
     uint16_t n16 = readmem_u16(PC + 1);
     uint16_t ret_addr = PC + 3;
 
-    writemem_u8(ret_addr & 0xFF, --SP);
     writemem_u8((ret_addr & 0xFF00) >> 0x8, --SP);
+    writemem_u8(ret_addr & 0xFF, --SP);
 
     PC = n16;
 
@@ -1949,8 +1949,8 @@ void SM83::op_call_cc_n16(uint8_t flag_bit, uint8_t required_value)
     uint16_t n16 = readmem_u16(PC + 1);
     uint16_t ret_addr = PC + 3;
 
-    writemem_u8(ret_addr & 0xFF, --SP);
     writemem_u8((ret_addr & 0xFF00) >> 0x8, --SP);
+    writemem_u8(ret_addr & 0xFF, --SP);
 
     PC = n16;
 
@@ -2154,8 +2154,8 @@ void SM83::op_rst(uint16_t vec)
 
     uint16_t ret_addr = PC + 1;
 
-    writemem_u8(ret_addr & 0xFF, --SP);
     writemem_u8((ret_addr & 0xFF00) >> 0x8, --SP);
+    writemem_u8(ret_addr & 0xFF, --SP);
 
     PC = vec;
 
@@ -2362,8 +2362,8 @@ void SM83::op_pop_af()
     if (!checkInstructionCycle(3))
         return;
 
-    A = readmem_u8(SP++);
     F = readmem_u8(SP++);
+    A = readmem_u8(SP++);
 
     endInstruction(1);
 }
