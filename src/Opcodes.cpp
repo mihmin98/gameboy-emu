@@ -1522,7 +1522,7 @@ void SM83::op_srl_r8(uint8_t &r8)
 
 /**
  *  Shift right logic byte pointed by HL
- *  Bit 0 is copied to C flag and a 0 is put into bit 7 
+ *  Bit 0 is copied to C flag and a 0 is put into bit 7
  *  Cycles: 4
  *  Length: 2
  *  Flags:
@@ -1943,7 +1943,7 @@ void SM83::op_call_cc_n16(uint8_t flag_bit, uint8_t required_value)
     if (flag_bit != required_value)
         endInstruction(3);
 
-    if (!checkInstructionCycle(6))
+    if (!checkInstructionCycle(6, false))
         return;
 
     uint16_t n16 = readmem_u16(PC + 1);
@@ -2007,7 +2007,7 @@ void SM83::op_jp_cc_n16(uint8_t flag_bit, uint8_t required_value)
     if (flag_bit != required_value)
         endInstruction(3);
 
-    if (!checkInstructionCycle(4))
+    if (!checkInstructionCycle(4, false))
         return;
 
     uint16_t n16 = readmem_u16(PC + 1);
@@ -2056,7 +2056,7 @@ void SM83::op_jr_cc_e8(uint8_t flag_bit, uint8_t required_value)
     if (flag_bit != required_value)
         endInstruction(2);
 
-    if (!checkInstructionCycle(3))
+    if (!checkInstructionCycle(3, false))
         return;
 
     uint8_t ue8 = readmem_u8(PC + 1);
@@ -2084,7 +2084,7 @@ void SM83::op_ret_cc(uint8_t flag_bit, uint8_t required_value)
     if (flag_bit != required_value)
         endInstruction(1);
 
-    if (!checkInstructionCycle(5))
+    if (!checkInstructionCycle(5, false))
         return;
 
     uint8_t ret_addr_low, ret_addr_high;
@@ -2319,11 +2319,8 @@ void SM83::op_ld_hl_sp_plus_e8()
     setHalfCarryFlag(((SP ^ e8 ^ (result & 0xFFFF)) & 0x10) == 0x10);
     setCarryFlag(((SP ^ e8 ^ (result & 0xFFFF)) & 0x100) == 0x100);
 
-    SP = result;
-
-    uint16_t hl = (H << 0x8) | L;
-
-    writemem_u16(SP, hl);
+    H = (result & 0xFF00) >> 0x8;
+    L = result & 0x00FF;
 
     endInstruction(2);
 }
@@ -2452,6 +2449,9 @@ void SM83::op_cpl()
 {
     A = ~A;
 
+    setSubtractFlag(1);
+    setHalfCarryFlag(1);
+
     endInstruction(1);
 }
 
@@ -2508,7 +2508,10 @@ void SM83::op_di()
 
 /**
  *  Enable Interrupts by setting the IME flag. The flag is set only after the instruction following
- * EI Cycles: 1 Length: 1 Flags: None
+ *  EI
+ *  Cycles: 1
+ *  Length: 1
+ *  Flags: None
  */
 void SM83::op_ei()
 {
@@ -2542,7 +2545,7 @@ void SM83::op_halt()
 
     if (ime == 0) {
         bool pending = false;
-        
+
         // VBlank
         if (getVBlankInterruptEnable() && getVBlankInterruptFlag()) {
             pending = true;
@@ -2575,6 +2578,7 @@ void SM83::op_halt()
         } else {
             halted = false;
             halt_bug = true;
+            endInstruction(1);
         }
     }
 }
