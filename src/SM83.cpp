@@ -2,7 +2,7 @@
 
 SM83::SM83()
 {
-
+    int_cycles = -1;
 }
 
 /**
@@ -55,7 +55,7 @@ void SM83::cycle()
     if (instructionCycle == 0)
         if (ei_enable == 1)
             setImeFlag(1);
-    if (ei_enable > 0)
+    if (ei_enable > 0 && instructionCycle == 0)
         --ei_enable;
 
     // If an instruction was just finished, check for interrupts
@@ -146,8 +146,8 @@ bool SM83::serviceInterrupt()
     setImeFlag(0);
 
     // Push current PC on the stack
-    writemem_u8(PC & 0xFF, --SP);
     writemem_u8((PC & 0xFF00) >> 0x8, --SP);
+    writemem_u8(PC & 0xFF, --SP);
 
     PC = int_addr;
 
