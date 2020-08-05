@@ -1,17 +1,14 @@
 #include "SM83.hpp"
 
-SM83::SM83()
-{
-    int_cycles = -1;
-}
+SM83::SM83() { int_cycles = -1; }
 
 /**
  *  Main CPU loop
  */
 void SM83::cycle()
 {
-    // Check if halted
-    if (halted) {
+    // Check if halted and not servicing an interrupt
+    if (halted && int_cycles < 0) {
         // Check for pending interrupts
         // If IME = 1 then service the interrupt
         bool pending = false;
@@ -27,8 +24,11 @@ void SM83::cycle()
     }
 
     // Check if an interrupt is being serviced and service it
-    if (int_cycles >= 0)
+    // If servicing interrupt, exit cycle
+    if (int_cycles >= 0) {
         serviceInterrupt();
+        return;
+    }
 
     // Fetch opcode
     uint8_t opcode = readmem_u8(PC);
@@ -135,13 +135,13 @@ bool SM83::checkInterrupts(int8_t *int_cycles, uint16_t *int_addr)
 /**
  *  Services interrupt based on int_cycles and int_addr
  *  Should be called only when int_cycles >= 0
+ *  int_cycles will never be 0; it will skip 0 and go to -1
  */
 bool SM83::serviceInterrupt()
 {
-    if (int_cycles > 0) {
-        --int_cycles;
+    --int_cycles;
+    if (int_cycles > 0)
         return false;
-    }
 
     setImeFlag(0);
 
@@ -153,26 +153,20 @@ bool SM83::serviceInterrupt()
 
     // Signal that there is no need to service an interrupt
     int_cycles = -1;
-    
+
     return true;
 }
 
 /* MEMORY READ AND WRITE */
 
-uint8_t SM83::readmem_u8(uint16_t addr)
-{
-    return memory->readmem(addr);
-}
+uint8_t SM83::readmem_u8(uint16_t addr) { return memory->readmem(addr); }
 
 uint16_t SM83::readmem_u16(uint16_t addr)
 {
     return memory->readmem(addr) | (memory->readmem(addr + 1) << 0x8);
 }
 
-void SM83::writemem_u8(uint8_t val, uint16_t addr)
-{
-    memory->writemem(val, addr);
-}
+void SM83::writemem_u8(uint8_t val, uint16_t addr) { memory->writemem(val, addr); }
 
 void SM83::writemem_u16(uint16_t val, uint16_t addr)
 {
