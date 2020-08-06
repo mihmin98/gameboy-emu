@@ -1,6 +1,12 @@
 #include "SM83.hpp"
 
-SM83::SM83() { int_cycles = -1; }
+SM83::SM83() 
+{ 
+    int_cycles = -1; 
+
+    halt_bug = false;
+    just_started_halt_bug = false;
+}
 
 /**
  *  Main CPU loop
@@ -47,8 +53,10 @@ void SM83::cycle()
             ++PC;
 
         // If the instruction has ended, then disable the halt bug
-        else if (instructionCycle == 0)
+        else if (instructionCycle == 0 && !just_started_halt_bug)
             halt_bug = false;
+
+        just_started_halt_bug = false;
     }
 
     // Check for IME enable after EI instruction

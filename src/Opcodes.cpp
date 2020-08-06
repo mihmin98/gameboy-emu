@@ -2578,6 +2578,7 @@ void SM83::op_halt()
         } else {
             halted = false;
             halt_bug = true;
+            just_started_halt_bug = true;
             endInstruction(1);
         }
     }

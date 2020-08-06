@@ -46,6 +46,10 @@ class SM83
     // Flag that says if the HALT bug is in effect
     bool halt_bug;
 
+    // Flag that says if the halt bug just started
+    // Useful for not skipping the bug just after it has been triggered
+    bool just_started_halt_bug;
+
     bool stop_signal;
 
     SM83();
