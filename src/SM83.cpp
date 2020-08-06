@@ -16,7 +16,7 @@ void SM83::cycle()
             pending = checkInterrupts(&int_cycles, &int_addr);
         // If IME = 0 do not service the interrupt; do not clear flags
         else
-            pending = checkInterrupts(nullptr, nullptr);
+            pending = checkInterrupts(&int_cycles, nullptr);
 
         // If there aren't pending interrupts, continue to halt
         if (!pending)
@@ -77,55 +77,77 @@ void SM83::handleInterrupts()
  *  Check if there are pending interrupts. If yes, return true, otherwise, return false
  *  If there is a pending interrupt and the params are not nullptr, set them to their respective
  * values
- *  If IME is 0, the params should be nullptr
+ *  If IME is 0, int_addr should be nullptr
  */
 bool SM83::checkInterrupts(int8_t *int_cycles, uint16_t *int_addr)
 {
     // VBlank
     if (getVBlankInterruptEnable() && getVBlankInterruptFlag()) {
-        if (int_cycles != nullptr && int_addr != nullptr) {
+        if (int_addr != nullptr) {
             *int_cycles = 5;
             *int_addr = SM83_VBLANK_INT;
             setVBlankInterruptFlag(0);
         }
+
+        if (ime == 0)
+            *int_cycles = 4;
+
         return true;
     }
 
     // LCD_STAT
     if (getLCDSTATInterruptEnable() && getLCDSTATInterruptFlag()) {
-        *int_cycles = 5;
-        *int_addr = SM83_LCD_STAT_INT;
-        setLCDSTATInterruptFlag(0);
+        if (int_addr != nullptr) {
+            *int_cycles = 5;
+            *int_addr = SM83_LCD_STAT_INT;
+            setLCDSTATInterruptFlag(0);
+        }
+
+        if (ime == 0)
+            *int_cycles = 4;
+
         return true;
     }
 
     // Timer
     if (getTimerInterruptEnable() && getTimerInterruptFlag()) {
-        if (int_cycles != nullptr && int_addr != nullptr) {
+        if (int_addr != nullptr) {
             *int_cycles = 5;
             *int_addr = SM83_TIMER_INT;
             setTimerInterruptFlag(0);
         }
+
+        if (ime == 0)
+            *int_cycles = 4;
+
         return true;
     }
 
     // Serial
     if (getSerialInterruptEnable() && getSerialInterruptFlag()) {
-        if (int_cycles != nullptr && int_addr != nullptr) {
+        if (int_addr != nullptr) {
             *int_cycles = 5;
             *int_addr = SM83_SERIAL_INT;
             setSerialInterruptFlag(0);
         }
+
+        if (ime == 0)
+            *int_cycles = 4;
+
         return true;
     }
 
     // Joypad
     if (getJoypadInterruptEnable() && getJoypadInterruptFlag()) {
-        if (int_cycles != nullptr && int_addr != nullptr) {
+        if (int_addr != nullptr) {
             *int_cycles = 5;
             *int_addr = SM83_JOYPAD_INT;
             setJoypadInterruptFlag(0);
         }
+
+        if (ime == 0)
+            *int_cycles = 4;
+
         return true;
     }
 
@@ -143,6 +165,13 @@ bool SM83::serviceInterrupt()
     if (int_cycles > 0)
         return false;
 
+    // Signal that there is no need to service an interrupt
+    int_cycles = -1;
+
+    // If IME is 0, do not jump
+    if (ime == 0)
+        return true;
+
     setImeFlag(0);
 
     // Push current PC on the stack
@@ -150,9 +179,6 @@ bool SM83::serviceInterrupt()
     writemem_u8(PC & 0xFF, --SP);
 
     PC = int_addr;
-
-    // Signal that there is no need to service an interrupt
-    int_cycles = -1;
 
     return true;
 }
