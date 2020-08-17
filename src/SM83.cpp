@@ -29,6 +29,10 @@ void SM83::cycle()
             return;
     }
 
+    // If an instruction was just finished, check for interrupts
+    if (instructionCycle == 0)
+        handleInterrupts();
+
     // Check if an interrupt is being serviced and service it
     // If servicing interrupt, exit cycle
     if (int_cycles >= 0) {
@@ -65,10 +69,6 @@ void SM83::cycle()
             setImeFlag(1);
     if (ei_enable > 0 && instructionCycle == 0)
         --ei_enable;
-
-    // If an instruction was just finished, check for interrupts
-    if (instructionCycle == 0)
-        handleInterrupts();
 }
 
 void SM83::handleInterrupts()
