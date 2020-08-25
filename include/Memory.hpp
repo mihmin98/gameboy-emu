@@ -7,6 +7,7 @@
 #include <cstdio>
 #include "ROM.hpp"
 #include "GameBoy.hpp"
+#include "PPU.hpp"
 
 #define MEM_ROM0_START 0x0000
 #define MEM_ROMX_START 0x4000
@@ -21,12 +22,15 @@
 #define MEM_HRAM_START 0xFF80
 
 class GameBoy;
+class PPU;
 
 class Memory
 {
   public:
 
+    EmulatorMode mode;
     ROM *rom; // Pointer to the ROM
+    PPU *ppu;
 
     /* MEMORY AREAS */
 
@@ -39,7 +43,10 @@ class Memory
     uint8_t hram[0x7F];
     uint8_t ieRegister;
 
-    Memory(); 
+    uint8_t cgbBgColorPalette[0x40];
+    uint8_t cgbObjColorPalette[0x40];
+
+    Memory(EmulatorMode mode = EmulatorMode::DMG); 
     
     uint8_t readmem(uint16_t addr);
     void writemem(uint8_t val, uint16_t addr);
