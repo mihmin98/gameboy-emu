@@ -163,6 +163,18 @@ void Memory::writemem(uint8_t val, uint16_t addr)
         ieRegister = val;
 }
 
+void Memory::writebit(uint8_t val, uint8_t bit, uint16_t addr)
+{
+    if (bit > 7)
+        return;
+
+    uint8_t mask = val != 0 ? 1 << bit : ~(1 << bit);
+    uint8_t byte = this->readmem(addr);
+    byte = val != 0 ? byte | mask : byte | mask;
+
+    this->writemem(byte, addr);
+}
+
 uint8_t Memory::getCurrentVramBank() { return ioRegisters[0xFF4F - 0xFF00] & 0x1; }
 
 uint8_t Memory::getCurrentWramBank()

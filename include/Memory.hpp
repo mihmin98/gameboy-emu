@@ -50,6 +50,7 @@ class Memory
     
     uint8_t readmem(uint16_t addr);
     void writemem(uint8_t val, uint16_t addr);
+    void writebit(uint8_t val, uint8_t bit, uint16_t addr);
 
     uint8_t getCurrentVramBank();
     uint8_t getCurrentWramBank();
