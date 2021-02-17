@@ -1664,7 +1664,7 @@ TEST_CASE("BIT u3, r8", "[OPCODE]")
     }
 }
 
-TEST_CASE("BIT u3, [HL]")
+TEST_CASE("BIT u3, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
@@ -1731,7 +1731,7 @@ TEST_CASE("RES u3, r8", "[OPCODE]")
     REQUIRE(cpu.A == 0xB);
 }
 
-TEST_CASE("RES u3, [HL]")
+TEST_CASE("RES u3, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
@@ -1777,7 +1777,7 @@ TEST_CASE("SET u3, r8", "[OPCODE]")
     REQUIRE(cpu.A == 0xF);
 }
 
-TEST_CASE("SET u3, [HL]")
+TEST_CASE("SET u3, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
@@ -2903,7 +2903,7 @@ TEST_CASE("LD r8, [HL]", "[OPCODE]")
     REQUIRE(cpu.A == mem.wram[0]);
 }
 
-TEST_CASE("LD [r16], A")
+TEST_CASE("LD [r16], A", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
@@ -3099,7 +3099,7 @@ TEST_CASE("LDH A, [C]", "[OPCODE]")
     REQUIRE(cpu.A == mem.readmem(0xFF66));
 }
 
-TEST_CASE("LD [HL+], A")
+TEST_CASE("LD [HL+], A", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
@@ -3124,7 +3124,7 @@ TEST_CASE("LD [HL+], A")
     REQUIRE(cpu.L == 0x00);
 }
 
-TEST_CASE("LD [HL-], A")
+TEST_CASE("LD [HL-], A", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;

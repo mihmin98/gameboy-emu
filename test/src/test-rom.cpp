@@ -1,16 +1,21 @@
 #include "catch.hpp"
 
 #include "ROM.hpp"
+#include "TestConstants.hpp"
 #include <cstdlib>
+#include <experimental/filesystem>
 #include <iostream>
+
+namespace fs = std::experimental::filesystem;
 
 TEST_CASE("Load ROM and set flags", "[ROM]")
 {
     ROM rom;
+    fs::path romDirPath = fs::current_path() / TestConstants::testRomsDir;
 
     SECTION("Load a ROM that should fail checks")
     {
-        bool loadResult = rom.loadROM("test/build/test_bad_nintendo_logo.gb");
+        bool loadResult = rom.loadROM(romDirPath / "test_bad_nintendo_logo.gb");
 
         REQUIRE(loadResult);
         REQUIRE_FALSE(rom.nintendoLogoOk);
@@ -20,7 +25,7 @@ TEST_CASE("Load ROM and set flags", "[ROM]")
 
     SECTION("Load a ROM that should pass all checks")
     {
-        bool loadResult = rom.loadROM("test/build/test_no_mbc_ram.gb");
+        bool loadResult = rom.loadROM(romDirPath / "test_no_mbc_ram.gb");
 
         REQUIRE(loadResult);
         REQUIRE(rom.nintendoLogoOk);
@@ -30,7 +35,7 @@ TEST_CASE("Load ROM and set flags", "[ROM]")
 
     SECTION("Load a ROM and check header info")
     {
-        bool loadResult = rom.loadROM("test/build/test_no_mbc_ram.gb");
+        bool loadResult = rom.loadROM(romDirPath / "test_no_mbc_ram.gb");
 
         REQUIRE(loadResult);
 
@@ -50,7 +55,9 @@ TEST_CASE("Load ROM and set flags", "[ROM]")
 TEST_CASE("No MBC and No RAM Read", "[ROM]")
 {
     ROM rom;
-    bool loadResult = rom.loadROM("test/build/test_no_mbc_no_ram.gb");
+    fs::path romDirPath = fs::current_path() / TestConstants::testRomsDir;
+
+    bool loadResult = rom.loadROM(romDirPath / "test_no_mbc_no_ram.gb");
 
     REQUIRE(loadResult);
 
@@ -80,7 +87,9 @@ TEST_CASE("No MBC and No RAM Read", "[ROM]")
 TEST_CASE("No MBC and RAM Read and Write", "[ROM]")
 {
     ROM rom;
-    bool loadResult = rom.loadROM("test/build/test_no_mbc_ram.gb");
+    fs::path romDirPath = fs::current_path() / TestConstants::testRomsDir;
+
+    bool loadResult = rom.loadROM(romDirPath / "test_no_mbc_ram.gb");
 
     REQUIRE(loadResult);
 
@@ -148,7 +157,9 @@ TEST_CASE("No MBC and RAM Read and Write", "[ROM]")
 TEST_CASE("MBC1 Read and Write")
 {
     ROM rom;
-    bool loadResult = rom.loadROM("test/build/test_mbc1.gb");
+    fs::path romDirPath = fs::current_path() / TestConstants::testRomsDir;
+
+    bool loadResult = rom.loadROM(romDirPath / "test_mbc1.gb");
 
     REQUIRE(loadResult);
 
@@ -303,7 +314,9 @@ TEST_CASE("MBC1 Read and Write")
 TEST_CASE("MBC2 Read and Write", "[ROM]")
 {
     ROM rom;
-    bool loadResult = rom.loadROM("test/build/test_mbc2.gb");
+    fs::path romDirPath = fs::current_path() / TestConstants::testRomsDir;
+
+    bool loadResult = rom.loadROM(romDirPath / "test_mbc2.gb");
 
     REQUIRE(loadResult);
 
@@ -391,7 +404,9 @@ TEST_CASE("MBC2 Read and Write", "[ROM]")
 TEST_CASE("MBC3 Read and Write", "[ROM]")
 {
     ROM rom;
-    bool loadResult = rom.loadROM("test/build/test_mbc3.gb");
+    fs::path romDirPath = fs::current_path() / TestConstants::testRomsDir;
+
+    bool loadResult = rom.loadROM(romDirPath / "test_mbc3.gb");
 
     REQUIRE(loadResult);
 
@@ -595,7 +610,9 @@ TEST_CASE("MBC3 Read and Write", "[ROM]")
 TEST_CASE("MBC5 Read and Write", "[ROM]")
 {
     ROM rom;
-    bool loadResult = rom.loadROM("test/build/test_mbc5.gb");
+    fs::path romDirPath = fs::current_path() / TestConstants::testRomsDir;
+
+    bool loadResult = rom.loadROM(romDirPath / "test_mbc5.gb");
 
     REQUIRE(loadResult);
 
@@ -698,4 +715,3 @@ TEST_CASE("MBC5 Read and Write", "[ROM]")
         }
     }
 }
-

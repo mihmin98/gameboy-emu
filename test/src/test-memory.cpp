@@ -1,15 +1,20 @@
 #include "catch.hpp"
 
 #include "Memory.hpp"
+#include "TestConstants.hpp"
 #include <cstdlib>
+#include <experimental/filesystem>
 #include <iostream>
+
+namespace fs = std::experimental::filesystem;
 
 TEST_CASE("Read Memory", "[MEM]")
 {
     Memory mem;
     ROM rom;
+    fs::path romDirPath = fs::current_path() / TestConstants::testRomsDir;
 
-    rom.loadROM("test/build/test_mbc5.gb");
+    rom.loadROM(romDirPath / "test_mbc5.gb");
 
     // Add data to ROM
     // Fill each rom bank with its number
@@ -139,8 +144,9 @@ TEST_CASE("Write Memory", "[MEM]")
 {
     Memory mem;
     ROM rom;
+    fs::path romDirPath = fs::current_path() / TestConstants::testRomsDir;
 
-    rom.loadROM("test/build/test_mbc5.gb");
+    rom.loadROM(romDirPath / "test_mbc5.gb");
     mem.rom = &rom;
 
     SECTION("ROM")
@@ -205,7 +211,7 @@ TEST_CASE("Write Memory", "[MEM]")
     SECTION("OAM")
     {
         mem.writemem(0x66, 0xFE66);
-        REQUIRE(mem.oam[0x66] == 0x66);    
+        REQUIRE(mem.oam[0x66] == 0x66);
     }
 
     SECTION("I/O Registers")
@@ -226,4 +232,3 @@ TEST_CASE("Write Memory", "[MEM]")
         REQUIRE(mem.ieRegister == 0x66);
     }
 }
-

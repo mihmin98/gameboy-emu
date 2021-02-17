@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 from os import path
+import argparse
+from pathlib import Path
 
 
 def generate_nintendo_logo():
@@ -78,61 +80,77 @@ def generate_cartridge(file_name, good_nintendo_logo=True, game_title='GAME TITL
 
 
 if __name__ == '__main__':
-    rom_folder_path = 'test/build/'
+    parser = argparse.ArgumentParser(description='Generate test roms')
+    parser.add_argument('-d', '--dir', default='.',
+                        help='location where the rom files should be created')
+
+    args = parser.parse_args()
+
+    rom_folder_path = args.dir
+
+    # Create folder
+    Path(rom_folder_path).mkdir(parents=True, exist_ok=True)
 
     # Bad Ninendo Logo, Bad Header Checksum, Bad Global Checksum, GBC Only ROM
     rom_name = 'test_bad_nintendo_logo.gb'
-    if path.exists(rom_folder_path + rom_name):
+    rom_path = path.join(rom_folder_path, rom_name)
+    if path.exists(rom_path):
         print(rom_name + ' already exists, skipping...')
     else:
-        generate_cartridge(rom_folder_path + rom_name, good_nintendo_logo=False,
+        generate_cartridge(rom_path, good_nintendo_logo=False,
                            game_title='BAD CHECKSUMS', gbc_flag=0xC0, header_checksum=0x01,
                            global_checksum=0x01)
 
     # NoMBC, No RAM
     rom_name = 'test_no_mbc_no_ram.gb'
-    if path.exists(rom_folder_path + rom_name):
+    rom_path = path.join(rom_folder_path, rom_name)
+    if path.exists(rom_path):
         print(rom_name + ' already exists, skipping...')
     else:
-        generate_cartridge(rom_folder_path + rom_name,
+        generate_cartridge(rom_path,
                            game_title='NOMBC NORAM')
 
     # NoMBC, RAM
     rom_name = 'test_no_mbc_ram.gb'
-    if path.exists(rom_folder_path + rom_name):
+    rom_path = path.join(rom_folder_path, rom_name)
+    if path.exists(rom_path):
         print(rom_name + ' already exists, skipping...')
     else:
-        generate_cartridge(rom_folder_path + rom_name, game_title='NOMBC RAM',
+        generate_cartridge(rom_path, game_title='NOMBC RAM',
                            cartridge_type=0x08, ram_size=0x02)
 
     # MBC1
     rom_name = 'test_mbc1.gb'
-    if path.exists(rom_folder_path + rom_name):
+    rom_path = path.join(rom_folder_path, rom_name)
+    if path.exists(rom_path):
         print(rom_name + ' already exists, skipping...')
     else:
-        generate_cartridge(rom_folder_path + rom_name, game_title='MBC1',
+        generate_cartridge(rom_path, game_title='MBC1',
                            cartridge_type=0x02, rom_size=0x06, ram_size=0x03)
 
     # MBC2
     rom_name = 'test_mbc2.gb'
-    if path.exists(rom_folder_path + rom_name):
+    rom_path = path.join(rom_folder_path, rom_name)
+    if path.exists(rom_path):
         print(rom_name + ' already exists, skipping...')
     else:
-        generate_cartridge(rom_folder_path + rom_name, game_title='MBC2',
+        generate_cartridge(rom_path, game_title='MBC2',
                            cartridge_type=0x05, rom_size=0x03)
 
     # MBC3
     rom_name = 'test_mbc3.gb'
-    if path.exists(rom_folder_path + rom_name):
+    rom_path = path.join(rom_folder_path, rom_name)
+    if path.exists(rom_path):
         print(rom_name + ' already exists, skipping...')
     else:
-        generate_cartridge(rom_folder_path + rom_name, game_title='MBC3',
+        generate_cartridge(rom_path, game_title='MBC3',
                            cartridge_type=0x12, rom_size=0x06, ram_size=0x05)
 
     # MBC5
     rom_name = 'test_mbc5.gb'
-    if path.exists(rom_folder_path + rom_name):
+    rom_path = path.join(rom_folder_path, rom_name)
+    if path.exists(rom_path):
         print(rom_name + ' already exists, skipping...')
     else:
-        generate_cartridge(rom_folder_path + rom_name, game_title='MBC5',
+        generate_cartridge(rom_path, game_title='MBC5',
                            cartridge_type=0x1A, rom_size=0x08, ram_size=0x04)

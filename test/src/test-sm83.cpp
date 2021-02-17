@@ -538,7 +538,7 @@ TEST_CASE("Service Interrupt", "[SM83]")
     }
 }
 
-TEST_CASE("Read Memory", "[SM83]")
+TEST_CASE("SM83 Read Memory", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
@@ -552,7 +552,7 @@ TEST_CASE("Read Memory", "[SM83]")
     SECTION("2 bytes") { REQUIRE(cpu.readmem_u16(0xC000) == 0x3412); }
 }
 
-TEST_CASE("Write Memory", "[SM83]")
+TEST_CASE("SM83 Write Memory", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
