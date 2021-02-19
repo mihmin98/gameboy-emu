@@ -12,33 +12,35 @@ Memory::Memory(EmulatorMode mode)
 uint8_t Memory::readmem(uint16_t addr)
 {
     // ROM + External RAM
-    if (addr < 0x8000 || (addr >= 0xA000 && addr < 0xC000))
+    if (addr < MEM_VRAM_START || (addr >= MEM_EXT_RAM_START && addr < MEM_WRAM0_START))
         return rom->readmem(addr);
 
     // VRAM
-    if (addr >= 0x8000 && addr < 0xA000) {
+    if (addr >= MEM_VRAM_START && addr < MEM_EXT_RAM_START) {
         currentVramBank = getCurrentVramBank();
-        uint16_t actualAddr = (addr - 0x8000) + currentVramBank * 0x2000;
+        uint16_t actualAddr = (addr - MEM_VRAM_START) + currentVramBank * 0x2000;
         return vram[actualAddr];
     }
 
     // WRAM Bank 0
-    if (addr >= 0xC000 && addr < 0xD000)
-        return wram[addr - 0xC000];
+    if (addr >= MEM_WRAM0_START && addr < MEM_WRAMX_START)
+        return wram[addr - MEM_WRAM0_START];
 
     // Switchable WRAM Bank
-    if (addr >= 0xD000 && addr < 0xE000) {
+    if (addr >= MEM_WRAMX_START && addr < MEM_ECHO_START) {
         currentWramBank = getCurrentWramBank();
-        uint16_t actualAddr = (addr - 0xD000) + currentWramBank * 0x1000;
+        uint16_t actualAddr = (addr - MEM_WRAMX_START) + currentWramBank * 0x1000;
         return wram[actualAddr];
     }
 
     // ECHO RAM
-    if (addr >= 0xE000 && addr < 0xFE00) {
-        if (addr >= 0xE000 && addr < 0xF000)
-            return wram[addr - 0xE000];
+    if (addr >= MEM_ECHO_START && addr < MEM_OAM_START) {
+        // Mirror of WRAM Bank 0
+        if (addr >= MEM_ECHO_START && addr < 0xF000)
+            return wram[addr - MEM_ECHO_START];
 
-        if (addr >= 0xF000 && addr < 0xFE00) {
+        // Mirror of switchable WRAM Bank
+        if (addr >= 0xF000 && addr < MEM_OAM_START) {
             currentWramBank = getCurrentWramBank();
             uint16_t actualAddr = (addr - 0xF000) + currentWramBank * 0x1000;
             return wram[actualAddr];
@@ -46,15 +48,15 @@ uint8_t Memory::readmem(uint16_t addr)
     }
 
     // OAM
-    if (addr >= 0xFE00 && addr < 0xFEA0)
-        return oam[addr - 0xFE00];
+    if (addr >= MEM_OAM_START && addr < MEM_UNUSED_START)
+        return oam[addr - MEM_OAM_START];
 
     // Unused range
-    if (addr >= 0xFEA0 && addr < 0xFF00)
+    if (addr >= MEM_UNUSED_START && addr < MEM_IO_START)
         return 0x00;
 
     // I/O Registers
-    if (addr >= 0xFF00 && addr < 0xFF80) {
+    if (addr >= MEM_IO_START && addr < MEM_HRAM_START) {
         if (addr == 0xFF69) {
             // BGPD (Backgroud Color Palette Data)
             uint8_t index = ppu->getBgColorPaletteIndex() & 0x3F;
@@ -67,15 +69,15 @@ uint8_t Memory::readmem(uint16_t addr)
             return cgbObjColorPalette[index];
         }
 
-        return ioRegisters[addr - 0xFF00];
+        return ioRegisters[addr - MEM_IO_START];
     }
 
     // HRAM
-    if (addr >= 0xFF80 && addr < 0xFFFF)
-        return hram[addr - 0xFF80];
+    if (addr >= MEM_HRAM_START && addr < MEM_IE_REG)
+        return hram[addr - MEM_HRAM_START];
 
     // IE Register
-    if (addr == 0xFFFF)
+    if (addr == MEM_IE_REG)
         return ieRegister;
 
     // Invalid address
@@ -86,33 +88,35 @@ uint8_t Memory::readmem(uint16_t addr)
 void Memory::writemem(uint8_t val, uint16_t addr)
 {
     // ROM + External RAM
-    if (addr < 0x8000 || (addr >= 0xA000 && addr < 0xC000))
+    if (addr < MEM_VRAM_START || (addr >= MEM_EXT_RAM_START && addr < MEM_WRAM0_START))
         rom->writemem(val, addr);
 
     // VRAM
-    if (addr >= 0x8000 && addr < 0xA000) {
+    if (addr >= MEM_VRAM_START && addr < MEM_EXT_RAM_START) {
         currentVramBank = getCurrentVramBank();
-        uint16_t actualAddr = (addr - 0x8000) + currentVramBank * 0x2000;
+        uint16_t actualAddr = (addr - MEM_VRAM_START) + currentVramBank * 0x2000;
         vram[actualAddr] = val;
     }
 
     // WRAM Bank 0
-    if (addr >= 0xC000 && addr < 0xD000)
-        wram[addr - 0xC000] = val;
+    if (addr >= MEM_WRAM0_START && addr < MEM_WRAMX_START)
+        wram[addr - MEM_WRAM0_START] = val;
 
     // Switchable WRAM Bank
-    if (addr >= 0xD000 && addr < 0xE000) {
+    if (addr >= MEM_WRAMX_START && addr < MEM_ECHO_START) {
         currentWramBank = getCurrentWramBank();
-        uint16_t actualAddr = (addr - 0xD000) + currentWramBank * 0x1000;
+        uint16_t actualAddr = (addr - MEM_WRAMX_START) + currentWramBank * 0x1000;
         wram[actualAddr] = val;
     }
 
     // ECHO RAM
-    if (addr >= 0xE000 && addr < 0xFE00) {
-        if (addr >= 0xE000 && addr < 0xF000)
-            wram[addr - 0xE000] = val;
+    if (addr >= MEM_ECHO_START && addr < MEM_OAM_START) {
+        // Mirror of WRAM Bank 0
+        if (addr >= MEM_ECHO_START && addr < 0xF000)
+            wram[addr - MEM_ECHO_START] = val;
 
-        if (addr >= 0xF000 && addr < 0xFE00) {
+        // Mirror of switchable WRAM Bank
+        if (addr >= 0xF000 && addr < MEM_OAM_START) {
             currentWramBank = getCurrentWramBank();
             uint16_t actualAddr = (addr - 0xF000) + currentWramBank * 0x1000;
             wram[actualAddr] = val;
@@ -120,15 +124,15 @@ void Memory::writemem(uint8_t val, uint16_t addr)
     }
 
     // OAM
-    if (addr >= 0xFE00 && addr < 0xFEA0)
-        oam[addr - 0xFE00] = val;
+    if (addr >= MEM_OAM_START && addr < MEM_UNUSED_START)
+        oam[addr - MEM_OAM_START] = val;
 
     // Unused range
-    if (addr >= 0xFEA0 && addr < 0xFF00)
+    if (addr >= MEM_UNUSED_START && addr < MEM_IO_START)
         return;
 
     // I/O Registers
-    if (addr >= 0xFF00 && addr < 0xFF80) {
+    if (addr >= MEM_IO_START && addr < MEM_HRAM_START) {
         // TODO: Add special case for DMA Transfer (0xFF46) and others for CGB
 
         if (addr == 0xFF69) {
@@ -150,16 +154,16 @@ void Memory::writemem(uint8_t val, uint16_t addr)
         }
 
         else {
-            ioRegisters[addr - 0xFF00] = val;
+            ioRegisters[addr - MEM_IO_START] = val;
         }
     }
 
     // HRAM
-    if (addr >= 0xFF80 && addr < 0xFFFF)
-        hram[addr - 0xFF80] = val;
+    if (addr >= MEM_HRAM_START && addr < MEM_IE_REG)
+        hram[addr - MEM_HRAM_START] = val;
 
     // IE Register
-    if (addr == 0xFFFF)
+    if (addr == MEM_IE_REG)
         ieRegister = val;
 }
 
@@ -175,16 +179,16 @@ void Memory::writebit(uint8_t val, uint8_t bit, uint16_t addr)
     this->writemem(byte, addr);
 }
 
-uint8_t Memory::getCurrentVramBank() { return ioRegisters[0xFF4F - 0xFF00] & 0x1; }
+uint8_t Memory::getCurrentVramBank() { return ioRegisters[0xFF4F - MEM_IO_START] & 0x1; }
 
 uint8_t Memory::getCurrentWramBank()
 {
-    uint8_t wramBank = ioRegisters[0xFF70 - 0xFF00] & 0x7;
+    uint8_t wramBank = ioRegisters[0xFF70 - MEM_IO_START] & 0x7;
     if (wramBank == 0x0)
         return 0x1;
     return wramBank;
 }
 
-void Memory::setCurrentVramBank(uint8_t val) { ioRegisters[0xFF4F - 0xFF00] = val & 0x1; }
+void Memory::setCurrentVramBank(uint8_t val) { ioRegisters[0xFF4F - MEM_IO_START] = val & 0x1; }
 
-void Memory::setCurrentWramBank(uint8_t val) { ioRegisters[0xFF70 - 0xFF00] = val & 0x3; }
+void Memory::setCurrentWramBank(uint8_t val) { ioRegisters[0xFF70 - MEM_IO_START] = val & 0x3; }

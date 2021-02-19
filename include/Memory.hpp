@@ -20,6 +20,7 @@
 #define MEM_UNUSED_START 0xFEA0
 #define MEM_IO_START 0xFF00
 #define MEM_HRAM_START 0xFF80
+#define MEM_IE_REG 0xFFFF
 
 class GameBoy;
 class PPU;
