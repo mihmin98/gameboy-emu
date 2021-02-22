@@ -21,7 +21,7 @@
 #pragma once
 #include <stdint.h>
 
-enum EmulatorMode { GB, GBC };
+enum EmulatorMode { DMG, CGB };
 
 class GameBoy
 {
