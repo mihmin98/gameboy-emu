@@ -4,12 +4,22 @@ include_directories(${SDL2_INCLUDE_DIR})
 target_sources(emulator
     PUBLIC
         GameBoy.cpp
-        Memory.cpp
-        Opcodes.cpp
-        OpcodesMap.cpp
-        PPU.cpp
-        ROM.cpp
-        SM83.cpp
+)
+
+add_library(CPU "")
+add_subdirectory(CPU)
+
+add_library(Memory "")
+add_subdirectory(Memory)
+
+add_library(PPU "")
+add_subdirectory(PPU)
+
+target_link_libraries(emulator
+    PUBLIC
+        CPU
+        Memory
+        PPU    
 )
 
 target_include_directories(emulator
