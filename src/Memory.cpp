@@ -7,6 +7,9 @@ Memory::Memory(EmulatorMode mode)
     currentWramBank = 1;
     setCurrentVramBank(0);
     setCurrentWramBank(1);
+
+    for (int i = 0; i < 0x40; ++i)
+        cgbBgColorPalette[i] = 255;
 }
 
 uint8_t Memory::readmem(uint16_t addr)
