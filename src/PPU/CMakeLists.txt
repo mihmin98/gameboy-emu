@@ -5,6 +5,7 @@ target_sources(PPU
     PUBLIC
         PPU.cpp
         OAMSprite.cpp
+        Color.cpp
 )
 
 target_include_directories(PPU
