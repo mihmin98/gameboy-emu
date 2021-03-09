@@ -131,3 +131,47 @@ void PPU::setBgColorPaletteData(uint8_t val) { memory->writemem(val, 0xFF69); }
 void PPU::setObjColorPaletteIndex(uint8_t val) { memory->writemem(val, 0xFF6A); }
 
 void PPU::setObjColorPaletteData(uint8_t val) { memory->writemem(val, 0xFF6B); }
+
+/* OAM DMA */
+
+uint8_t PPU::getOamDma() { return memory->readmem(0xFF46); }
+
+void PPU::setOamDma(uint8_t val) { memory->writemem(val, 0xFF46); }
+
+/* VRAM DMA */
+
+uint8_t PPU::getHdma1() { return memory->readmem(0xFF51); }
+
+uint8_t PPU::getHdma2() { return memory->readmem(0xFF52); }
+
+uint16_t PPU::getHdmaSrcAddress()
+{
+    uint16_t srcAddr = (getHdma1() << 8) | getHdma2();
+    return (srcAddr & 0xFFF0) >> 4;
+}
+
+uint8_t PPU::getHdma3() { return memory->readmem(0xFF53); }
+
+uint8_t PPU::getHdma4() { return memory->readmem(0xFF54); }
+
+uint16_t PPU::getHdmaDestAddress()
+{
+    uint16_t destAddr = (getHdma3() << 8) | getHdma4();
+    return (destAddr & 0x1FF0) >> 4;
+}
+
+uint8_t PPU::getHdma5() { return memory->readmem(0xFF55); }
+
+uint8_t PPU::getHdmaMode() { return memory->readmem(0xFF55) >> 7; }
+
+uint8_t PPU::getHdmaLength() { return memory->readmem(0xFF55) & 0x7F; }
+
+void PPU::setHdma1(uint8_t val) { memory->writemem(val, 0xFF51); }
+
+void PPU::setHdma2(uint8_t val) { memory->writemem(val, 0xFF52); }
+
+void PPU::setHdma3(uint8_t val) { memory->writemem(val, 0xFF53); }
+
+void PPU::setHdma4(uint8_t val) { memory->writemem(val, 0xFF54); }
+
+void PPU::setHdma5(uint8_t val) { memory->writemem(val, 0xFF55); }

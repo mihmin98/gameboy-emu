@@ -6,12 +6,16 @@
 
 class Memory;
 
+enum LcdMode { H_BLANK = 0, V_BLANK = 1, OAM_SEARCH = 2, DRAW = 3 };
+
 class PPU
 {
   public:
     Memory *memory;
 
     PPU();
+
+    bool oamDmaActive;
 
     /**
      * LCD CONTROL REGISTER
@@ -135,8 +139,9 @@ class PPU
      * LCD COLOR PALETTES (CGB ONLY)
      *
      * BGPI: BG Color Palette Index (0xFF68) - Used to address a byte in the CGB Palette Memory
-     *                                         Bit 0-5: Index (0x00-0x3F)
      *                                         Bit 7: Auto Increment after write
+     *                                         Bit 5-0: Index (0x00-0x3F)
+     *
      * BGPD: BG Color Palette Data (0xFF69) - Used to access byte selected by BGPI
      * OBPI: Object Color Palette Index (0xFF6A) - Similar to BGPI
      * OBPD: Object Color Palette Data (0xFF6B) - Similar to BGPD
@@ -151,6 +156,66 @@ class PPU
     void setObjColorPaletteIndex(uint8_t val);
     void setObjColorPaletteData(uint8_t val);
 
+    /**
+     * OAM DMA
+     *
+     * DMA: DMA Transfer and Start Address (0xFF46) - Launch OAM DMA and specify source address
+     *                                                Src Addess format: XX00 (XX is a value
+     *                                                between 0x00 and 0xF1)
+     *                                                Copies bytes from XX00-XX9F to 0xFE00-0xFE9F
+     */
+
+    uint8_t getOamDma();
+    void setOamDma(uint8_t val);
+
+    /**
+     * VRAM DMA (CGB Only)
+     * HDMA1: DMA Source High Byte (0xFF51)
+     * HDMA2: DMA Source Low Byte (0xFF52)
+     *        These 2 registers are combined to create the DMA source address. The 4 lower bits are
+     * ignored HDMA3: DMA Destination High Byte (0xFF53) HDMA4: DMA Destination Low Byte (0xFF54)
+     *        These 2 registers are combined to create the DMA destination address. Only bits 12-4
+     * are used HDMA5: DMA Length, Mode, Start (0xFF55) - Writing to this register starts the DMA
+     * transfer Bit 7: Mode: General=0 or HBlank=1 Bit 6-0: Transfer length divided by 0x10 minus 1
+     *                                           In General mode all data is transferred at once
+     *                                           In HBlank mode data is transferred during HBlank
+     * mode
+     */
+
+    uint8_t getHdma1();
+    uint8_t getHdma2();
+    uint16_t getHdmaSrcAddress();
+    uint8_t getHdma3();
+    uint8_t getHdma4();
+    uint16_t getHdmaDestAddress();
+    uint8_t getHdma5();
+    uint8_t getHdmaMode();
+    uint8_t getHdmaLength();
+    void setHdma1(uint8_t val);
+    void setHdma2(uint8_t val);
+    void setHdma3(uint8_t val);
+    void setHdma4(uint8_t val);
+    void setHdma5(uint8_t val);
+
+    uint8_t *getTileByIndex(int index);
+    uint8_t *getLineOfColors(uint16_t *addr);
+    uint8_t *getSpriteByIndex(int index);
+
+    // Some other stuff
+    // get tile by index() intoarce tile-ul ca un vector de [8*8] elemente: culori de 2 biti, get
+    // line of colors from 2 bytes sprite oam stuff: get sprite by index; create sprite struct;
+    // color palettes: color palette struct (for cgb only?)
+    // vram bg maps: bg map tile numbers? in VRAM0, bg map attributes cgb only,
+    // in VRAM1 (create a struct for it?) flip tile? sau ar trebui sa fie in
+    // pixel fetcher/pixel fifo ;
+    // dma registers, dma flags, and code for cycle copy vram dma registers, and flags,
+    // and code enum for lcd modes
+
+    // pixel fifo: bg fifo si sprite fifo. ar trebui sa fie 2 clase? care mostenesc o clasa parinte
+    // fifo? pixel fetcher:
+
+    // PPU ar trebui sa cicleze odata pe T-cycle (4 MHz), ca unele operatii sunt in functie de
+    // T-cycles nu doar M-cycles create separate src folder for ppu i guess
 };
 
 #endif // __PPU_H__
