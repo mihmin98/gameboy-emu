@@ -4,6 +4,7 @@ include_directories(${SDL2_INCLUDE_DIR})
 target_sources(PPU
     PUBLIC
         PPU.cpp
+        OAMSprite.cpp
 )
 
 target_include_directories(PPU
