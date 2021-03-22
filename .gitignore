@@ -41,3 +41,5 @@ gameboy-emu
 build
 test/obj
 test/build
+
+.tokeignore
