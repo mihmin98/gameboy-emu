@@ -2,7 +2,13 @@
 #define __PPU_H__
 
 #pragma once
+#include "BgMapAttributes.hpp"
+#include "Color.hpp"
+#include "GameBoy.hpp"
 #include "Memory.hpp"
+#include "OAMSprite.hpp"
+#include "Tile.hpp"
+#include <cstdio>
 
 class Memory;
 
@@ -12,6 +18,7 @@ class PPU
 {
   public:
     Memory *memory;
+    EmulatorMode emulatorMode;
 
     PPU();
 
@@ -197,19 +204,21 @@ class PPU
     void setHdma4(uint8_t val);
     void setHdma5(uint8_t val);
 
-    uint8_t *getTileByIndex(int index);
-    uint8_t *getLineOfColors(uint16_t *addr);
-    uint8_t *getSpriteByIndex(int index);
+    Tile getTileByIndex(int index);
+    OAMSprite getSpriteByIndex(int index);
+    BgMapAttributes getBgMapByIndex(int index, int tilemap); // tilemap 0 = 0x9800; 1 = 0x9C00
 
     // Some other stuff
-    // get tile by index() intoarce tile-ul ca un vector de [8*8] elemente: culori de 2 biti, get
-    // line of colors from 2 bytes sprite oam stuff: get sprite by index; create sprite struct;
-    // color palettes: color palette struct (for cgb only?)
+
     // vram bg maps: bg map tile numbers? in VRAM0, bg map attributes cgb only,
     // in VRAM1 (create a struct for it?) flip tile? sau ar trebui sa fie in
-    // pixel fetcher/pixel fifo ;
-    // dma registers, dma flags, and code for cycle copy vram dma registers, and flags,
-    // and code enum for lcd modes
+    // pixel fetcher/pixel fifo;
+
+    // get window tile sau cv de genu?
+
+    // sa ma apuc sa fac loopul principal, in mare am cam facut toate getterele si setterele
+
+    // dma registers, dma flags, and code for cycle copy vram dma registers, and flags
 
     // pixel fifo: bg fifo si sprite fifo. ar trebui sa fie 2 clase? care mostenesc o clasa parinte
     // fifo? pixel fetcher:

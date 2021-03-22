@@ -7,6 +7,9 @@ target_sources(PPU
         OAMSprite.cpp
         Color.cpp
         Tile.cpp
+        BgFifo.cpp
+        FifoPixel.cpp
+        BgMapAttributes.cpp
 )
 
 target_include_directories(PPU

@@ -175,3 +175,55 @@ void PPU::setHdma3(uint8_t val) { memory->writemem(val, 0xFF53); }
 void PPU::setHdma4(uint8_t val) { memory->writemem(val, 0xFF54); }
 
 void PPU::setHdma5(uint8_t val) { memory->writemem(val, 0xFF55); }
+
+Tile PPU::getTileByIndex(int index)
+{
+    uint16_t tileAddr;
+    if (index >= 128 && index < 256) {
+        // block 2
+        tileAddr = 0x8800 + (index - 128) * 16;
+    } else {
+        if (getBgAndWindowTileDataSelect()) {
+            // block 1
+            tileAddr = 0x8000 + index * 16;
+        } else {
+            // block 3
+            tileAddr = 0x9000 + index * 16;
+        }
+    }
+
+    uint8_t tileBytes[16];
+    for (int i = 0; i < 16; ++i)
+        tileBytes[i] = memory->readmem(tileAddr + i);
+
+    return Tile(tileBytes);
+}
+
+OAMSprite PPU::getSpriteByIndex(int index)
+{
+    uint8_t sprite[4];
+    for (int i = 0; i < 4; ++i)
+        sprite[i] = memory->readmem(MEM_OAM_START + index + i);
+
+    return OAMSprite(sprite);
+}
+
+BgMapAttributes PPU::getBgMapByIndex(int index, int tilemap) {
+    if (emulatorMode != CGB) {
+        fprintf(stderr, "WARNING: Trying to read background map attributes in non-CGB mode\n");
+        return BgMapAttributes();
+    }
+
+    // switch to vram bank 1
+    uint8_t oldVramBank = memory->getCurrentVramBank();
+    memory->setCurrentVramBank(1);
+
+    uint16_t tilemapAttrAddr = (tilemap == 0 ? 0x9800 : 0x9C00) + index;
+    uint8_t tilemapAttrByte = memory->readmem(tilemapAttrAddr);
+    BgMapAttributes bgMapAttr = BgMapAttributes(tilemapAttrByte);
+
+    // switch back to original vram bank
+    memory->setCurrentVramBank(oldVramBank);
+
+    return bgMapAttr;
+}

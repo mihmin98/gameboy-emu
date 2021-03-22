@@ -20,3 +20,17 @@ void Tile::getTileRow(uint8_t row, uint8_t *dest)
     for (int i = 0; i < 8; ++i)
         dest[i] = tileData[row * 8 + i];
 }
+
+void Tile::flipHor()
+{
+    for (int i = 0; i < 8; ++i)
+        for (int j = 0; j < 4; ++j)
+            std::swap(tileData[i * 8 + j], tileData[i * 8 + 7 - j]);
+}
+
+void Tile::flipVert()
+{
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 8; ++j)
+            std::swap(tileData[i * 8 + j], tileData[(7 - i) * 8 + j]);
+}
