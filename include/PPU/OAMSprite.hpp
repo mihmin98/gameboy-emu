@@ -7,9 +7,10 @@
 class OAMSprite
 {
   public:
-    uint8_t yPos;
-    uint8_t xPos;
-    uint8_t tileNumber;
+    uint8_t yPos; // vertical position + 16 
+    uint8_t xPos; // horizontal position + 8
+
+    uint8_t tileNumber; // index of the tile
 
     // Flags
     bool objToBgPriority;

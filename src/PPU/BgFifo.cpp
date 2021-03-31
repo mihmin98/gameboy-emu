@@ -8,6 +8,9 @@ FifoPixel *BgFifo::cycle()
 {
     FifoPixel *returnedPixel = nullptr;
 
+    // TODO: daca exista scrolling pe tile-ul curent (SCX % 8 != 0) si Wx = 0, atunci se scurteaza
+    // Mode 3 cu 1 T-cycle
+
     // check for window
     if (ppu->getWindowDisplayEnable() && coordsInsideWindow(pushedPixels, ppu->getLy())) {
         isDrawingWindow = true;

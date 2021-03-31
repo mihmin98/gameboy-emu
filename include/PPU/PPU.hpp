@@ -10,6 +10,11 @@
 #include "Tile.hpp"
 #include <cstdio>
 
+#define PPU_NUM_SPRITES 40
+#define PPU_MAX_SPRITES_ON_LINE 10
+#define PPU_OAM_SEARCH_T_CYCLES 80
+#define PPU_VBLANK_T_CYCLES 4560
+
 class Memory;
 
 enum LcdMode { H_BLANK = 0, V_BLANK = 1, OAM_SEARCH = 2, DRAW = 3 };
@@ -19,6 +24,13 @@ class PPU
   public:
     Memory *memory;
     EmulatorMode emulatorMode;
+
+    uint8_t drawModeLength;   // should be set to 172 when entering mode 3
+    uint8_t hBlankModeLength; // this should be set to 204 when entering mode 3 and modified based
+                              // on what the bg and pixel fifo are doing
+
+    int8_t spritesOnCurrentLine[PPU_MAX_SPRITES_ON_LINE];
+    uint8_t numSpritesOnCurrentLine;
 
     PPU();
 
@@ -207,6 +219,15 @@ class PPU
     Tile getTileByIndex(int index);
     OAMSprite getSpriteByIndex(int index);
     BgMapAttributes getBgMapByIndex(int index, int tilemap); // tilemap 0 = 0x9800; 1 = 0x9C00
+
+    // Returns a sprite tile (0x8000-0x8FFF) based on its index. If LCDC.2 is set (8x16 mode) then
+    // the tileNo argument is used to decide what tile of the sprite should be returned, if LCDC.2
+    // is 0 then tileNo is ignored.
+    Tile getSpriteTile(int index, int tileNo = 0, int vramBank = 0);
+
+    // Searches the sprites that will be displayed on the current line and puts their index in
+    // spritesOnCurrentLine. Also sets numSpritesOnCurrentLine
+    void searchSpritesOnLine();
 
     // Some other stuff
 

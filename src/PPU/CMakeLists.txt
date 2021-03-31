@@ -8,6 +8,7 @@ target_sources(PPU
         Color.cpp
         Tile.cpp
         BgFifo.cpp
+        SpriteFifo.cpp
         FifoPixel.cpp
         BgMapAttributes.cpp
 )

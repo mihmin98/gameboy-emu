@@ -208,7 +208,8 @@ OAMSprite PPU::getSpriteByIndex(int index)
     return OAMSprite(sprite);
 }
 
-BgMapAttributes PPU::getBgMapByIndex(int index, int tilemap) {
+BgMapAttributes PPU::getBgMapByIndex(int index, int tilemap)
+{
     if (emulatorMode != CGB) {
         fprintf(stderr, "WARNING: Trying to read background map attributes in non-CGB mode\n");
         return BgMapAttributes();
@@ -226,4 +227,48 @@ BgMapAttributes PPU::getBgMapByIndex(int index, int tilemap) {
     memory->setCurrentVramBank(oldVramBank);
 
     return bgMapAttr;
+}
+
+void PPU::searchSpritesOnLine()
+{
+    // In 8x8 mode sprite is from yPos-16 to yPos-8, and in 8x16 form yPos-16 to yPos
+    uint8_t spriteHeightDiff = getObjSize() == 0 ? 8 : 0;
+    uint8_t line = getLy();
+
+    // empty the found sprites array
+    for (int i = 0; i < 10; ++i)
+        spritesOnCurrentLine[i] = -1;
+
+    numSpritesOnCurrentLine = 0;
+
+    for (int i = 0; i < PPU_NUM_SPRITES && numSpritesOnCurrentLine < PPU_MAX_SPRITES_ON_LINE; ++i) {
+        OAMSprite sprite = getSpriteByIndex(i);
+        // TODO: Check if condition should be line <, or line <=
+        if (line >= sprite.yPos - 16 && line < sprite.yPos - spriteHeightDiff)
+            spritesOnCurrentLine[numSpritesOnCurrentLine++] = i;
+    }
+}
+
+Tile PPU::getSpriteTile(int index, int tileNo, int vramBank)
+{
+    uint16_t tileAddr;
+
+    // start addr is 0x8000-0x8FFF
+    if (getObjSize() == 0)
+        // 8x8
+        tileAddr = 0x8000 + index;
+    else
+        // 8x16
+        tileAddr = 0x8000 + index * 2 + tileNo;
+
+    uint8_t oldVramBank = memory->getCurrentVramBank();
+    memory->setCurrentVramBank(vramBank);
+
+    uint8_t tileBytes[16];
+    for (int i = 0; i < 16; ++i)
+        tileBytes[i] = memory->readmem(tileAddr + i);
+
+    memory->setCurrentVramBank(oldVramBank);
+
+    return Tile(tileBytes);
 }
