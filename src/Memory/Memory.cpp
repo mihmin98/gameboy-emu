@@ -12,7 +12,7 @@ Memory::Memory(EmulatorMode mode)
         cgbBgColorPalette[i] = 255;
 }
 
-uint8_t Memory::readmem(uint16_t addr, bool bypass)
+uint8_t Memory::readmem(uint16_t addr, bool bypass, bool bypassOamDma)
 {
     // ROM + External RAM
     if (addr < MEM_VRAM_START || (addr >= MEM_EXT_RAM_START && addr < MEM_WRAM0_START)) {
@@ -71,7 +71,7 @@ uint8_t Memory::readmem(uint16_t addr, bool bypass)
 
     // OAM
     if (addr >= MEM_OAM_START && addr < MEM_UNUSED_START) {
-        if (ppu->oamDmaActive && !bypass)
+        if (ppu->oamDmaActive && !bypass && !bypassOamDma)
             return 0xFF;
         else {
             LcdMode mode = ppu->getLcdMode();
@@ -94,6 +94,8 @@ uint8_t Memory::readmem(uint16_t addr, bool bypass)
         if (ppu->oamDmaActive && !bypass) {
             return 0xFF;
         } else {
+            // TODO: Case for 0xFF55 (vram hblank dma remaining bytes - 1)
+
             LcdMode mode = ppu->getLcdMode();
 
             if (addr == 0xFF69) {
@@ -136,7 +138,7 @@ uint8_t Memory::readmem(uint16_t addr, bool bypass)
     return 0xFF;
 }
 
-void Memory::writemem(uint8_t val, uint16_t addr, bool bypass)
+void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma)
 {
     // ROM + External RAM
     if (addr < MEM_VRAM_START || (addr >= MEM_EXT_RAM_START && addr < MEM_WRAM0_START)) {
@@ -186,9 +188,10 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass)
 
     // OAM
     if (addr >= MEM_OAM_START && addr < MEM_UNUSED_START) {
-        if (!ppu->oamDmaActive || bypass) {
+        if (!ppu->oamDmaActive || (bypass && bypassOamDma)) {
             LcdMode mode = ppu->getLcdMode();
-            if ((mode != OAM_SEARCH || bypass) && (mode != DRAW || bypass))
+            if ((mode != OAM_SEARCH || (bypass && bypassOamDma)) &&
+                (mode != DRAW || (bypass && bypassOamDma)))
                 oam[addr - MEM_OAM_START] = val;
         }
     }
@@ -241,7 +244,7 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass)
             ieRegister = val;
 }
 
-void Memory::writebit(uint8_t val, uint8_t bit, uint16_t addr, bool bypass)
+void Memory::writebit(uint8_t val, uint8_t bit, uint16_t addr, bool bypass, bool bypassOamDma)
 {
     if (bit > 7) {
         fprintf(stderr, "WARNING: Trying to write to bit %d, which is not in range [0, 8)\n", bit);
@@ -252,7 +255,7 @@ void Memory::writebit(uint8_t val, uint8_t bit, uint16_t addr, bool bypass)
     uint8_t byte = this->readmem(addr);
     byte = val != 0 ? byte | mask : byte & mask;
 
-    this->writemem(byte, addr, bypass);
+    this->writemem(byte, addr, bypass, bypassOamDma);
 }
 
 uint8_t Memory::getCurrentVramBank() { return ioRegisters[0xFF4F - MEM_IO_START] & 0x1; }

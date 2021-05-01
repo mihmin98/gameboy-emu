@@ -49,9 +49,9 @@ class Memory
 
     Memory(EmulatorMode mode = EmulatorMode::DMG); 
     
-    uint8_t readmem(uint16_t addr, bool bypass = false);
-    void writemem(uint8_t val, uint16_t addr, bool bypass = false);
-    void writebit(uint8_t val, uint8_t bit, uint16_t addr, bool bypass = false);
+    uint8_t readmem(uint16_t addr, bool bypass = false, bool bypassOamDma = false);
+    void writemem(uint8_t val, uint16_t addr, bool bypass = false, bool bypassOamDma = false);
+    void writebit(uint8_t val, uint8_t bit, uint16_t addr, bool bypass = false, bool bypassOamDma = false);
 
     uint8_t getCurrentVramBank();
     uint8_t getCurrentWramBank();
