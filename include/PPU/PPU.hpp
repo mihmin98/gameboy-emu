@@ -2,20 +2,29 @@
 #define __PPU_H__
 
 #pragma once
+#include "BgFifo.hpp"
 #include "BgMapAttributes.hpp"
 #include "Color.hpp"
 #include "GameBoy.hpp"
 #include "Memory.hpp"
 #include "OAMSprite.hpp"
+#include "SM83.hpp"
+#include "SpriteFifo.hpp"
 #include "Tile.hpp"
 #include <cstdio>
 
 #define PPU_NUM_SPRITES 40
 #define PPU_MAX_SPRITES_ON_LINE 10
 #define PPU_OAM_SEARCH_T_CYCLES 80
+#define PPU_LINE_T_CYCLES 456
 #define PPU_VBLANK_T_CYCLES 4560
+#define PPU_OAM_DMA_T_CYCLES 640
+#define PPU_DEFAULT_DRAW_T_CYCLES 172
+#define PPU_DEFAULT_HBLANK_T_CYCLES 204
+#define PPU_VRAM_DMA_BLOCK_TRANSFER_DOUBLE_SPEED_T_CYCLES 64
 
 class Memory;
+class SM83;
 
 enum LcdMode { H_BLANK = 0, V_BLANK = 1, OAM_SEARCH = 2, DRAW = 3 };
 
@@ -23,7 +32,10 @@ class PPU
 {
   public:
     Memory *memory;
+    SM83 *cpu;
+
     EmulatorMode emulatorMode;
+    bool doubleSpeedMode;
 
     uint8_t drawModeLength;   // should be set to 172 when entering mode 3
     uint8_t hBlankModeLength; // this should be set to 204 when entering mode 3 and modified based
@@ -32,9 +44,25 @@ class PPU
     int8_t spritesOnCurrentLine[PPU_MAX_SPRITES_ON_LINE];
     uint8_t numSpritesOnCurrentLine;
 
-    PPU();
+    BgFifo bgFifo;
+    SpriteFifo spriteFifo;
 
     bool oamDmaActive;
+    uint16_t oamDmaCurrentCycles;
+
+    bool vramGeneralDmaActive;
+    bool vramHblankDmaActive;
+    uint32_t vramDmaLength;
+    uint32_t vramDmaTransferredBytes;
+    uint32_t vramDmaCurrentCycles;
+
+    uint32_t tCycles;
+    uint32_t currentModeTCycles;
+    uint16_t currentOamDmaTCycles;
+
+    uint8_t xPos; // X position on the current line
+
+    PPU();
 
     /**
      * LCD CONTROL REGISTER
@@ -98,6 +126,7 @@ class PPU
     uint8_t getMode0HBlankInterrupt();
     uint8_t getCoincidenceFlag();
     uint8_t getModeFlag();
+    LcdMode getLcdMode();
     void setLcdStatRegister(uint8_t val);
     void setLycLyCoincidence(uint8_t val);
     void setMode2OamInterrupt(uint8_t val);
@@ -228,6 +257,8 @@ class PPU
     // Searches the sprites that will be displayed on the current line and puts their index in
     // spritesOnCurrentLine. Also sets numSpritesOnCurrentLine
     void searchSpritesOnLine();
+
+    void cycle();
 
     // Some other stuff
 
