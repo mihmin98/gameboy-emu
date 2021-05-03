@@ -28,6 +28,8 @@ start:
                 fetcherStep = 0;
                 fetcherStage = 1;
                 processedSprites.insert(currentSpriteIndex);
+
+                // TODO: When fetching sprite, reset the bgfifo to step 0?
             }
         }
     }

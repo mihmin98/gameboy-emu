@@ -1,5 +1,11 @@
 #include "PPU.hpp"
 
+PPU::PPU()
+{
+    bgFifo.ppu = this;
+    spriteFifo.ppu = this;
+}
+
 /* GETTERS AND SETTERS */
 
 /* LCD CONTROL REGISTER */
@@ -275,6 +281,57 @@ Tile PPU::getSpriteTile(int index, int tileNo, int vramBank)
     return Tile(tileBytes);
 }
 
+Color PPU::getColorFromFifoPixel(FifoPixel *fifoPixel, bool normalizeCgbColor)
+{
+    if (emulatorMode == DMG) {
+        // DMG Mode
+        if (!fifoPixel->isSprite) {
+            // BG/Window Pixel
+            uint8_t palette = getBgPaletteData();
+            uint8_t color = (palette & (3 << (fifoPixel->color * 2))) >> (fifoPixel->color * 2);
+            return Color::getDmgColor(color);
+        } else {
+            // Sprite Pixel
+            uint8_t palette = fifoPixel->palette == 0 ? getObjPalette0Data() : getObjPalette1Data();
+            uint8_t color;
+            if (fifoPixel->color == 0)
+                // Transparent pixel; lowest bits from palette are ignored
+                color = 0;
+            else
+                color = (palette & (3 << (fifoPixel->color * 2))) >> (fifoPixel->color * 2);
+
+            return Color::getDmgColor(color);
+        }
+    } else {
+        // CGB Mode
+        if (!fifoPixel->isSprite) {
+            // BG/Window Pixel
+            uint8_t *colorPaletteAddr =
+                memory->cgbBgColorPalette + fifoPixel->palette * 2 + fifoPixel->color;
+            Color c = Color(colorPaletteAddr);
+
+            if (normalizeCgbColor)
+                return c.getNormalizedColor();
+            else
+                return c;
+        } else {
+            // Sprite Pixel
+            if (fifoPixel->color == 0)
+                // Transparent pixel; lowest bits from palette are ignored
+                return Color(255, 255, 255);
+
+            uint8_t *colorPaletteAddr =
+                memory->cgbObjColorPalette + fifoPixel->palette * 2 + fifoPixel->color;
+            Color c = Color(colorPaletteAddr);
+
+            if (normalizeCgbColor)
+                return c.getNormalizedColor();
+            else
+                return c;
+        }
+    }
+}
+
 void PPU::cycle()
 {
     LcdMode currentMode = getLcdMode();
@@ -301,12 +358,17 @@ void PPU::cycle()
         if (currentModeTCycles == PPU_OAM_SEARCH_T_CYCLES) {
             searchSpritesOnLine();
             setModeFlag(DRAW);
+            xPos = 0;
             currentModeTCycles = 0;
         }
         break;
 
     case DRAW:
 
+        if (currentModeTCycles == 0) {
+            bgFifo.prepareForLine(getLy());
+            spriteFifo.prepareForLine();
+        }
         /**
          * BG FIFO: cycle() returneaza pixel sau null
          * Sprite FIFO: cycle() returneaza pixel sau null (ar trebui sa modifice el singur durata la
@@ -321,7 +383,98 @@ void PPU::cycle()
 
         ++currentModeTCycles;
 
+        if (spriteFifo.oamPenalty > 0) {
+            --spriteFifo.oamPenalty;
+            break;
+        }
+
+        // TODO: Maybe make a separate function for popping a pixel from the fifos?
+        FifoPixel *bgPixel = bgFifo.cycle();
+        FifoPixel *spritePixel = spriteFifo.cycle(bgFifo);
+
+        // TODO: Maybe move this in a separate function? that has 2 params(bgPixel and spritePixel)
+        if (bgPixel != nullptr) {
+            if (spritePixel != nullptr && getObjDisplayEnable()) {
+                // do pixel mixing
+                // Ordine prioritati: LCDC.0 > BG Map Attr (CGB only) > OAM bit
+                if (emulatorMode == DMG) {
+                    // DMG Mode
+                    if (spritePixel->color == 0) {
+                        // Display BG Pixel, if sprite pixel is transparent
+                        // TODO: Check how the BG pixel becomes blank if LCDC.0 = 0
+                        display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
+                    } else if (getBgWindowDisplayPriority() == 0) {
+                        // Display Sprite Pixel
+                        display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
+                    } else if (spritePixel->spritePriority == 0) {
+                        // Display Sprite Pixel
+                        display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
+                    } else if (spritePixel->spritePriority == 1) {
+                        if (bgPixel->color == 0)
+                            // Display Sprite Pixel
+                            display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
+                        else
+                            // Display BG Pixel
+                            display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
+                    }
+
+                } else {
+                    // CGB Mode
+                    if (spritePixel->color == 0) {
+                        // Display BG Pixel, if sprite pixel is transparent
+                        display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
+                    } else if (getBgWindowDisplayPriority() == 0) {
+                        // Display Sprite Pixel
+                        display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
+                    } else if (bgPixel->bgPriority == 1) {
+                        // Display BG Pixel
+                        display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
+                    } else if (spritePixel->spritePriority == 0) {
+                        // Display Sprite Pixel
+                        display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
+                    } else if (spritePixel->spritePriority == 1) {
+                        if (bgPixel->color == 0)
+                            // Display Sprite Pixel
+                            display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
+                        else
+                            // Display BG Pixel
+                            display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
+                    }
+                }
+
+            } else {
+                // There is no sprite pixel, or sprites disabled
+                if (emulatorMode == DMG && getBgWindowDisplayPriority() == 0)
+                    // Only sprites can be displayed, bg and window become blank
+                    // Should it be white or black?
+                    display[getLy()][xPos++] = Color(255, 255, 255);
+                else
+                    display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
+            }
+        }
+
+        // put pixels on screen?
+        // trebuie sa vad care fifo asteapta pe care, sa fac sleepurile alea
+        // sleep-uri: spriteFifo oamPenalty?
+        // during penalty the ppu should do nothing?, except of dma?
+        // TODO: check if sprites or background is enabled
+
+        // BG is always enabled
+
+        // Mixing: Check priorities
+
+        if (bgPixel != nullptr)
+            delete bgPixel;
+
+        if (spritePixel != nullptr)
+            delete spritePixel;
+
         // check for transition to next mode
+        if (xPos >= PPU_SCREEN_WIDTH) {
+            setModeFlag(H_BLANK);
+            currentModeTCycles = 0;
+        }
+
         break;
 
     case H_BLANK:
@@ -343,7 +496,7 @@ void PPU::cycle()
                     uint8_t val = memory->readmem(srcAddr + i, true, true);
                     memory->writemem(val, destAddr + i, true, true);
                 }
-                
+
                 // Update 0xFF55 remaining blocks
                 uint8_t vramDmaRemainingLength = memory->readmem(0xFF55, true, true);
                 --vramDmaRemainingLength;

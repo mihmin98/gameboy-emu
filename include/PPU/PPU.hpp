@@ -22,6 +22,8 @@
 #define PPU_DEFAULT_DRAW_T_CYCLES 172
 #define PPU_DEFAULT_HBLANK_T_CYCLES 204
 #define PPU_VRAM_DMA_BLOCK_TRANSFER_DOUBLE_SPEED_T_CYCLES 64
+#define PPU_SCREEN_WIDTH 160
+#define PPU_SCREEN_HEIGHT 144
 
 class Memory;
 class SM83;
@@ -36,6 +38,8 @@ class PPU
 
     EmulatorMode emulatorMode;
     bool doubleSpeedMode;
+
+    Color display[PPU_SCREEN_HEIGHT][PPU_SCREEN_WIDTH];
 
     uint8_t drawModeLength;   // should be set to 172 when entering mode 3
     uint8_t hBlankModeLength; // this should be set to 204 when entering mode 3 and modified based
@@ -257,6 +261,9 @@ class PPU
     // Searches the sprites that will be displayed on the current line and puts their index in
     // spritesOnCurrentLine. Also sets numSpritesOnCurrentLine
     void searchSpritesOnLine();
+
+    // Returns a Color object based on the FifoPixel
+    Color getColorFromFifoPixel(FifoPixel *fifoPixel, bool normalizeCgbColor = true);
 
     void cycle();
 

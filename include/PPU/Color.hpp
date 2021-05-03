@@ -12,12 +12,16 @@ class Color
     uint8_t blue;
 
     Color();
+    Color(uint8_t red, uint8_t green, uint8_t blue);
     Color(uint8_t *colorAddr);
 
     Color getNormalizedColor();
 
     // When writing color, the intensities should not be normalized
     void writeColorAsBytes(uint8_t *dest);
+
+    // Creates a Color from a value that is between 0-3
+    static Color getDmgColor(uint8_t colorValue);
 };
 
 #endif // __COLOR_H__
