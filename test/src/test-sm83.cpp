@@ -2,13 +2,19 @@
 
 #include "Memory.hpp"
 #include "SM83.hpp"
+#include "PPU.hpp"
 #include <iostream>
 
 TEST_CASE("Cycle", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.SP = 0xC108;
@@ -20,6 +26,7 @@ TEST_CASE("Cycle", "[SM83]")
     SECTION("Regular case")
     {
         // Add A, 0x66
+        cpu.A = 0;
         mem.wram[0] = 0xC6;
         mem.wram[1] = 0x66;
 
@@ -313,7 +320,12 @@ TEST_CASE("Handle Interrutps", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.setInterruptEnable(0);
     cpu.setInterruptFlag(0);
@@ -349,7 +361,12 @@ TEST_CASE("Check Interrupts", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.int_cycles = -1;
     cpu.int_addr = 0;
@@ -477,7 +494,12 @@ TEST_CASE("Service Interrupt", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.int_cycles = 5;
     cpu.int_addr = SM83_VBLANK_INT;
@@ -542,7 +564,12 @@ TEST_CASE("SM83 Read Memory", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     mem.wram[0] = 0x12;
     mem.wram[1] = 0x34;
@@ -556,7 +583,12 @@ TEST_CASE("SM83 Write Memory", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     SECTION("1 byte")
     {
@@ -663,7 +695,12 @@ TEST_CASE("Get Interrupt Enable Flags", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     mem.ieRegister = 0;
 
@@ -702,7 +739,12 @@ TEST_CASE("Get Interrupt Flags", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     mem.writemem(0, 0xFF0F);
 
@@ -741,7 +783,12 @@ TEST_CASE("Set Interrupt Enable Flags", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     mem.ieRegister = 0;
 
@@ -780,7 +827,12 @@ TEST_CASE("Set Interrupt Flags", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     mem.writemem(0, 0xFF0F);
 

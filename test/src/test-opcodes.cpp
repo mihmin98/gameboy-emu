@@ -1,6 +1,7 @@
 #include "catch.hpp"
 
 #include "Memory.hpp"
+#include "PPU.hpp"
 #include "ROM.hpp"
 #include "SM83.hpp"
 #include <cstdlib>
@@ -65,7 +66,12 @@ TEST_CASE("ADC A, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -135,7 +141,12 @@ TEST_CASE("ADC A, n8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     // We will use WRAM to store the opcode and immediate value
     cpu.PC = 0xC000;
@@ -256,7 +267,12 @@ TEST_CASE("ADD A, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -325,7 +341,12 @@ TEST_CASE("ADD A, n8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     // We will use WRAM to store the opcode and immediate value
     cpu.PC = 0xC000;
@@ -426,7 +447,12 @@ TEST_CASE("DEC [HL]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -512,7 +538,12 @@ TEST_CASE("INC [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -620,7 +651,12 @@ TEST_CASE("SBC A, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -692,7 +728,12 @@ TEST_CASE("SBC A, n8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -814,7 +855,12 @@ TEST_CASE("SUB A, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -883,7 +929,12 @@ TEST_CASE("SUB A, n8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -987,7 +1038,12 @@ TEST_CASE("AND A, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -1038,7 +1094,12 @@ TEST_CASE("AND A, n8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -1136,7 +1197,12 @@ TEST_CASE("CP A, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -1202,7 +1268,12 @@ TEST_CASE("CP A, n8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -1303,7 +1374,12 @@ TEST_CASE("OR A, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -1354,7 +1430,12 @@ TEST_CASE("OR A, n8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -1440,7 +1521,12 @@ TEST_CASE("XOR A, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -1491,7 +1577,12 @@ TEST_CASE("XOR A, n8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -1668,7 +1759,12 @@ TEST_CASE("BIT u3, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -1735,7 +1831,12 @@ TEST_CASE("RES u3, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -1781,7 +1882,12 @@ TEST_CASE("SET u3, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -1852,7 +1958,12 @@ TEST_CASE("SWAP [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -1953,7 +2064,12 @@ TEST_CASE("RL [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -2094,7 +2210,12 @@ TEST_CASE("RLC [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -2233,7 +2354,12 @@ TEST_CASE("RR [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -2374,7 +2500,12 @@ TEST_CASE("RRC [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -2431,7 +2562,12 @@ TEST_CASE("RRCA", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -2513,7 +2649,12 @@ TEST_CASE("SLA [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -2613,7 +2754,12 @@ TEST_CASE("SRA [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -2713,7 +2859,12 @@ TEST_CASE("SRL [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -2786,7 +2937,12 @@ TEST_CASE("LD r8, n8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -2806,7 +2962,12 @@ TEST_CASE("LD r16, n16", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -2830,7 +2991,12 @@ TEST_CASE("LD [HL], r8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -2855,7 +3021,12 @@ TEST_CASE("LD [HL], n8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC002;
     cpu.instructionCycle = 0;
@@ -2882,7 +3053,12 @@ TEST_CASE("LD r8, [HL]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -2907,7 +3083,12 @@ TEST_CASE("LD [r16], A", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -2932,7 +3113,12 @@ TEST_CASE("LD [n16], A", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC002;
     cpu.instructionCycle = 0;
@@ -2960,7 +3146,12 @@ TEST_CASE("LDH [n16], A", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -2985,7 +3176,12 @@ TEST_CASE("LDH [C], A", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3007,7 +3203,12 @@ TEST_CASE("LD A, [r16]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3032,7 +3233,12 @@ TEST_CASE("LD A, [n16]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC002;
     cpu.instructionCycle = 0;
@@ -3059,7 +3265,12 @@ TEST_CASE("LDH A, [n16]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -3082,7 +3293,12 @@ TEST_CASE("LDH A, [C]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3103,7 +3319,12 @@ TEST_CASE("LD [HL+], A", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3128,7 +3349,12 @@ TEST_CASE("LD [HL-], A", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3153,7 +3379,12 @@ TEST_CASE("LD A, [HL+]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3178,7 +3409,12 @@ TEST_CASE("LD A, [HL-]", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3203,7 +3439,12 @@ TEST_CASE("CALL n16", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -3235,7 +3476,12 @@ TEST_CASE("CALL cc, n16", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -3302,7 +3548,12 @@ TEST_CASE("JP n16", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -3326,7 +3577,12 @@ TEST_CASE("JP cc, n16", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -3370,7 +3626,12 @@ TEST_CASE("JR e8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -3408,7 +3669,12 @@ TEST_CASE("JR cc, e8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -3461,7 +3727,12 @@ TEST_CASE("RET cc", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3507,7 +3778,12 @@ TEST_CASE("RET", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3534,7 +3810,12 @@ TEST_CASE("RETI", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3563,7 +3844,12 @@ TEST_CASE("RST", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3637,7 +3923,12 @@ TEST_CASE("ADD SP, e8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -3728,7 +4019,12 @@ TEST_CASE("LD SP, n16", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -3751,7 +4047,12 @@ TEST_CASE("LD [n16], SP", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -3780,7 +4081,12 @@ TEST_CASE("LD HL, SP+e8", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -3852,7 +4158,12 @@ TEST_CASE("POP AF", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3878,7 +4189,12 @@ TEST_CASE("POP r16", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3904,7 +4220,12 @@ TEST_CASE("PUSH AF", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -3932,7 +4253,12 @@ TEST_CASE("PUSH r16", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
@@ -4117,7 +4443,12 @@ TEST_CASE("EI", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0xC000;
     cpu.instructionCycle = 0;
@@ -4139,7 +4470,12 @@ TEST_CASE("HALT", "[OPCODE]")
 {
     SM83 cpu;
     Memory mem;
+    PPU ppu;
+
     cpu.memory = &mem;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;

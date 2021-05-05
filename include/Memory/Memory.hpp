@@ -57,6 +57,8 @@ class Memory
 
     void setCurrentVramBank(uint8_t val);
     void setCurrentWramBank(uint8_t val);
+
+    uint8_t getLcdMode();
 };
  
 #endif // __MEMORY_H__

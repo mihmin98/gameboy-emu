@@ -2,6 +2,7 @@
 
 #include "Memory.hpp"
 #include "TestConstants.hpp"
+#include "PPU.hpp"
 #include <cstdlib>
 #include <experimental/filesystem>
 #include <iostream>
@@ -11,7 +12,12 @@ namespace fs = std::experimental::filesystem;
 TEST_CASE("Read Memory", "[MEM]")
 {
     Memory mem;
+    PPU ppu;
     ROM rom;
+
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+
     fs::path romDirPath = fs::current_path() / TestConstants::testRomsDir;
 
     rom.loadROM(romDirPath / "test_mbc5.gb");
@@ -143,7 +149,12 @@ TEST_CASE("Read Memory", "[MEM]")
 TEST_CASE("Write Memory", "[MEM]")
 {
     Memory mem;
+    PPU ppu;
     ROM rom;
+
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+
     fs::path romDirPath = fs::current_path() / TestConstants::testRomsDir;
 
     rom.loadROM(romDirPath / "test_mbc5.gb");
@@ -197,10 +208,9 @@ TEST_CASE("Write Memory", "[MEM]")
 
     SECTION("ECHO RAM")
     {
-        // WRAM Bank 1
-        mem.setCurrentWramBank(1);
+        // WRAM Bank 0
         mem.writemem(0x66, 0xE066);
-        REQUIRE(mem.wram[0x1066] == 0x66);
+        REQUIRE(mem.wram[0x66] == 0x66);
 
         // WRAM Bank 3
         mem.setCurrentWramBank(3);

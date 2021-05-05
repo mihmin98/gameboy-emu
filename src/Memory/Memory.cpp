@@ -44,11 +44,12 @@ uint8_t Memory::readmem(uint16_t addr, bool bypass, bool bypassOamDma)
     }
 
     // WRAM Bank 0
-    if (addr >= MEM_WRAM0_START && addr < MEM_WRAMX_START)
+    if (addr >= MEM_WRAM0_START && addr < MEM_WRAMX_START) {
         if (ppu->oamDmaActive && !bypass)
             return 0xFF;
         else
             return wram[addr - MEM_WRAM0_START];
+    }
 
     // Switchable WRAM Bank
     if (addr >= MEM_WRAMX_START && addr < MEM_ECHO_START) {
@@ -81,10 +82,10 @@ uint8_t Memory::readmem(uint16_t addr, bool bypass, bool bypassOamDma)
 
     // OAM
     if (addr >= MEM_OAM_START && addr < MEM_UNUSED_START) {
-        if (ppu->oamDmaActive && !bypass && !bypassOamDma)
+        if (ppu->oamDmaActive && !bypass && !bypassOamDma) {
             return 0xFF;
-        else {
-            LcdMode lcdMode = ppu->getLcdMode();
+        } else {
+            LcdMode lcdMode = (LcdMode)getLcdMode();
             if ((lcdMode == OAM_SEARCH && !bypass) || (lcdMode == DRAW && !bypass))
                 return 0xFF;
             else
@@ -93,11 +94,12 @@ uint8_t Memory::readmem(uint16_t addr, bool bypass, bool bypassOamDma)
     }
 
     // Unused range
-    if (addr >= MEM_UNUSED_START && addr < MEM_IO_START)
+    if (addr >= MEM_UNUSED_START && addr < MEM_IO_START) {
         if (ppu->oamDmaActive && !bypass)
             return 0xFF;
         else
             return 0x00;
+    }
 
     // I/O Registers
     if (addr >= MEM_IO_START && addr < MEM_HRAM_START) {
@@ -108,7 +110,7 @@ uint8_t Memory::readmem(uint16_t addr, bool bypass, bool bypassOamDma)
             // This should be done by the ppu? Already done?
             // there is no need for a special case or something
 
-            LcdMode lcdMode = ppu->getLcdMode();
+            LcdMode lcdMode = (LcdMode)getLcdMode();
 
             if (mode == EmulatorMode::CGB) {
                 if (addr == 0xFF69) {
@@ -141,11 +143,12 @@ uint8_t Memory::readmem(uint16_t addr, bool bypass, bool bypassOamDma)
         return hram[addr - MEM_HRAM_START];
 
     // IE Register
-    if (addr == MEM_IE_REG)
+    if (addr == MEM_IE_REG) {
         if (ppu->oamDmaActive && !bypass)
             return 0xFF;
         else
             return ieRegister;
+    }
 
     // Invalid address
     fprintf(stderr, "WARNING: Trying to read from invalid memory address: 0x%04X\n", addr);
@@ -203,7 +206,7 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
     // OAM
     if (addr >= MEM_OAM_START && addr < MEM_UNUSED_START) {
         if (!ppu->oamDmaActive || (bypass && bypassOamDma)) {
-            LcdMode lcdMode = ppu->getLcdMode();
+            LcdMode lcdMode = (LcdMode)getLcdMode();
             if ((lcdMode != OAM_SEARCH || (bypass && bypassOamDma)) &&
                 (lcdMode != DRAW || (bypass && bypassOamDma)))
                 oam[addr - MEM_OAM_START] = val;
@@ -217,7 +220,7 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
     // I/O Registers
     if (addr >= MEM_IO_START && addr < MEM_HRAM_START) {
         if (!ppu->oamDmaActive || bypass) {
-            LcdMode lcdMode = ppu->getLcdMode();
+            LcdMode lcdMode = (LcdMode)getLcdMode();
 
             if (addr == 0xFF46) {
                 // Trigger OAM DMA
@@ -234,7 +237,7 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
                             // Stop dma if bit 7 is 0, afterwards set bit 7 to 1
                             ppu->vramHblankDmaActive = false;
                             ioRegisters[addr - MEM_IO_START] =
-                                (1 << 7) || (ioRegisters[addr - MEM_IO_START] & 0x7F);
+                                (1 << 7) | (ioRegisters[addr - MEM_IO_START] & 0x7F);
                         }
                     } else if (!ppu->vramHblankDmaActive && !ppu->vramGeneralDmaActive) {
                         // Start dma
@@ -317,3 +320,5 @@ uint8_t Memory::getCurrentWramBank()
 void Memory::setCurrentVramBank(uint8_t val) { ioRegisters[0xFF4F - MEM_IO_START] = val & 0x1; }
 
 void Memory::setCurrentWramBank(uint8_t val) { ioRegisters[0xFF70 - MEM_IO_START] = val & 0x3; }
+
+uint8_t Memory::getLcdMode() { return (ioRegisters[0xFF41 - MEM_IO_START] & 0x2); }
