@@ -4,7 +4,6 @@
 #pragma once
 #include "BgMapAttributes.hpp"
 #include "FifoPixel.hpp"
-#include "PPU.hpp"
 #include "Tile.hpp"
 #include <queue>
 

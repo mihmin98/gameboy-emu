@@ -6,8 +6,7 @@
 #include <cstring>
 #include <cstdio>
 #include "ROM.hpp"
-#include "GameBoy.hpp"
-#include "PPU.hpp"
+#include "Enums.hpp"
 
 #define MEM_ROM0_START 0x0000
 #define MEM_ROMX_START 0x4000

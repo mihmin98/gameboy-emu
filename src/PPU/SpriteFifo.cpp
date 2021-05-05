@@ -1,4 +1,5 @@
 #include "SpriteFifo.hpp"
+#include "PPU.hpp"
 
 SpriteFifo::SpriteFifo() {}
 
@@ -10,7 +11,8 @@ FifoPixel *SpriteFifo::cycle(BgFifo &bgFifo)
 
 start:
     // Check for sprite at xPos if not currently fetching sprite
-    if (!fetchingSprite && !(ppu->emulatorMode == DMG && !ppu->getObjDisplayEnable())) {
+    if (!fetchingSprite &&
+        !(ppu->emulatorMode == EmulatorMode::DMG && !ppu->getObjDisplayEnable())) {
         for (int i = 0; i < ppu->numSpritesOnCurrentLine; ++i) {
             int8_t spriteIndex = ppu->spritesOnCurrentLine[i];
             if (spriteIndex == -1 || processedSprites.find(spriteIndex) != processedSprites.end())
@@ -134,7 +136,7 @@ start:
             // Get tile
             uint8_t screenLine = ppu->getLy();
             uint8_t tileNo = 0;
-            uint8_t vramBank = ppu->emulatorMode == DMG ? 0 : sprite.tileVramBank;
+            uint8_t vramBank = ppu->emulatorMode == EmulatorMode::DMG ? 0 : sprite.tileVramBank;
 
             if (ppu->getObjSize() == 1) {
                 // 8x16
@@ -163,7 +165,7 @@ start:
             for (int i = 0; i < 8; ++i) {
                 pixels[i].isSprite = true;
                 pixels[i].color = tileRowData[i];
-                if (ppu->emulatorMode == DMG) {
+                if (ppu->emulatorMode == EmulatorMode::DMG) {
                     pixels[i].palette = sprite.dmgPaletteNumber;
                 } else {
                     pixels[i].palette = sprite.cgbPaletteNumber;

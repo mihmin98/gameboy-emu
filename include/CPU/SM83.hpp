@@ -4,7 +4,7 @@
 #pragma once
 #include <cstdint>
 #include <cstring>
-#include "Memory.hpp"
+#include "Enums.hpp"
 
 #define SM83_VBLANK_INT 0x40
 #define SM83_LCD_STAT_INT 0x48
@@ -13,7 +13,7 @@
 #define SM83_JOYPAD_INT 0x60
 
 class Memory;
-
+class GameBoy;
 class SM83
 {
   public:

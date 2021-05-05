@@ -1,4 +1,6 @@
 #include "BgFifo.hpp"
+#include "Memory.hpp"
+#include "PPU.hpp"
 
 BgFifo::BgFifo() {}
 
@@ -57,7 +59,7 @@ void BgFifo::cycleFetcher()
 
         // If in dmg mode and bg and window are disabled, then do nothing; a row of blank pixels
         // will be pushed in the PUSH stage
-        if (ppu->getBgWindowDisplayPriority() == 0 && ppu->emulatorMode == DMG)
+        if (ppu->getBgWindowDisplayPriority() == 0 && ppu->emulatorMode == EmulatorMode::DMG)
             break;
 
         if (isDrawingWindow) {
@@ -111,7 +113,7 @@ void BgFifo::cycleFetcher()
         // TODO: Check if the entire row is pushed in 1 cycle
 
         // if in DMG mode and not drawing bg or window, then add a row of blank pixels
-        if (ppu->getBgWindowDisplayPriority() == 0 && ppu->emulatorMode == DMG) {
+        if (ppu->getBgWindowDisplayPriority() == 0 && ppu->emulatorMode == EmulatorMode::DMG) {
             FifoPixel blankPixel = FifoPixel(0, 0, 0, 0, false);
             for (int i = 0; i < 8; ++i) {
                 pixelQueue.push(blankPixel);
@@ -126,7 +128,7 @@ void BgFifo::cycleFetcher()
 
         // if in CGB mode, get bg map attributes and flip the tile if necessary
         BgMapAttributes bgMapAttr;
-        if (ppu->emulatorMode == CGB) {
+        if (ppu->emulatorMode == EmulatorMode::CGB) {
             bgMapAttr = ppu->getBgMapByIndex(tileMapIndex, tilemapBaseAddr == 0x9800 ? 0 : 1);
             if (bgMapAttr.horizontalFlip)
                 tile.flipHor();
@@ -143,7 +145,7 @@ void BgFifo::cycleFetcher()
         // push the row of pixels into the queue
         for (int i = 0; i < 8; ++i) {
             FifoPixel pixel = FifoPixel(tileRow[i], 0, 0, 0, false);
-            if (ppu->emulatorMode == CGB) {
+            if (ppu->emulatorMode == EmulatorMode::CGB) {
                 pixel.palette = bgMapAttr.bgPaletteNumber;
                 pixel.bgPriority = bgMapAttr.bgToOamPriority;
             }

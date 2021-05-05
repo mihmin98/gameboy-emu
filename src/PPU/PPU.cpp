@@ -1,9 +1,14 @@
 #include "PPU.hpp"
+#include "GameBoy.hpp"
+#include "Memory.hpp"
+#include "SM83.hpp"
 
 PPU::PPU()
 {
     bgFifo.ppu = this;
     spriteFifo.ppu = this;
+    readyToDraw = false;
+    xPos = 0;
 }
 
 /* GETTERS AND SETTERS */
@@ -218,7 +223,7 @@ OAMSprite PPU::getSpriteByIndex(int index)
 
 BgMapAttributes PPU::getBgMapByIndex(int index, int tilemap)
 {
-    if (emulatorMode != CGB) {
+    if (emulatorMode != EmulatorMode::CGB) {
         fprintf(stderr, "WARNING: Trying to read background map attributes in non-CGB mode\n");
         return BgMapAttributes();
     }
@@ -283,7 +288,7 @@ Tile PPU::getSpriteTile(int index, int tileNo, int vramBank)
 
 Color PPU::getColorFromFifoPixel(FifoPixel *fifoPixel, bool normalizeCgbColor)
 {
-    if (emulatorMode == DMG) {
+    if (emulatorMode == EmulatorMode::DMG) {
         // DMG Mode
         if (!fifoPixel->isSprite) {
             // BG/Window Pixel
@@ -335,6 +340,9 @@ Color PPU::getColorFromFifoPixel(FifoPixel *fifoPixel, bool normalizeCgbColor)
 void PPU::cycle()
 {
     LcdMode currentMode = getLcdMode();
+    FifoPixel *bgPixel = nullptr;
+    FifoPixel *spritePixel = nullptr;
+
     switch (currentMode) {
     case OAM_SEARCH:
         if (currentModeTCycles == 0) {
@@ -368,6 +376,7 @@ void PPU::cycle()
         if (currentModeTCycles == 0) {
             bgFifo.prepareForLine(getLy());
             spriteFifo.prepareForLine();
+            xPos = 0;
         }
         /**
          * BG FIFO: cycle() returneaza pixel sau null
@@ -389,15 +398,15 @@ void PPU::cycle()
         }
 
         // TODO: Maybe make a separate function for popping a pixel from the fifos?
-        FifoPixel *bgPixel = bgFifo.cycle();
-        FifoPixel *spritePixel = spriteFifo.cycle(bgFifo);
+        bgPixel = bgFifo.cycle();
+        spritePixel = spriteFifo.cycle(bgFifo);
 
         // TODO: Maybe move this in a separate function? that has 2 params(bgPixel and spritePixel)
         if (bgPixel != nullptr) {
             if (spritePixel != nullptr && getObjDisplayEnable()) {
                 // do pixel mixing
                 // Ordine prioritati: LCDC.0 > BG Map Attr (CGB only) > OAM bit
-                if (emulatorMode == DMG) {
+                if (emulatorMode == EmulatorMode::DMG) {
                     // DMG Mode
                     if (spritePixel->color == 0) {
                         // Display BG Pixel, if sprite pixel is transparent
@@ -444,7 +453,7 @@ void PPU::cycle()
 
             } else {
                 // There is no sprite pixel, or sprites disabled
-                if (emulatorMode == DMG && getBgWindowDisplayPriority() == 0)
+                if (emulatorMode == EmulatorMode::DMG && getBgWindowDisplayPriority() == 0)
                     // Only sprites can be displayed, bg and window become blank
                     // Should it be white or black?
                     display[getLy()][xPos++] = Color(255, 255, 255);
@@ -531,6 +540,8 @@ void PPU::cycle()
             cpu->setVBlankInterruptFlag(1);
             if (getMode1VBlankInterrupt())
                 cpu->setLCDSTATInterruptFlag(1);
+            // Set that frame is ready to be drawn
+            readyToDraw = true;
         }
 
         if (currentModeTCycles % PPU_LINE_T_CYCLES) {

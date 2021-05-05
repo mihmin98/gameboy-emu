@@ -5,10 +5,8 @@
 #include "BgFifo.hpp"
 #include "BgMapAttributes.hpp"
 #include "Color.hpp"
-#include "GameBoy.hpp"
-#include "Memory.hpp"
+#include "Enums.hpp"
 #include "OAMSprite.hpp"
-#include "SM83.hpp"
 #include "SpriteFifo.hpp"
 #include "Tile.hpp"
 #include <cstdio>
@@ -27,6 +25,7 @@
 
 class Memory;
 class SM83;
+class GameBoy;
 
 enum LcdMode { H_BLANK = 0, V_BLANK = 1, OAM_SEARCH = 2, DRAW = 3 };
 
@@ -38,6 +37,7 @@ class PPU
 
     EmulatorMode emulatorMode;
     bool doubleSpeedMode;
+    bool readyToDraw;
 
     Color display[PPU_SCREEN_HEIGHT][PPU_SCREEN_WIDTH];
 

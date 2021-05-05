@@ -1,4 +1,5 @@
 #include "SM83.hpp"
+#include "Memory.hpp"
 
 SM83::SM83() 
 { 

@@ -1,4 +1,6 @@
 #include "Memory.hpp"
+#include "GameBoy.hpp"
+#include "PPU.hpp"
 
 Memory::Memory(EmulatorMode mode)
 {
@@ -10,6 +12,14 @@ Memory::Memory(EmulatorMode mode)
 
     for (int i = 0; i < 0x40; ++i)
         cgbBgColorPalette[i] = 255;
+
+    // Zero-out memory
+    memset(vram, 0, 2 * 0x2000);
+    memset(wram, 0, 8 * 0x1000);
+    memset(oam, 0, 0xA0);
+    memset(ioRegisters, 0, 0x80);
+    memset(hram, 0, 0x7F);
+    ieRegister = 0;
 }
 
 uint8_t Memory::readmem(uint16_t addr, bool bypass, bool bypassOamDma)
@@ -100,7 +110,7 @@ uint8_t Memory::readmem(uint16_t addr, bool bypass, bool bypassOamDma)
 
             LcdMode lcdMode = ppu->getLcdMode();
 
-            if (mode == CGB) {
+            if (mode == EmulatorMode::CGB) {
                 if (addr == 0xFF69) {
                     // BGPD (Backgroud Color Palette Data)
                     if (lcdMode == DRAW && !bypass) {
@@ -216,7 +226,7 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
                 ioRegisters[addr - MEM_IO_START] = val;
             }
 
-            if (mode == CGB) {
+            if (mode == EmulatorMode::CGB) {
                 if (addr == 0xFF55) {
                     // VRAM DMA
                     if (ppu->vramHblankDmaActive) {

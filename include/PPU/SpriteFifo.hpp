@@ -3,7 +3,6 @@
 
 #pragma once
 #include "FifoPixel.hpp"
-#include "PPU.hpp"
 #include "BgFifo.hpp"
 #include "OAMSprite.hpp"
 #include <queue>
