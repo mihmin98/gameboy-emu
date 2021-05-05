@@ -1,5 +1,6 @@
 #include "catch.hpp"
 
+#include "GameBoy.hpp"
 #include "Memory.hpp"
 #include "PPU.hpp"
 #include "ROM.hpp"
@@ -4548,12 +4549,54 @@ TEST_CASE("SCF", "[OPCODE]")
 
 TEST_CASE("STOP", "[OPCODE]")
 {
+    GameBoy gameboy;
     SM83 cpu;
+    Memory mem;
+    PPU ppu;
+
+    cpu.memory = &mem;
+    cpu.gameboy = &gameboy;
+    mem.ppu = &ppu;
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
 
     cpu.PC = 0x0150;
     cpu.instructionCycle = 0;
 
-    cpu.op_stop();
+    SECTION("DMG")
+    {
+        gameboy.emulatorMode = EmulatorMode::DMG;
 
-    REQUIRE(cpu.stop_signal == true);
+        cpu.op_stop();
+
+        REQUIRE(cpu.PC == 0x0152);
+        REQUIRE(cpu.stop_signal == true);
+    }
+
+    SECTION("CGB")
+    {
+        gameboy.emulatorMode = EmulatorMode::CGB;
+        mem.writebit(1, 0, 0xFF4D);
+
+        cpu.op_stop();
+
+        REQUIRE(cpu.PC == 0x0152);
+        REQUIRE(gameboy.doubleSpeedMode);
+        REQUIRE(gameboy.speedSwitchSleepCycles == GAMEBOY_SPEED_SWITCH_CLOCKS);
+        REQUIRE(mem.readmem(0xFF4D) == 0x80);
+
+        mem.writebit(1, 0, 0xFF4D);
+        cpu.op_stop();
+
+        REQUIRE(cpu.PC == 0x0154);
+        REQUIRE_FALSE(gameboy.doubleSpeedMode);
+        REQUIRE(gameboy.speedSwitchSleepCycles == GAMEBOY_SPEED_SWITCH_CLOCKS);
+        REQUIRE(mem.readmem(0xFF4D) == 0);
+
+        cpu.op_stop();
+        REQUIRE(cpu.PC == 0x0156);
+        REQUIRE_FALSE(gameboy.doubleSpeedMode);
+        REQUIRE(mem.readmem(0xFF4D) == 0);
+        REQUIRE(cpu.stop_signal);
+    }
 }
