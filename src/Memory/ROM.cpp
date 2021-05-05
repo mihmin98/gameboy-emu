@@ -25,12 +25,12 @@ ROM::~ROM()
  */
 bool ROM::loadROM(std::string romPath)
 {
-    std::ifstream romFile(romPath, std::ios::binary | std::ios::ate);
+    FILE *f = fopen(romPath.c_str(), "rb");
 
-    if (romFile.is_open()) {
-        // Get ROM file size
-        romFileSize = romFile.tellg();
-        romFile.seekg(0, std::ios::beg);
+    if (f != NULL) {
+        fseek(f, 0, SEEK_END);
+        romFileSize = ftell(f);
+        fseek(f, 0, SEEK_SET);
 
         // Allocate mem for ROM
         try {
@@ -40,8 +40,8 @@ bool ROM::loadROM(std::string romPath)
             return false;
         }
 
-        romFile.read((char *)rom, romFileSize);
-        romFile.close();
+        fread(rom, sizeof(uint8_t), romFileSize, f);
+        fclose(f);
 
         // After the ROM has been loaded, read the header and run the checks
         readHeader();
@@ -55,6 +55,7 @@ bool ROM::loadROM(std::string romPath)
             ram = new uint8_t[ramSize];
 
         return true;
+
     } else {
         std::cerr << "ERROR: ROM " << romPath << " could not be opened\n";
         return false;
@@ -751,4 +752,3 @@ void ROM::writememMBC5(uint8_t val, uint16_t addr)
         ram[acutalAddr] = val;
     }
 }
-
