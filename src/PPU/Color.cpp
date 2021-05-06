@@ -7,7 +7,7 @@ Color::Color(uint8_t red, uint8_t green, uint8_t blue) : red(red), green(green),
 Color::Color(uint8_t *colorAddr)
 {
     red = (colorAddr[0] & 0xF8) >> 3;
-    green = ((colorAddr[0] & 0x07) << 3) | ((colorAddr[1] & 0xC0) >> 6);
+    green = ((colorAddr[0] & 0x07) << 2) | ((colorAddr[1] & 0xC0) >> 6);
     blue = (colorAddr[1] & 0x3E) >> 1;
 }
 

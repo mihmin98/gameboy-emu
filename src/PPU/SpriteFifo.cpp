@@ -181,7 +181,7 @@ start:
                 pixelQueue.pop();
             }
 
-            for (int i = 0; i < 8; ++i) {
+            for (uint8_t i = 0; i < 8; ++i) {
                 if (pixelQueueVector.size() == i) {
                     // If there are not enough elements, just add the pixel
                     pixelQueueVector.push_back(pixels[i]);

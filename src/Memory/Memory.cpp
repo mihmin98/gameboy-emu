@@ -227,6 +227,7 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
                 ppu->oamDmaActive = true;
                 ppu->oamDmaCurrentCycles = 0;
                 ioRegisters[addr - MEM_IO_START] = val;
+                return;
             }
 
             if (mode == EmulatorMode::CGB) {
@@ -238,19 +239,22 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
                             ppu->vramHblankDmaActive = false;
                             ioRegisters[addr - MEM_IO_START] =
                                 (1 << 7) | (ioRegisters[addr - MEM_IO_START] & 0x7F);
+                                
+                            return;
                         }
                     } else if (!ppu->vramHblankDmaActive && !ppu->vramGeneralDmaActive) {
                         // Start dma
                         ppu->vramDmaLength = val & 0x7F;
                         ppu->vramDmaTransferredBytes = 0;
                         ppu->vramDmaCurrentCycles = 0;
-                        if (val & 80)
+                        if (val & 0x80)
                             ppu->vramHblankDmaActive = true;
                         else
                             ppu->vramGeneralDmaActive = true;
 
                         // Set bit 7 to 0
                         ioRegisters[addr - MEM_IO_START] = val & 0x7F;
+                        return;
                     }
                 }
 
@@ -262,6 +266,8 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
                         // AutoIncrement
                         if (index & 0x80)
                             ppu->setBgColorPaletteIndex(0x80 | (((index & 0x3F) + 1) & 0x3F));
+                        
+                        return;
                     }
                 }
 
@@ -273,13 +279,13 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
                         // AutoIncrement
                         if (index & 0x80)
                             ppu->setObjColorPaletteIndex(0x80 | (((index & 0x3F) + 1) & 0x3F));
+                        
+                        return;
                     }
                 }
             }
 
-            else {
-                ioRegisters[addr - MEM_IO_START] = val;
-            }
+            ioRegisters[addr - MEM_IO_START] = val;
         }
     }
 

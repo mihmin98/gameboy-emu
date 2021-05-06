@@ -78,7 +78,7 @@ class PPU
      *         0 = 0x9800; 1 = 0x9C00
      * Bit 5 - Window Display Enable: Controls whether the window is displayed or not
      * Bit 4 - BG & Window Tile Data Select: Controls which addressing mode the BG and Window use
-     *         to pick tiles
+     *         to pick tiles: 0 = 0x8800-0x97FF; 1 = 0x8000-0x8FFF
      * Bit 3 - BG Tile Map Display Select: Similar to bit 6; 0 = 0x9800; 1 = 0x9C00
      * Bit 2 - OBJ (Sprite) Size: 0 = 8x8; 1 = 8x16
      * Bit 1 - OBJ (Sprite) Display Enable: Toggles if sprites are displayed
@@ -224,14 +224,17 @@ class PPU
      * VRAM DMA (CGB Only)
      * HDMA1: DMA Source High Byte (0xFF51)
      * HDMA2: DMA Source Low Byte (0xFF52)
-     *        These 2 registers are combined to create the DMA source address. The 4 lower bits are
-     * ignored HDMA3: DMA Destination High Byte (0xFF53) HDMA4: DMA Destination Low Byte (0xFF54)
-     *        These 2 registers are combined to create the DMA destination address. Only bits 12-4
-     * are used HDMA5: DMA Length, Mode, Start (0xFF55) - Writing to this register starts the DMA
-     * transfer Bit 7: Mode: General=0 or HBlank=1 Bit 6-0: Transfer length divided by 0x10 minus 1
-     *                                           In General mode all data is transferred at once
-     *                                           In HBlank mode data is transferred during HBlank
-     * mode
+     *    These 2 registers are combined to create the DMA source address. The 4 lower bits are
+     * ignored
+     * HDMA3: DMA Destination High Byte (0xFF53)
+     * HDMA4: DMA Destination Low Byte (0xFF54)
+     *    These 2 registers are combined to create the DMA destination address. Only bits 12-4
+     * are used
+     * HDMA5: DMA Length, Mode, Start (0xFF55) - Writing to this register starts the DMA transfer
+     *        Bit 7: Mode: General=0 or HBlank=1
+     *        Bit 6-0: Transfer length divided by 0x10 minus 1
+     *                 In General mode all data is transferred at once
+     *                 In HBlank mode data is transferred during HBlank mode
      */
 
     uint8_t getHdma1();

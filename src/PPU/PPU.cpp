@@ -7,8 +7,15 @@ PPU::PPU()
 {
     bgFifo.ppu = this;
     spriteFifo.ppu = this;
+
     readyToDraw = false;
     xPos = 0;
+    oamDmaActive = false;
+    vramGeneralDmaActive = false;
+    vramHblankDmaActive = false;
+    currentModeTCycles = 0;
+    hBlankModeLength = PPU_DEFAULT_HBLANK_T_CYCLES;
+    drawModeLength = PPU_DEFAULT_DRAW_T_CYCLES;
 }
 
 /* GETTERS AND SETTERS */
@@ -61,7 +68,7 @@ uint8_t PPU::getMode0HBlankInterrupt() { return (memory->readmem(0xFF41, true) &
 
 uint8_t PPU::getCoincidenceFlag() { return (memory->readmem(0xFF41, true) & 0x4) >> 2; }
 
-uint8_t PPU::getModeFlag() { return memory->readmem(0xFF41, true) & 0x2; }
+uint8_t PPU::getModeFlag() { return memory->readmem(0xFF41, true) & 0x3; }
 
 LcdMode PPU::getLcdMode() { return (LcdMode)getModeFlag(); }
 
@@ -160,7 +167,7 @@ uint8_t PPU::getHdma2() { return memory->readmem(0xFF52, true); }
 uint16_t PPU::getHdmaSrcAddress()
 {
     uint16_t srcAddr = (getHdma1() << 8) | getHdma2();
-    return (srcAddr & 0xFFF0) >> 4;
+    return (srcAddr & 0xFFF0);
 }
 
 uint8_t PPU::getHdma3() { return memory->readmem(0xFF53, true); }
@@ -170,7 +177,7 @@ uint8_t PPU::getHdma4() { return memory->readmem(0xFF54, true); }
 uint16_t PPU::getHdmaDestAddress()
 {
     uint16_t destAddr = (getHdma3() << 8) | getHdma4();
-    return (destAddr & 0x1FF0) >> 4;
+    return 0x8000 + (destAddr & 0x1FF0);
 }
 
 uint8_t PPU::getHdma5() { return memory->readmem(0xFF55, true); }
@@ -216,7 +223,7 @@ OAMSprite PPU::getSpriteByIndex(int index)
 {
     uint8_t sprite[4];
     for (int i = 0; i < 4; ++i)
-        sprite[i] = memory->readmem(MEM_OAM_START + index + i, true);
+        sprite[i] = memory->readmem(MEM_OAM_START + index * 4 + i, true);
 
     return OAMSprite(sprite);
 }
@@ -269,10 +276,10 @@ Tile PPU::getSpriteTile(int index, int tileNo, int vramBank)
     // start addr is 0x8000-0x8FFF
     if (getObjSize() == 0)
         // 8x8
-        tileAddr = 0x8000 + index;
+        tileAddr = 0x8000 + index * 16;
     else
         // 8x16
-        tileAddr = 0x8000 + index * 2 + tileNo;
+        tileAddr = 0x8000 + index * 16 * 2 + tileNo * 16;
 
     uint8_t oldVramBank = memory->getCurrentVramBank();
     memory->setCurrentVramBank(vramBank);
@@ -312,7 +319,7 @@ Color PPU::getColorFromFifoPixel(FifoPixel *fifoPixel, bool normalizeCgbColor)
         if (!fifoPixel->isSprite) {
             // BG/Window Pixel
             uint8_t *colorPaletteAddr =
-                memory->cgbBgColorPalette + fifoPixel->palette * 2 + fifoPixel->color;
+                memory->cgbBgColorPalette + fifoPixel->palette * 8 + fifoPixel->color * 2;
             Color c = Color(colorPaletteAddr);
 
             if (normalizeCgbColor)
@@ -326,7 +333,7 @@ Color PPU::getColorFromFifoPixel(FifoPixel *fifoPixel, bool normalizeCgbColor)
                 return Color(255, 255, 255);
 
             uint8_t *colorPaletteAddr =
-                memory->cgbObjColorPalette + fifoPixel->palette * 2 + fifoPixel->color;
+                memory->cgbObjColorPalette + fifoPixel->palette * 8 + fifoPixel->color * 2;
             Color c = Color(colorPaletteAddr);
 
             if (normalizeCgbColor)
@@ -493,8 +500,10 @@ void PPU::cycle()
                 cpu->setLCDSTATInterruptFlag(1);
         }
 
+        ++currentModeTCycles;
+
         // Check for transition to next mode
-        if (currentModeTCycles == hBlankModeLength) {
+        if (currentModeTCycles >= hBlankModeLength) {
             // HBlank DMA
             if (vramHblankDmaActive) {
                 // Transfers 0x10 bytes per hblank
@@ -525,10 +534,10 @@ void PPU::cycle()
             currentModeTCycles = 0;
             if (getLy() == 144) {
                 // Go to VBlank
-                setModeFlag(V_BLANK);
+                setModeFlag((uint8_t)V_BLANK);
             } else {
                 // Go to OAM Search
-                setModeFlag(OAM_SEARCH);
+                setModeFlag((uint8_t)OAM_SEARCH);
             }
         }
 

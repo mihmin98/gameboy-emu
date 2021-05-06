@@ -18,6 +18,8 @@ class SM83
 {
   public:
     Memory *memory;
+    GameBoy *gameboy;
+
     uint8_t A, F, B, C, D, E, H, L;
     uint16_t PC, SP;
 

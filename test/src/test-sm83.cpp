@@ -5,7 +5,7 @@
 #include "PPU.hpp"
 #include <iostream>
 
-TEST_CASE("Cycle", "[SM83]")
+TEST_CASE("SM83 Cycle", "[SM83]")
 {
     SM83 cpu;
     Memory mem;
