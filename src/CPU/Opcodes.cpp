@@ -1,4 +1,5 @@
 #include "SM83.hpp"
+#include "GameBoy.hpp"
 
 /* 8 BIT ARITHMETIC INSTRUCTIONS */
 
@@ -2618,4 +2619,20 @@ void SM83::op_scf()
  *  Flags:
  *      None
  */
-void SM83::op_stop() { stop_signal = true; }
+void SM83::op_stop() 
+{ 
+    if (gameboy->emulatorMode == EmulatorMode::CGB) {
+        uint8_t key1 = readmem_u8(0xFF4D);
+        if ((key1 & 1) == 1) {
+            gameboy->setDoubleSpeedMode(!gameboy->doubleSpeedMode);
+            key1 = ((uint8_t)gameboy->doubleSpeedMode) << 7;
+            writemem_u8(key1, 0xFF4D);
+        } else {
+            stop_signal = true; 
+        }
+    } else {
+        stop_signal = true; 
+    }
+
+    endInstruction(2);
+}
