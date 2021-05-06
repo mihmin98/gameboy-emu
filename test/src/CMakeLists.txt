@@ -17,6 +17,7 @@ target_sources(unit_tests
         test-opcodes.cpp
         test-rom.cpp
         test-sm83.cpp
+        test-ppu.cpp
 )
 
 target_include_directories(unit_tests
