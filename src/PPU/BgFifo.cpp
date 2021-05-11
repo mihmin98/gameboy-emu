@@ -2,7 +2,12 @@
 #include "Memory.hpp"
 #include "PPU.hpp"
 
-BgFifo::BgFifo() {}
+BgFifo::BgFifo()
+    : isDrawingWindow(false), scxPixelsToDiscard(0), pushedPixels(0), fetcherStage(GET_TILE),
+      fetcherStageCycles(0), fetcherXPos(0), fetcherYPos(0), tileXPos(0), tileYPos(0),
+      tilemapBaseAddr(0)
+{
+}
 
 BgFifo::BgFifo(PPU *ppu) : ppu(ppu) {}
 
@@ -11,7 +16,8 @@ FifoPixel *BgFifo::cycle()
     FifoPixel *returnedPixel = nullptr;
 
     // Check for window
-    if (ppu->getWindowDisplayEnable() && coordsInsideWindow(pushedPixels, ppu->getLy())) {
+    if (!isDrawingWindow && ppu->getWindowDisplayEnable() &&
+        coordsInsideWindow(pushedPixels, ppu->getLy())) {
         isDrawingWindow = true;
 
         // clear the queue
@@ -69,8 +75,9 @@ void BgFifo::cycleFetcher()
             // bg, probabil fara scroll ar fi fetcher coord - window coord? screen x pos e pozitia
             // pixelului x de pe ecran screen y pos e pozitia pixelului y de pe ecran ca sa aflu
             // tile-ul din window: fac scaderea ca sa aflu coord din window;
-            tileXPos = (fetcherXPos - ppu->getWx() - 7) / 8;
+            tileXPos = (fetcherXPos - (ppu->getWx() - 7)) / 8;
             tileYPos = (fetcherYPos - ppu->getWy()) / 8;
+
             // done? TODO: Window X pos is actually x pos + 7, need to test this
             // the window is drawn from Wx - 7
 
@@ -91,24 +98,29 @@ void BgFifo::cycleFetcher()
         if (fetcherStageCycles < 2)
             break;
         // do nothing here because we retrieve the entire tile at the same time
+        fetcherStageCycles = 0;
+        fetcherStage = GET_TILE_DATA_HIGH;
         break;
 
     case GET_TILE_DATA_HIGH:
         if (fetcherStageCycles < 2)
             break;
         // do nothing here because we retrieve the entire tile at the same time
-        break;
+        fetcherStageCycles = 0;
+        fetcherStage = SLEEP;
 
     case SLEEP:
         // check if there is room in the fifo to push pixels, otherwise do nothing
         if (pixelQueue.size() <= 8) {
             fetcherStage = PUSH;
             fetcherStageCycles = 0;
+            goto push_label;
         }
 
         break;
 
     case PUSH:
+    push_label:
         // pushes the pixels in the queue
         // TODO: Check if the entire row is pushed in 1 cycle
 
@@ -121,15 +133,29 @@ void BgFifo::cycleFetcher()
             break;
         }
 
+        // switch to vram bank 0 to read the tile map
+        uint8_t orignialVramBank = ppu->memory->getCurrentVramBank();
+        ppu->memory->setCurrentVramBank(0);
+        
         int tileMapIndex = tileYPos * 32 + tileXPos;
         uint8_t tileIndex = ppu->memory->readmem(tilemapBaseAddr + tileMapIndex);
+        ppu->memory->setCurrentVramBank(orignialVramBank);
 
-        tile = ppu->getTileByIndex(tileIndex);
-
-        // if in CGB mode, get bg map attributes and flip the tile if necessary
+        // if in CGB mode, get tile from vram bank in mapAttr
         BgMapAttributes bgMapAttr;
         if (ppu->emulatorMode == EmulatorMode::CGB) {
             bgMapAttr = ppu->getBgMapByIndex(tileMapIndex, tilemapBaseAddr == 0x9800 ? 0 : 1);
+
+            uint8_t originalVramBank = ppu->memory->getCurrentVramBank();
+            ppu->memory->setCurrentVramBank(bgMapAttr.tileVramBankNumber);
+            tile = ppu->getTileByIndex(tileIndex);
+            ppu->memory->setCurrentVramBank(originalVramBank);
+        } else {
+            tile = ppu->getTileByIndex(tileIndex);
+        }
+
+        // if in CGB mode, get bg map attributes and flip the tile if necessary
+        if (ppu->emulatorMode == EmulatorMode::CGB) {
             if (bgMapAttr.horizontalFlip)
                 tile.flipHor();
             if (bgMapAttr.verticalFlip)
@@ -143,7 +169,7 @@ void BgFifo::cycleFetcher()
         tile.getTileRow(((fetcherYPos + ppu->getScrollY()) & 0xFF) % 8, tileRow);
 
         // push the row of pixels into the queue
-        for (int i = 0; i < 8; ++i) {
+        for (uint8_t i = 0; i < 8; ++i) {
             FifoPixel pixel = FifoPixel(tileRow[i], 0, 0, 0, false);
             if (ppu->emulatorMode == EmulatorMode::CGB) {
                 pixel.palette = bgMapAttr.bgPaletteNumber;
@@ -153,7 +179,8 @@ void BgFifo::cycleFetcher()
         }
 
         // increase fetcher x pos
-        fetcherXPos += 8;
+        fetcherXPos += 8 - scxPixelsToDiscard;
+        fetcherStage = GET_TILE;
 
         break;
     }

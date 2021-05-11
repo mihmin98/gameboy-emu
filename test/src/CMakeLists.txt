@@ -18,6 +18,7 @@ target_sources(unit_tests
         test-rom.cpp
         test-sm83.cpp
         test-ppu.cpp
+        test-ppu-fifo.cpp
 )
 
 target_include_directories(unit_tests

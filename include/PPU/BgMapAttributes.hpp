@@ -17,6 +17,8 @@ class BgMapAttributes
     BgMapAttributes(uint8_t bgToOamPriority, uint8_t verticalFlip, uint8_t horizontalFlip,
           uint8_t tileVramBankNumber, uint8_t bgPaletteNumber);
     BgMapAttributes(uint8_t byte);
+
+    uint8_t getAsByte();
 };
 
 #endif // __BG_MAP_ATTRIBUTES_H__
