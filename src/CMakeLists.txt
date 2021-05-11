@@ -15,11 +15,15 @@ add_subdirectory(Memory)
 add_library(PPU "")
 add_subdirectory(PPU)
 
+add_library(Timer "")
+add_subdirectory(Timer)
+
 target_link_libraries(emulator
     PUBLIC
         CPU
         Memory
         PPU    
+        Timer
 )
 
 target_include_directories(emulator
