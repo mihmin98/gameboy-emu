@@ -19,6 +19,7 @@ target_sources(unit_tests
         test-sm83.cpp
         test-ppu.cpp
         test-ppu-fifo.cpp
+        test-timer.cpp
 )
 
 target_include_directories(unit_tests
