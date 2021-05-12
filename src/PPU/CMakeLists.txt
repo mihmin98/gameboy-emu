@@ -19,6 +19,7 @@ target_include_directories(PPU
         "${PROJECT_SOURCE_DIR}/include/CPU"
         "${PROJECT_SOURCE_DIR}/include/Memory"
         "${PROJECT_SOURCE_DIR}/include/PPU"
+        "${PROJECT_SOURCE_DIR}/include/Timer"
 )
 
 target_compile_options(PPU

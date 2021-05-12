@@ -23,6 +23,7 @@
 
 class GameBoy;
 class PPU;
+class Timer;
 
 class Memory
 {
@@ -31,6 +32,7 @@ class Memory
     EmulatorMode mode;
     ROM *rom; // Pointer to the ROM
     PPU *ppu;
+    Timer *timer;
 
     /* MEMORY AREAS */
 

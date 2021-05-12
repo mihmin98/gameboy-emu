@@ -1,6 +1,7 @@
 #include "Memory.hpp"
 #include "GameBoy.hpp"
 #include "PPU.hpp"
+#include "Timer.hpp"
 
 Memory::Memory(EmulatorMode mode)
 {
@@ -222,6 +223,39 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
         if (!ppu->oamDmaActive || bypass) {
             LcdMode lcdMode = (LcdMode)getLcdMode();
 
+            if (addr == 0xFF04) {
+                // DIV - Divider Register
+                // set to 0 when writing any value
+                ioRegisters[addr - MEM_IO_START] = 0;
+                return;
+            }
+
+            if (addr == 0xFF05) {
+                // TIMA - Timer Counter
+                if (timer->timaReloadTCyclesDelay == -1) {
+                    ioRegisters[addr - MEM_IO_START] = val;
+                } else if (timer->timaReloadTCyclesDelay > 1) {
+                    ioRegisters[addr - MEM_IO_START] = val;
+                    timer->timaChangedDuringWait = true;
+                } else if (timer->timaReloadTCyclesDelay == 1) {
+                    // do nothing
+                } else {
+                    ioRegisters[addr - MEM_IO_START] = val;
+                }
+                return;
+            }
+
+            if (addr == 0xFF06) {
+                // TMA - Timer Modulo
+                if (timer->timaReloadTCyclesDelay == 1) {
+                    ioRegisters[addr - MEM_IO_START] = val;
+                    timer->timaReloadValue = val;
+                } else {
+                    ioRegisters[addr - MEM_IO_START] = val;
+                }
+                return;
+            }
+
             if (addr == 0xFF46) {
                 // Trigger OAM DMA
                 ppu->oamDmaActive = true;
@@ -239,7 +273,7 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
                             ppu->vramHblankDmaActive = false;
                             ioRegisters[addr - MEM_IO_START] =
                                 (1 << 7) | (ioRegisters[addr - MEM_IO_START] & 0x7F);
-                                
+
                             return;
                         }
                     } else if (!ppu->vramHblankDmaActive && !ppu->vramGeneralDmaActive) {
@@ -266,7 +300,7 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
                         // AutoIncrement
                         if (index & 0x80)
                             ppu->setBgColorPaletteIndex(0x80 | (((index & 0x3F) + 1) & 0x3F));
-                        
+
                         return;
                     }
                 }
@@ -279,7 +313,7 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
                         // AutoIncrement
                         if (index & 0x80)
                             ppu->setObjColorPaletteIndex(0x80 | (((index & 0x3F) + 1) & 0x3F));
-                        
+
                         return;
                     }
                 }
