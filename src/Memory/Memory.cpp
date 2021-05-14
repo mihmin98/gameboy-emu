@@ -87,10 +87,11 @@ uint8_t Memory::readmem(uint16_t addr, bool bypass, bool bypassOamDma)
             return 0xFF;
         } else {
             LcdMode lcdMode = (LcdMode)getLcdMode();
-            if ((lcdMode == OAM_SEARCH && !bypass) || (lcdMode == DRAW && !bypass))
+            if ((lcdMode == OAM_SEARCH && !bypass) || (lcdMode == DRAW && !bypass)) {
                 return 0xFF;
-            else
-                return oam[addr - MEM_OAM_START];
+            }
+            else {
+                return oam[addr - MEM_OAM_START];}
         }
     }
 
@@ -341,7 +342,7 @@ void Memory::writebit(uint8_t val, uint8_t bit, uint16_t addr, bool bypass, bool
     }
 
     uint8_t mask = val != 0 ? 1 << bit : ~(1 << bit);
-    uint8_t byte = this->readmem(addr);
+    uint8_t byte = this->readmem(addr, bypass, bypassOamDma);
     byte = val != 0 ? byte | mask : byte & mask;
 
     this->writemem(byte, addr, bypass, bypassOamDma);

@@ -2,6 +2,7 @@
 
 #include "Memory.hpp"
 #include "PPU.hpp"
+#include "SM83.hpp"
 #include <cstdlib>
 #include <iostream>
 
@@ -311,13 +312,13 @@ TEST_CASE("LCD STAT", "[PPU]")
 
         SECTION("Set")
         {
-            mem.writemem(0x44, 0xFF41);
+            mem.writemem(0x45, 0xFF41);
 
             ppu.setCoincidenceFlag(0);
-            REQUIRE(mem.readmem(0xFF41) == 0x40);
+            REQUIRE(mem.readmem(0xFF41) == 0x41);
 
             ppu.setCoincidenceFlag(1);
-            REQUIRE(mem.readmem(0xFF41) == 0x44);
+            REQUIRE(mem.readmem(0xFF41) == 0x45);
         }
     }
 
@@ -621,9 +622,12 @@ TEST_CASE("OAM DMA", "[PPU]")
 {
     PPU ppu;
     Memory mem;
+    SM83 cpu;
 
     ppu.memory = &mem;
+    ppu.cpu = &cpu;
     mem.ppu = &ppu;
+    cpu.memory = &mem;
 
     SECTION("Get")
     {
@@ -637,15 +641,50 @@ TEST_CASE("OAM DMA", "[PPU]")
         REQUIRE(mem.readmem(0xFF46, true, true) == 0x66);
         REQUIRE(ppu.oamDmaActive == true);
     }
+
+    SECTION("OAM DMA Transfer")
+    {
+        ppu.setModeFlag(V_BLANK);
+        ppu.setLy(145);
+        ppu.setLycLyCoincidence(0);
+        ppu.currentModeTCycles = 0;
+
+        for (uint8_t i = 0; i < 0xA0; ++i) {
+            mem.writemem(i, MEM_WRAM0_START + i, true, true);
+        }
+
+        mem.writemem(0x66, MEM_HRAM_START, true, true);
+        mem.writemem(0x66, MEM_OAM_START, true, true);
+
+        ppu.setOamDma((MEM_WRAM0_START & 0xFF00) >> 8);
+
+        for (uint i = 0; i < PPU_OAM_DMA_T_CYCLES; ++i) {
+            REQUIRE(ppu.oamDmaActive);
+            REQUIRE(mem.readmem(MEM_HRAM_START) == 0x66);
+            REQUIRE(mem.readmem(MEM_OAM_START) == 0xFF);
+            REQUIRE(ppu.getLcdMode() == V_BLANK);
+            ppu.cycle();
+        }
+
+        REQUIRE_FALSE(ppu.oamDmaActive);
+        REQUIRE(ppu.getLcdMode() == V_BLANK);
+
+        for (uint8_t i = 0; i < 0xA0; ++i) {
+            REQUIRE(mem.readmem(MEM_OAM_START + i) == i);
+        }
+    }
 }
 
 TEST_CASE("VRAM DMA", "[PPU]")
 {
     PPU ppu;
     Memory mem;
+    SM83 cpu;
 
     ppu.memory = &mem;
+    ppu.cpu = &cpu;
     mem.ppu = &ppu;
+    cpu.memory = &mem;
 
     ppu.emulatorMode = EmulatorMode::CGB;
     mem.mode = EmulatorMode::CGB;
@@ -785,6 +824,167 @@ TEST_CASE("VRAM DMA", "[PPU]")
             mem.writemem(0, 0xFF55, true, true);
             REQUIRE_FALSE(ppu.vramHblankDmaActive);
             REQUIRE(mem.readmem(0xFF55, true, true) == 0x83);
+        }
+    }
+
+    SECTION("General VRAM DMA Transfer")
+    {
+        ppu.setModeFlag(V_BLANK);
+        ppu.setLy(145);
+        ppu.setLycLyCoincidence(0);
+        ppu.currentModeTCycles = 0;
+
+        // from wram bank 0 to 0x8100 transfer 0x100 bytes
+        for (uint i = 0; i < 0x100; ++i) {
+            mem.writemem(i & 0xFF, MEM_WRAM0_START + i, true, true);
+        }
+
+        ppu.setHdma1((MEM_WRAM0_START & 0xFF00) >> 8);
+        ppu.setHdma2(MEM_WRAM0_START & 0xFF);
+        REQUIRE(ppu.getHdmaSrcAddress() == MEM_WRAM0_START);
+
+        ppu.setHdma3(0x01);
+        ppu.setHdma4(0x00);
+        REQUIRE(ppu.getHdmaDestAddress() == 0x8100);
+
+        ppu.setHdma5(0xF);
+
+        SECTION("Normal Speed")
+        {
+            ppu.doubleSpeedMode = false;
+
+            for (uint i = 16; i > 0; --i) {
+                REQUIRE(ppu.vramGeneralDmaActive);
+
+                for (uint j = 0; j < 32; ++j) {
+                    ppu.cycle();
+                }
+            }
+
+            REQUIRE_FALSE(ppu.vramGeneralDmaActive);
+            REQUIRE(mem.readmem(0xFF55) == 0xFF);
+
+            for (uint i = 0; i < 0x100; ++i) {
+                REQUIRE(mem.readmem(0x8100 + i) == (i & 0xFF));
+            }
+        }
+
+        SECTION("Double Speed")
+        {
+            ppu.doubleSpeedMode = true;
+
+            for (uint i = 16; i > 0; --i) {
+                REQUIRE(ppu.vramGeneralDmaActive);
+
+                for (uint j = 0; j < 64; ++j) {
+                    ppu.cycle();
+                }
+            }
+
+            REQUIRE_FALSE(ppu.vramGeneralDmaActive);
+            REQUIRE(mem.readmem(0xFF55) == 0xFF);
+
+            for (uint i = 0; i < 0x100; ++i) {
+                REQUIRE(mem.readmem(0x8100 + i) == (i & 0xFF));
+            }
+        }
+    }
+
+    SECTION("HBlank VRAM DMA Transfer") 
+    {
+        ppu.setModeFlag(H_BLANK);
+        ppu.setLy(0);
+        ppu.setLycLyCoincidence(0);
+        ppu.currentModeTCycles = 0;
+        ppu.hBlankModeLength = PPU_DEFAULT_HBLANK_T_CYCLES;
+
+        // from wram bank 0 to 0x8100 transfer 0x100 bytes
+        for (uint i = 0; i < 0x100; ++i) {
+            mem.writemem(i & 0xFF, MEM_WRAM0_START + i, true, true);
+        }
+
+        ppu.setHdma1((MEM_WRAM0_START & 0xFF00) >> 8);
+        ppu.setHdma2(MEM_WRAM0_START & 0xFF);
+        REQUIRE(ppu.getHdmaSrcAddress() == MEM_WRAM0_START);
+
+        ppu.setHdma3(0x01);
+        ppu.setHdma4(0x00);
+        REQUIRE(ppu.getHdmaDestAddress() == 0x8100);
+
+        ppu.setHdma5(0x8F);
+
+        SECTION("Normal Speed Mode")
+        {   
+            ppu.doubleSpeedMode = false;
+
+            for (uint i = 16; i > 0; --i) {
+                REQUIRE(ppu.vramHblankDmaActive);
+                REQUIRE(ppu.getHdmaLength() == i - 1);
+
+                for (uint j = 0; j < PPU_DEFAULT_HBLANK_T_CYCLES; ++j) {
+                    ppu.cycle();
+                }
+
+                REQUIRE(ppu.getLcdMode() == OAM_SEARCH);
+                ppu.setModeFlag(H_BLANK);
+                ppu.hBlankModeLength = PPU_DEFAULT_HBLANK_T_CYCLES;
+            }
+
+            REQUIRE_FALSE(ppu.vramHblankDmaActive);
+            REQUIRE(mem.readmem(0xFF55) == 0xFF);
+
+            for (uint i = 0; i < 0x100; ++i) {
+                REQUIRE(mem.readmem(0x8100 + i) == (i & 0xFF));
+            }
+        }
+
+        SECTION("Double Speed Mode")
+        {
+            ppu.doubleSpeedMode = true;
+
+            for (uint i = 16; i > 0; --i) {
+                REQUIRE(ppu.vramHblankDmaActive);
+                REQUIRE(ppu.getHdmaLength() == i - 1);
+
+                for (uint j = 0; j < PPU_DEFAULT_HBLANK_T_CYCLES; ++j) {
+                    ppu.cycle();
+                }
+
+                REQUIRE(ppu.getLcdMode() == OAM_SEARCH);
+                ppu.setModeFlag(H_BLANK);
+                ppu.hBlankModeLength = PPU_DEFAULT_HBLANK_T_CYCLES;
+            }
+
+            REQUIRE_FALSE(ppu.vramHblankDmaActive);
+            REQUIRE(mem.readmem(0xFF55) == 0xFF);
+
+            for (uint i = 0; i < 0x100; ++i) {
+                REQUIRE(mem.readmem(0x8100 + i) == (i & 0xFF));
+            }
+        }
+
+        SECTION("Stop Transfer")
+        {
+            ppu.doubleSpeedMode = false;
+
+            // Writes only 2 blocks
+            for (uint i = 16; i > 14; --i) {
+                REQUIRE(ppu.vramHblankDmaActive);
+                REQUIRE(ppu.getHdmaLength() == i - 1);
+
+                for (uint j = 0; j < PPU_DEFAULT_HBLANK_T_CYCLES; ++j) {
+                    ppu.cycle();
+                }
+
+                REQUIRE(ppu.getLcdMode() == OAM_SEARCH);
+                ppu.setModeFlag(H_BLANK);
+                ppu.hBlankModeLength = PPU_DEFAULT_HBLANK_T_CYCLES;
+            }
+
+            mem.writemem(0, 0xFF55);
+
+            REQUIRE_FALSE(ppu.vramHblankDmaActive);
+            REQUIRE(mem.readmem(0xFF55) == 0x8D);
         }
     }
 }
@@ -1344,7 +1544,7 @@ TEST_CASE("Get Color from FifoPixel", "[PPU]")
             // Color 1 is R:0x10, G:0x12, B:0x14
             mem.cgbBgColorPalette[2] = 0x84;
             mem.cgbBgColorPalette[3] = 0xA8;
-            
+
             FifoPixel pixel = FifoPixel(1, 0, 0, 0, false);
             Color color = ppu.getColorFromFifoPixel(&pixel, false);
 
@@ -1357,7 +1557,6 @@ TEST_CASE("Get Color from FifoPixel", "[PPU]")
             REQUIRE(color.red == 131);
             REQUIRE(color.green == 148);
             REQUIRE(color.blue == 164);
-
         }
 
         SECTION("Sprite Pixel")
@@ -1391,5 +1590,98 @@ TEST_CASE("Get Color from FifoPixel", "[PPU]")
 
 TEST_CASE("PPU Cycle", "[PPU]")
 {
-    // TODO ??
+    PPU ppu;
+    Memory mem;
+    SM83 cpu;
+
+    ppu.memory = &mem;
+    ppu.cpu = &cpu;
+    mem.ppu = &ppu;
+    cpu.memory = &mem;
+
+    SECTION("Transitions")
+    {
+        SECTION("OAM Search")
+        {
+            ppu.setModeFlag(LcdMode::OAM_SEARCH);
+            ppu.currentModeTCycles = 0;
+
+            for (uint i = 0; i < PPU_OAM_SEARCH_T_CYCLES; ++i)
+                ppu.cycle();
+
+            REQUIRE(ppu.getLcdMode() == LcdMode::DRAW);
+            REQUIRE(ppu.currentModeTCycles == 0);
+        }
+
+        SECTION("Draw")
+        {
+            // TODO
+        }
+
+        SECTION("HBlank")
+        {
+            SECTION("Transition to OAM Search")
+            {
+                ppu.setLy(100);
+                ppu.setModeFlag(LcdMode::H_BLANK);
+                ppu.currentModeTCycles = 0;
+                ppu.hBlankModeLength = PPU_DEFAULT_HBLANK_T_CYCLES;
+
+                for (uint i = 0; i < PPU_DEFAULT_HBLANK_T_CYCLES; ++i)
+                    ppu.cycle();
+
+                REQUIRE(ppu.getLcdMode() == LcdMode::OAM_SEARCH);
+                REQUIRE(ppu.getLy() == 101);
+                REQUIRE(ppu.currentModeTCycles == 0);
+            }
+
+            SECTION("Transition To VBlank")
+            {
+                ppu.setLy(143);
+                ppu.setModeFlag(LcdMode::H_BLANK);
+                ppu.currentModeTCycles = 0;
+                ppu.hBlankModeLength = PPU_DEFAULT_HBLANK_T_CYCLES;
+
+                for (uint i = 0; i < PPU_DEFAULT_HBLANK_T_CYCLES; ++i)
+                    ppu.cycle();
+
+                REQUIRE(ppu.getLcdMode() == LcdMode::V_BLANK);
+                REQUIRE(ppu.getLy() == 144);
+                REQUIRE(ppu.currentModeTCycles == 0);
+            }
+        }
+
+        SECTION("VBlank")
+        {
+            SECTION("Transition to next line")
+            {
+                ppu.setLy(144);
+                ppu.setModeFlag(LcdMode::V_BLANK);
+                ppu.currentModeTCycles = 0;
+
+                for (uint i = 0; i < PPU_LINE_T_CYCLES; ++i) {
+                    REQUIRE(ppu.getLy() == 144);
+                    ppu.cycle();
+                }
+
+                REQUIRE(ppu.getLcdMode() == LcdMode::V_BLANK);
+                REQUIRE(ppu.getLy() == 145);
+                REQUIRE(ppu.currentModeTCycles == PPU_LINE_T_CYCLES);
+            }
+
+            SECTION("Transition to OAM Search")
+            {
+                ppu.setLy(153);
+                ppu.setModeFlag(LcdMode::V_BLANK);
+                ppu.currentModeTCycles = PPU_LINE_T_CYCLES * 9;
+
+                for (uint i = 0; i < PPU_LINE_T_CYCLES; ++i)
+                    ppu.cycle();
+
+                REQUIRE(ppu.getLcdMode() == LcdMode::OAM_SEARCH);
+                REQUIRE(ppu.getLy() == 0);
+                REQUIRE(ppu.currentModeTCycles == 0);
+            }
+        }
+    }
 }

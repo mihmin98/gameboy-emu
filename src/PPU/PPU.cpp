@@ -518,11 +518,12 @@ void PPU::cycle()
                 // Update 0xFF55 remaining blocks
                 uint8_t vramDmaRemainingLength = memory->readmem(0xFF55, true, true);
                 --vramDmaRemainingLength;
+                memory->ioRegisters[0xFF55 - MEM_IO_START] = vramDmaRemainingLength;
 
                 vramDmaTransferredBytes += 16;
 
                 // Check if transfer has ended; Set 0xFF55 to 0xFF
-                if (vramDmaTransferredBytes >= vramDmaLength) {
+                if ((vramDmaTransferredBytes / 16) - 1 >= vramDmaLength) {
                     vramHblankDmaActive = false;
                     vramDmaTransferredBytes = 0;
                     memory->ioRegisters[0xFF55 - MEM_IO_START] = 0xFF;
@@ -553,7 +554,7 @@ void PPU::cycle()
             readyToDraw = true;
         }
 
-        if (currentModeTCycles % PPU_LINE_T_CYCLES) {
+        if (currentModeTCycles == 0 || currentModeTCycles % PPU_LINE_T_CYCLES == 0) {
             // check ly==lyc
             if (getLy() == getLyc()) {
                 setCoincidenceFlag(1);
@@ -614,7 +615,9 @@ void PPU::cycle()
     if (vramGeneralDmaActive) {
         // It takes 8 M-cycles in nomral speed mode and 16 M-cycles in double speed
         // 32 T-cycles in normal, or 64 T-cycles in double speed
+        // to transfer 0x10 bytes
         // inc by 2 in normal speed mode, and by 1 in double speed mode
+        // does not modify 0xFF55 because all data is transferred at once and the program is halted
         if (doubleSpeedMode)
             ++vramDmaCurrentCycles;
         else
@@ -633,7 +636,7 @@ void PPU::cycle()
             vramDmaTransferredBytes += 16;
 
             // Check if transfer has ended
-            if (vramDmaTransferredBytes >= vramDmaLength) {
+            if ((vramDmaTransferredBytes / 16) - 1 >= vramDmaLength) {
                 vramGeneralDmaActive = false;
                 vramDmaTransferredBytes = 0;
                 memory->ioRegisters[0xFF55 - MEM_IO_START] = 0xFF;
