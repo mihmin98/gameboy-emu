@@ -15,6 +15,7 @@ class SpriteFifo
 {
   public:
     PPU *ppu;
+    BgFifo *bgFifo;
 
     bool abortFetch;
     bool fetchingSprite;
@@ -28,6 +29,7 @@ class SpriteFifo
     uint8_t spriteIndexInFoundSprites;
 
     uint8_t oamPenalty;
+    uint8_t xPos0Penalty;
 
     // this should only hold 8 pixels?
     std::queue<FifoPixel> pixelQueue;
@@ -40,7 +42,8 @@ class SpriteFifo
     SpriteFifo();
     SpriteFifo(PPU *ppu);
 
-    FifoPixel *cycle(BgFifo &bgFifo);
+    void checkForSprite();
+    FifoPixel *cycle();
     // do i need the reference? or just the number of elements in the bgfifo queue?
     // but why do i need it???
 

@@ -4,8 +4,8 @@
 
 BgFifo::BgFifo()
     : isDrawingWindow(false), scxPixelsToDiscard(0), pushedPixels(0), fetcherStage(GET_TILE),
-      fetcherStageCycles(0), fetcherXPos(0), fetcherYPos(0), tileXPos(0), tileYPos(0),
-      tilemapBaseAddr(0)
+      fetcherStageCycles(0), spriteFetchingActive(false), fetcherXPos(0), fetcherYPos(0),
+      tileXPos(0), tileYPos(0), tilemapBaseAddr(0)
 {
 }
 
@@ -38,18 +38,23 @@ FifoPixel *BgFifo::cycle()
 
     cycleFetcher();
 
-    // check if there are pixels to push
+    // check if there are pixels to push, and sprites are not being fetched
+    // TODO: Should pixels be discarded when fetching sprite?
     if (pixelQueue.size() > 1) {
-        FifoPixel pixel = pixelQueue.front();
-        pixelQueue.pop();
+        if (!spriteFetchingActive) {
+            FifoPixel pixel = pixelQueue.front();
+            pixelQueue.pop();
 
-        // check if it needs to discard pixels
-        if (scxPixelsToDiscard > 0) {
+            // check if it needs to discard pixels
+            if (scxPixelsToDiscard > 0) {
+                --scxPixelsToDiscard;
+            } else {
+                returnedPixel = new FifoPixel();
+                *returnedPixel = pixel;
+                ++pushedPixels;
+            }
+        } else if (scxPixelsToDiscard > 0) {
             --scxPixelsToDiscard;
-        } else {
-            returnedPixel = new FifoPixel();
-            *returnedPixel = pixel;
-            ++pushedPixels;
         }
     }
 
@@ -65,8 +70,11 @@ void BgFifo::cycleFetcher()
 
         // If in dmg mode and bg and window are disabled, then do nothing; a row of blank pixels
         // will be pushed in the PUSH stage
-        if (ppu->getBgWindowDisplayPriority() == 0 && ppu->emulatorMode == EmulatorMode::DMG)
+        if (ppu->getBgWindowDisplayPriority() == 0 && ppu->emulatorMode == EmulatorMode::DMG) {
+            fetcherStage = GET_TILE_DATA_LOW;
+            fetcherStageCycles = 0;
             break;
+        }
 
         if (isDrawingWindow) {
             tilemapBaseAddr = ppu->getWindowTileMapDisplaySelect() == 0 ? 0x9800 : 0x9C00;
@@ -109,6 +117,7 @@ void BgFifo::cycleFetcher()
         fetcherStageCycles = 0;
         fetcherStage = SLEEP;
 
+    // Case fallthrough is intentional
     case SLEEP:
         // check if there is room in the fifo to push pixels, otherwise do nothing
         if (pixelQueue.size() <= 8) {
@@ -136,7 +145,7 @@ void BgFifo::cycleFetcher()
         // switch to vram bank 0 to read the tile map
         uint8_t orignialVramBank = ppu->memory->getCurrentVramBank();
         ppu->memory->setCurrentVramBank(0);
-        
+
         int tileMapIndex = tileYPos * 32 + tileXPos;
         uint8_t tileIndex = ppu->memory->readmem(tilemapBaseAddr + tileMapIndex);
         ppu->memory->setCurrentVramBank(orignialVramBank);

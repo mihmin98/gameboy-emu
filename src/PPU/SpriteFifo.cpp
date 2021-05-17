@@ -5,12 +5,8 @@ SpriteFifo::SpriteFifo() {}
 
 SpriteFifo::SpriteFifo(PPU *ppu) : ppu(ppu) {}
 
-FifoPixel *SpriteFifo::cycle(BgFifo &bgFifo)
+void SpriteFifo::checkForSprite()
 {
-    FifoPixel *returnedPixel = nullptr;
-
-start:
-    // Check for sprite at xPos if not currently fetching sprite
     if (!fetchingSprite &&
         !(ppu->emulatorMode == EmulatorMode::DMG && !ppu->getObjDisplayEnable())) {
         for (int i = 0; i < ppu->numSpritesOnCurrentLine; ++i) {
@@ -22,7 +18,6 @@ start:
 
             if (sprite.xPos - 8 == fetcherXPos || (sprite.xPos - 8 < 0 && fetcherXPos == 0) ||
                 (sprite.xPos - 8 > 160 && fetcherXPos == 160)) {
-
                 currentSpriteIndex = spriteIndex;
                 spriteIndexInFoundSprites = i;
                 fetchingSprite = true;
@@ -31,42 +26,58 @@ start:
                 fetcherStage = 1;
                 processedSprites.insert(currentSpriteIndex);
 
-                // TODO: When fetching sprite, reset the bgfifo to step 0?
+                // When fetching sprite, reset the bgfifo to step 1
+                bgFifo->spriteFetchingActive = true;
+                bgFifo->fetcherStage = GET_TILE;
+                bgFifo->fetcherStageCycles = 1;
+
+                if (fetcherXPos == 0 && !appliedPenaltyAtXPos0) {
+                    xPos0Penalty = ppu->getScrollX() & 7;
+                }
             }
         }
     }
+}
+
+FifoPixel *SpriteFifo::cycle()
+{
+    FifoPixel *returnedPixel = nullptr;
 
     if (fetchingSprite) {
         // Apply penalty for sprite at xpos = 0
-        if (fetcherStep == 0 && fetcherXPos == 0 && !appliedPenaltyAtXPos0) {
-            uint8_t penalty = ppu->getScrollX() % 8;
+        // TODO: should this be moved after stage 1 and before stage 2?
+        if (fetcherXPos == 0 && !appliedPenaltyAtXPos0 && xPos0Penalty > 0) {
+            --xPos0Penalty;
 
-            oamPenalty += penalty;
-            ppu->drawModeLength += penalty;
-            ppu->hBlankModeLength -= penalty;
-
-            appliedPenaltyAtXPos0 = true;
-
-            checkForAbort = true;
-            goto checkAbort;
+            if (xPos0Penalty == 0) {
+                appliedPenaltyAtXPos0 = true;
+                checkForAbort = true;
+                goto checkAbort;
+            } else {
+                return returnedPixel;
+            }
         }
 
         // Stage 1
-        if (fetcherStage == 1 && (fetcherStep < 5 || bgFifo.pixelQueue.empty())) {
+        if (fetcherStage == 1) {
             fetcherStep++;
             oamPenalty += 1;
             ppu->drawModeLength += 1;
             ppu->hBlankModeLength -= 1;
 
-            checkForAbort = true;
-            goto checkAbort;
-        } else if (fetcherStage == 1) {
-            fetcherStage++;
+            if (fetcherStep < 5 || bgFifo->pixelQueue.empty()) {
+                checkForAbort = true;
+                goto checkAbort;
+            }
+
+            else {
+                fetcherStage++;
+            }
         }
 
         // Stage 2
-        if (fetcherStage == 2) {
-            fetcherStep++;
+        else if (fetcherStage == 2) {
+            fetcherStep = 0;
             fetcherStage++;
 
             oamPenalty += 1;
@@ -78,33 +89,23 @@ start:
         }
 
         // Stage 3
-        if (fetcherStage == 3) {
+        else if (fetcherStage == 3) {
             fetcherStep++;
-            fetcherStage++;
 
-            oamPenalty += 3;
-            ppu->drawModeLength += 3;
-            ppu->hBlankModeLength -= 3;
+            oamPenalty += 1;
+            ppu->drawModeLength += 1;
+            ppu->hBlankModeLength -= 1;
 
-            checkForAbort = true;
-            goto checkAbort;
+            if (fetcherStep == 3) {
+                fetcherStage++;
+
+                checkForAbort = true;
+                goto checkAbort;
+            }
         }
 
-        // Stage 4
-        if (fetcherStage == 4) {
-            fetcherStep++;
-            fetcherStage++;
-
-            oamPenalty += 3;
-            ppu->drawModeLength += 3;
-            ppu->hBlankModeLength -= 3;
-
-            checkForAbort = true;
-            goto checkAbort;
-        }
-
-        // Stage 5 (get low line address)
-        if (fetcherStage == 5) {
+        // Stage 4 (get low line address)
+        else if (fetcherStage == 4) {
             fetcherStep++;
             fetcherStage++;
 
@@ -116,8 +117,8 @@ start:
             goto checkAbort;
         }
 
-        // Stage 6 (end fetch)
-        if (fetcherStage == 6) {
+        // Stage 5 (end fetch)
+        else if (fetcherStage == 5) {
             fetcherStep++;
             fetcherStage++;
 
@@ -129,8 +130,8 @@ start:
             goto checkAbort;
         }
 
-        // Stage 7 (get sprite)
-        if (fetcherStage == 7) {
+        // Stage 6 (get sprite)
+        else if (fetcherStage == 6) {
             OAMSprite sprite = ppu->getSpriteByIndex(currentSpriteIndex);
 
             // Get tile
@@ -167,7 +168,9 @@ start:
                 pixels[i].color = tileRowData[i];
                 if (ppu->emulatorMode == EmulatorMode::DMG) {
                     pixels[i].palette = sprite.dmgPaletteNumber;
+                    pixels[i].spritePriority = sprite.xPos;
                 } else {
+                    // Only in CGB mode the sprite index priority matters
                     pixels[i].palette = sprite.cgbPaletteNumber;
                     pixels[i].spritePriority = currentSpriteIndex;
                     pixels[i].bgPriority = sprite.objToBgPriority;
@@ -187,7 +190,9 @@ start:
                     pixelQueueVector.push_back(pixels[i]);
                 } else {
                     // Check if the pixel is transparent, if yes then replace
-                    if (pixelQueueVector[i].color == 0)
+                    // Or if the pixel has a lower priority
+                    if (pixelQueueVector[i].color == 0 ||
+                        pixelQueueVector[i].spritePriority > pixels[i].spritePriority)
                         pixelQueueVector[i] = pixels[i];
                 }
             }
@@ -198,7 +203,7 @@ start:
             // Discard offscreen pixels and add transparent pixels after
             if (fetcherXPos == 0 && sprite.xPos - 8 < 0) {
                 uint8_t discardedPixels = 8 - sprite.xPos;
-                FifoPixel blankPixel = FifoPixel(0, 0, 41, sprite.objToBgPriority, true);
+                FifoPixel blankPixel = FifoPixel(0, 0, 255, sprite.objToBgPriority, true);
                 for (int i = 0; i < discardedPixels; ++i) {
                     pixelQueue.pop();
                     pixelQueue.push(blankPixel);
@@ -208,14 +213,15 @@ start:
             // Check for next sprite at current xpos? here or after checkabort?
             fetchedSprite = true;
             fetchingSprite = false;
-            goto start;
+            bgFifo->spriteFetchingActive = false;
+            checkForSprite();
         }
     }
 
 checkAbort:
-    if (checkForAbort) {
+    if (checkForAbort && ppu->emulatorMode == DMG) {
         // TODO: Check how abort works on the CGB
-        abortFetch = ppu->getObjDisplayEnable();
+        abortFetch = !ppu->getObjDisplayEnable();
 
         checkForAbort = false;
     }
@@ -226,6 +232,7 @@ checkAbort:
         abortFetch = false;
         fetchedSprite = false;
         fetchingSprite = false;
+        bgFifo->spriteFetchingActive = false;
 
         // TODO: Check if these 2 should be here
         fetcherStage = 1;
@@ -236,10 +243,16 @@ checkAbort:
         ppu->hBlankModeLength -= 1;
     }
 
-    // If not fetching and queue is not empty then push pixel
-    if (!fetchingSprite && pixelQueue.size() > 0) {
-        returnedPixel = new FifoPixel(pixelQueue.front());
+    // If not fetching and queue is not empty then push pixel and x pos less than 160
+    if (returnedPixel == nullptr && !fetchingSprite && pixelQueue.size() > 0 && fetcherXPos < 160) {
+        if (ppu->emulatorMode == EmulatorMode::DMG ||
+            (ppu->emulatorMode == EmulatorMode::CGB && ppu->getObjDisplayEnable() == 1)) {
+            returnedPixel = new FifoPixel(pixelQueue.front());
+        }
+
         pixelQueue.pop();
+
+        checkForSprite();
     }
 
     return returnedPixel;
@@ -258,6 +271,8 @@ void SpriteFifo::prepareForLine()
     currentSpriteIndex = 0;
     spriteIndexInFoundSprites = 0;
 
+    appliedPenaltyAtXPos0 = false;
+    xPos0Penalty = 0;
     oamPenalty = 0;
 
     while (!pixelQueue.empty())

@@ -24,6 +24,8 @@ class BgFifo
     PixelFetcherStage fetcherStage;
     int fetcherStageCycles;
 
+    bool spriteFetchingActive;
+
     uint8_t fetcherXPos; // fetcher x pos (0..159)
     uint8_t fetcherYPos; // current scanline (0..143)
 
