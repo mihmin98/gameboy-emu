@@ -89,9 +89,9 @@ uint8_t Memory::readmem(uint16_t addr, bool bypass, bool bypassOamDma)
             LcdMode lcdMode = (LcdMode)getLcdMode();
             if ((lcdMode == OAM_SEARCH && !bypass) || (lcdMode == DRAW && !bypass)) {
                 return 0xFF;
+            } else {
+                return oam[addr - MEM_OAM_START];
             }
-            else {
-                return oam[addr - MEM_OAM_START];}
         }
     }
 
@@ -255,6 +255,17 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
                     ioRegisters[addr - MEM_IO_START] = val;
                 }
                 return;
+            }
+
+            if (addr == 0xFF40) {
+                // LCDC
+                if ((val & 0x80) == 0) {
+                    // When turingin off display, reset position
+                    ppu->setLy(0);
+                    ppu->xPos = 0;
+                }
+
+                ioRegisters[addr - MEM_IO_START] = val;
             }
 
             if (addr == 0xFF46) {
