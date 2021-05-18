@@ -46,3 +46,13 @@ Color Color::getDmgColor(uint8_t colorValue)
     uint8_t val = 255 - (colorValue * (255 / 3));
     return Color(val, val, val);
 }
+
+bool operator==(const Color &color1, const Color &color2)
+{
+    return color1.red == color2.red && color1.green == color2.green && color1.blue == color2.blue;
+}
+
+bool operator!=(const Color &color1, const Color &color2)
+{
+    return !(color1 == color2);
+}

@@ -22,6 +22,9 @@ class Color
 
     // Creates a Color from a value that is between 0-3
     static Color getDmgColor(uint8_t colorValue);
+
+    friend bool operator== (const Color &color1, const Color &color2);
+    friend bool operator!= (const Color &color1, const Color &color2);
 };
 
 #endif // __COLOR_H__
