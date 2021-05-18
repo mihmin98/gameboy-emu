@@ -4183,7 +4183,7 @@ TEST_CASE("POP AF", "[OPCODE]")
 
     REQUIRE(cpu.SP == 0xC002);
     REQUIRE(cpu.A == 0x34);
-    REQUIRE(cpu.F == 0x12);
+    REQUIRE(cpu.F == 0x10);
 }
 
 TEST_CASE("POP r16", "[OPCODE]")

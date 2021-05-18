@@ -2360,7 +2360,7 @@ void SM83::op_pop_af()
     if (!checkInstructionCycle(3))
         return;
 
-    F = readmem_u8(SP++);
+    F = readmem_u8(SP++) & 0xF0;
     A = readmem_u8(SP++);
 
     endInstruction(1);
