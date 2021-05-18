@@ -166,6 +166,7 @@ FifoPixel *SpriteFifo::cycle()
             for (int i = 0; i < 8; ++i) {
                 pixels[i].isSprite = true;
                 pixels[i].color = tileRowData[i];
+                pixels[i].spriteBgAndWindowOverObjPriority = sprite.objToBgPriority;
                 if (ppu->emulatorMode == EmulatorMode::DMG) {
                     pixels[i].palette = sprite.dmgPaletteNumber;
                     pixels[i].spritePriority = sprite.xPos;
@@ -203,7 +204,7 @@ FifoPixel *SpriteFifo::cycle()
             // Discard offscreen pixels and add transparent pixels after
             if (fetcherXPos == 0 && sprite.xPos - 8 < 0) {
                 uint8_t discardedPixels = 8 - sprite.xPos;
-                FifoPixel blankPixel = FifoPixel(0, 0, 255, sprite.objToBgPriority, true);
+                FifoPixel blankPixel = FifoPixel(0, 0, 255, sprite.objToBgPriority, 0, true);
                 for (int i = 0; i < discardedPixels; ++i) {
                     pixelQueue.pop();
                     pixelQueue.push(blankPixel);

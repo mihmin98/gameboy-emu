@@ -135,7 +135,7 @@ void BgFifo::cycleFetcher()
 
         // if in DMG mode and not drawing bg or window, then add a row of blank pixels
         if (ppu->getBgWindowDisplayPriority() == 0 && ppu->emulatorMode == EmulatorMode::DMG) {
-            FifoPixel blankPixel = FifoPixel(0, 0, 0, 0, false);
+            FifoPixel blankPixel = FifoPixel(0, 0, 0, 0, 0, false);
             for (int i = 0; i < 8; ++i) {
                 pixelQueue.push(blankPixel);
             }
@@ -179,7 +179,7 @@ void BgFifo::cycleFetcher()
 
         // push the row of pixels into the queue
         for (uint8_t i = 0; i < 8; ++i) {
-            FifoPixel pixel = FifoPixel(tileRow[i], 0, 0, 0, false);
+            FifoPixel pixel = FifoPixel(tileRow[i], 0, 0, 0, 0, false);
             if (ppu->emulatorMode == EmulatorMode::CGB) {
                 pixel.palette = bgMapAttr.bgPaletteNumber;
                 pixel.bgPriority = bgMapAttr.bgToOamPriority;

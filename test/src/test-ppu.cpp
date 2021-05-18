@@ -890,7 +890,7 @@ TEST_CASE("VRAM DMA", "[PPU]")
         }
     }
 
-    SECTION("HBlank VRAM DMA Transfer") 
+    SECTION("HBlank VRAM DMA Transfer")
     {
         ppu.setModeFlag(H_BLANK);
         ppu.setLy(0);
@@ -914,7 +914,7 @@ TEST_CASE("VRAM DMA", "[PPU]")
         ppu.setHdma5(0x8F);
 
         SECTION("Normal Speed Mode")
-        {   
+        {
             ppu.doubleSpeedMode = false;
 
             for (uint i = 16; i > 0; --i) {
@@ -1506,7 +1506,7 @@ TEST_CASE("Get Color from FifoPixel", "[PPU]")
         {
             ppu.setBgPaletteData(0x1B); // 3: 00; 2: 01; 1: 10; 0: 11
 
-            FifoPixel pixel = FifoPixel(2, 0, 0, 0, false);
+            FifoPixel pixel = FifoPixel(2, 0, 0, 0, 0, false);
             Color color = ppu.getColorFromFifoPixel(&pixel);
 
             REQUIRE(color.red == 170);
@@ -1518,7 +1518,7 @@ TEST_CASE("Get Color from FifoPixel", "[PPU]")
         {
             ppu.setObjPalette0Data(0x1B); // 3: 00; 2: 01; 1: 10; 0: 11
 
-            FifoPixel pixel = FifoPixel(2, 0, 0, 0, true);
+            FifoPixel pixel = FifoPixel(2, 0, 0, 0, 0, true);
             Color color = ppu.getColorFromFifoPixel(&pixel);
 
             REQUIRE(color.red == 170);
@@ -1545,7 +1545,7 @@ TEST_CASE("Get Color from FifoPixel", "[PPU]")
             mem.cgbBgColorPalette[2] = 0x84;
             mem.cgbBgColorPalette[3] = 0xA8;
 
-            FifoPixel pixel = FifoPixel(1, 0, 0, 0, false);
+            FifoPixel pixel = FifoPixel(1, 0, 0, 0, 0, false);
             Color color = ppu.getColorFromFifoPixel(&pixel, false);
 
             REQUIRE(color.red == 0x10);
@@ -1565,7 +1565,7 @@ TEST_CASE("Get Color from FifoPixel", "[PPU]")
             mem.cgbObjColorPalette[2] = 0x84;
             mem.cgbObjColorPalette[3] = 0xA8;
 
-            FifoPixel pixel = FifoPixel(1, 0, 0, 0, true);
+            FifoPixel pixel = FifoPixel(1, 0, 0, 0, 0, true);
             Color color = ppu.getColorFromFifoPixel(&pixel, false);
 
             REQUIRE(color.red == 0x10);
