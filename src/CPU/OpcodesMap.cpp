@@ -868,7 +868,7 @@ void SM83::OP_1E() { op_ld_r8_n8(E); }
 void SM83::OP_1F() { op_rra(); }
 
 // JR NZ, e8
-void SM83::OP_20() { op_jr_cc_e8(getZeroFlag(), 1); }
+void SM83::OP_20() { op_jr_cc_e8(getZeroFlag(), 0); }
 
 // LD HL, n16
 void SM83::OP_21() { op_ld_r16_n16(H, L); }
@@ -892,7 +892,7 @@ void SM83::OP_26() { op_ld_r8_n8(H); }
 void SM83::OP_27() { op_daa(); }
 
 // JR Z, e8
-void SM83::OP_28() { op_jr_cc_e8(getZeroFlag(), 0); }
+void SM83::OP_28() { op_jr_cc_e8(getZeroFlag(), 1); }
 
 // ADD HL, HL
 void SM83::OP_29() { op_add_hl_r16(H, L); }
