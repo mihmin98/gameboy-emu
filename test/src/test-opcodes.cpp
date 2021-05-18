@@ -4291,11 +4291,15 @@ TEST_CASE("CCF", "[OPCODE]")
     cpu.instructionCycle = 0;
 
     cpu.setCarryFlag(1);
+    cpu.setSubtractFlag(1);
+    cpu.setHalfCarryFlag(1);
 
     cpu.op_ccf();
     REQUIRE(cpu.PC == 0x0151);
 
     REQUIRE(cpu.getCarryFlag() == 0);
+    REQUIRE(cpu.getSubtractFlag() == 0);
+    REQUIRE(cpu.getHalfCarryFlag() == 0);
 }
 
 TEST_CASE("CPL", "[OPCODE]")

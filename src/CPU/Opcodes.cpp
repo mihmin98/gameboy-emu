@@ -2433,6 +2433,8 @@ void SM83::op_ccf()
 {
     uint8_t carry = getCarryFlag();
 
+    setSubtractFlag(0);
+    setHalfCarryFlag(0);
     setCarryFlag((~carry) & 0x1);
 
     endInstruction(1);
