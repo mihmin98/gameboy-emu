@@ -92,7 +92,7 @@ void BgFifo::cycleFetcher()
             // pixelului x de pe ecran screen y pos e pozitia pixelului y de pe ecran ca sa aflu
             // tile-ul din window: fac scaderea ca sa aflu coord din window;
             tileXPos = (fetcherXPos - (ppu->getWx() - 7)) / 8;
-            tileYPos = (fetcherYPos - ppu->getWy()) / 8;
+            tileYPos = ppu->windowYCounter / 8;
 
             // done? TODO: Window X pos is actually x pos + 7, need to test this
             // the window is drawn from Wx - 7

@@ -12,6 +12,8 @@ class FifoPixel
     uint8_t spritePriority;
     uint8_t spriteBgAndWindowOverObjPriority;
     uint8_t bgPriority;
+    uint8_t tileIndex;
+    uint8_t tileXpos, tileYpos;
 
     bool isSprite;
 

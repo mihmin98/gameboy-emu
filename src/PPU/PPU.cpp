@@ -7,9 +7,11 @@ PPU::PPU()
 {
     bgFifo.ppu = this;
     spriteFifo.ppu = this;
+    spriteFifo.bgFifo = &bgFifo;
 
     readyToDraw = false;
     xPos = 0;
+    windowYCounter = 0;
     oamDmaActive = false;
     vramGeneralDmaActive = false;
     vramHblankDmaActive = false;
@@ -213,8 +215,9 @@ Tile PPU::getTileByIndex(int index)
     }
 
     uint8_t tileBytes[16];
-    for (int i = 0; i < 16; ++i)
+    for (int i = 0; i < 16; ++i) {
         tileBytes[i] = memory->readmem(tileAddr + i, true);
+    }
 
     return Tile(tileBytes);
 }
@@ -225,7 +228,9 @@ OAMSprite PPU::getSpriteByIndex(int index)
     for (int i = 0; i < 4; ++i)
         sprite[i] = memory->readmem(MEM_OAM_START + index * 4 + i, true);
 
-    return OAMSprite(sprite);
+    OAMSprite oamSprite = OAMSprite(sprite);
+    oamSprite.spriteIndex = index;
+    return oamSprite;
 }
 
 BgMapAttributes PPU::getBgMapByIndex(int index, int tilemap)
@@ -261,11 +266,42 @@ void PPU::searchSpritesOnLine()
 
     numSpritesOnCurrentLine = 0;
 
-    for (int i = 0; i < PPU_NUM_SPRITES && numSpritesOnCurrentLine < PPU_MAX_SPRITES_ON_LINE; ++i) {
-        OAMSprite sprite = getSpriteByIndex(i);
-        // TODO: Check if condition should be line <, or line <=
-        if (line >= sprite.yPos - 16 && line < sprite.yPos - spriteHeightDiff)
-            spritesOnCurrentLine[numSpritesOnCurrentLine++] = i;
+    if (emulatorMode == EmulatorMode::DMG) {
+        std::vector<OAMSprite> spritesOnCurrentLineVec;
+        for (uint i = 0; i < PPU_NUM_SPRITES; ++i) {
+            OAMSprite sprite = getSpriteByIndex(i);
+            if (line >= sprite.yPos - 16 && line < sprite.yPos - spriteHeightDiff)
+                spritesOnCurrentLineVec.push_back(sprite);
+        }
+
+        // Sort sprites by their xpos and index
+        std::sort(spritesOnCurrentLineVec.begin(), spritesOnCurrentLineVec.end(),
+                  [](const OAMSprite &a, const OAMSprite &b) {
+                      if (a.xPos == b.xPos) {
+                          return a.spriteIndex > b.spriteIndex;
+                      } else {
+                          return a.xPos < b.xPos;
+                      }
+                  });
+
+        // Add sprites to spritesOnCurrentLine
+        for (auto it = spritesOnCurrentLineVec.begin();
+             it != spritesOnCurrentLineVec.end() &&
+             numSpritesOnCurrentLine < PPU_MAX_SPRITES_ON_LINE;
+             std::advance(it, 1)) {
+
+            spritesOnCurrentLine[numSpritesOnCurrentLine++] = it->spriteIndex;
+        }
+    }
+
+    else if (emulatorMode == EmulatorMode::CGB) {
+        for (int i = 0; i < PPU_NUM_SPRITES && numSpritesOnCurrentLine < PPU_MAX_SPRITES_ON_LINE;
+             ++i) {
+            OAMSprite sprite = getSpriteByIndex(i);
+            // TODO: Check if condition should be line <, or line <=
+            if (line >= sprite.yPos - 16 && line < sprite.yPos - spriteHeightDiff)
+                spritesOnCurrentLine[numSpritesOnCurrentLine++] = i;
+        }
     }
 }
 
@@ -279,7 +315,7 @@ Tile PPU::getSpriteTile(int index, int tileNo, int vramBank)
         tileAddr = 0x8000 + index * 16;
     else
         // 8x16
-        tileAddr = 0x8000 + index * 16 * 2 + tileNo * 16;
+        tileAddr = 0x8000 + (index & 0xFE) * 16 + tileNo * 16;
 
     uint8_t oldVramBank = memory->getCurrentVramBank();
     memory->setCurrentVramBank(vramBank);
@@ -349,10 +385,15 @@ void PPU::cycle()
     LcdMode currentMode = getLcdMode();
     FifoPixel *bgPixel = nullptr;
     FifoPixel *spritePixel = nullptr;
+    Color *colorPixel = nullptr;
 
     switch (currentMode) {
     case OAM_SEARCH:
         if (currentModeTCycles == 0) {
+            // Set window trigger on current line
+            windowXTrigger = false;
+            windowYTrigger = getLy() >= getWy();
+
             // check ly==lyc
             if (getLy() == getLyc()) {
                 setCoincidenceFlag(1);
@@ -376,9 +417,13 @@ void PPU::cycle()
             xPos = 0;
             currentModeTCycles = 0;
         }
+
         break;
 
     case DRAW:
+        // Note: Mode 3 can be lengthened by 117 t cycles
+        // 1 sprite lengthens mode 3 by 11 cycles, and the SCX penalty lengthens mode 3 by a maximum
+        // of 7 t cycles
 
         if (currentModeTCycles == 0) {
             bgFifo.prepareForLine(getLy());
@@ -399,73 +444,20 @@ void PPU::cycle()
 
         ++currentModeTCycles;
 
-        if (spriteFifo.oamPenalty > 0) {
-            --spriteFifo.oamPenalty;
-            break;
-        }
+        spriteFifo.checkForSprite();
 
-        // TODO: Maybe make a separate function for popping a pixel from the fifos?
+        spritePixel = spriteFifo.cycle();
         bgPixel = bgFifo.cycle();
-        spritePixel = spriteFifo.cycle(bgFifo);
 
-        // TODO: Maybe move this in a separate function? that has 2 params(bgPixel and spritePixel)
-        if (bgPixel != nullptr) {
-            if (spritePixel != nullptr && getObjDisplayEnable()) {
-                // do pixel mixing
-                // Ordine prioritati: LCDC.0 > BG Map Attr (CGB only) > OAM bit
-                if (emulatorMode == EmulatorMode::DMG) {
-                    // DMG Mode
-                    if (spritePixel->color == 0) {
-                        // Display BG Pixel, if sprite pixel is transparent
-                        // TODO: Check how the BG pixel becomes blank if LCDC.0 = 0
-                        display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
-                    } else if (getBgWindowDisplayPriority() == 0) {
-                        // Display Sprite Pixel
-                        display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
-                    } else if (spritePixel->spritePriority == 0) {
-                        // Display Sprite Pixel
-                        display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
-                    } else if (spritePixel->spritePriority == 1) {
-                        if (bgPixel->color == 0)
-                            // Display Sprite Pixel
-                            display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
-                        else
-                            // Display BG Pixel
-                            display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
-                    }
+        colorPixel = mixPixels(bgPixel, spritePixel);
 
-                } else {
-                    // CGB Mode
-                    if (spritePixel->color == 0) {
-                        // Display BG Pixel, if sprite pixel is transparent
-                        display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
-                    } else if (getBgWindowDisplayPriority() == 0) {
-                        // Display Sprite Pixel
-                        display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
-                    } else if (bgPixel->bgPriority == 1) {
-                        // Display BG Pixel
-                        display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
-                    } else if (spritePixel->spritePriority == 0) {
-                        // Display Sprite Pixel
-                        display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
-                    } else if (spritePixel->spritePriority == 1) {
-                        if (bgPixel->color == 0)
-                            // Display Sprite Pixel
-                            display[getLy()][xPos++] = getColorFromFifoPixel(spritePixel);
-                        else
-                            // Display BG Pixel
-                            display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
-                    }
-                }
+        if (colorPixel != nullptr) {
+            display[getLy()][xPos++] = *colorPixel;
 
-            } else {
-                // There is no sprite pixel, or sprites disabled
-                if (emulatorMode == EmulatorMode::DMG && getBgWindowDisplayPriority() == 0)
-                    // Only sprites can be displayed, bg and window become blank
-                    // Should it be white or black?
-                    display[getLy()][xPos++] = Color(255, 255, 255);
-                else
-                    display[getLy()][xPos++] = getColorFromFifoPixel(bgPixel);
+            spriteFifo.fetcherXPos = xPos;
+
+            if (xPos + 7 >= getWx()) {
+                windowXTrigger = true;
             }
         }
 
@@ -479,15 +471,30 @@ void PPU::cycle()
 
         // Mixing: Check priorities
 
-        if (bgPixel != nullptr)
+        if (bgPixel != nullptr) {
             delete bgPixel;
+            bgPixel = nullptr;
+        }
 
-        if (spritePixel != nullptr)
+        if (spritePixel != nullptr) {
             delete spritePixel;
+            spritePixel = nullptr;
+        }
+
+        if (colorPixel != nullptr) {
+            delete colorPixel;
+            colorPixel = nullptr;
+        }
 
         // check for transition to next mode
         if (xPos >= PPU_SCREEN_WIDTH) {
+            // TODO: Set hblank cycles based on how many cycles have been in draw mode???
+            if (bgFifo.isDrawingWindow) {
+                ++windowYCounter;
+            }
+
             setModeFlag(H_BLANK);
+            hBlankModeLength = PPU_LINE_T_CYCLES - PPU_OAM_SEARCH_T_CYCLES - currentModeTCycles;
             currentModeTCycles = 0;
         }
 
@@ -531,8 +538,14 @@ void PPU::cycle()
             }
 
             // Increase Line
-            setLy(getLy() + 1);
+            if (!lcdWasShutDown) {
+                setLy(getLy() + 1);
+            } else {
+                lcdWasShutDown = false;
+            }
+
             currentModeTCycles = 0;
+            
             if (getLy() == 144) {
                 // Go to VBlank
                 setModeFlag((uint8_t)V_BLANK);
@@ -552,6 +565,7 @@ void PPU::cycle()
                 cpu->setLCDSTATInterruptFlag(1);
             // Set that frame is ready to be drawn
             readyToDraw = true;
+            ++renderedFrames;
         }
 
         if (currentModeTCycles == 0 || currentModeTCycles % PPU_LINE_T_CYCLES == 0) {
@@ -571,6 +585,7 @@ void PPU::cycle()
             if (currentModeTCycles == PPU_VBLANK_T_CYCLES) {
                 // Set LY to 0
                 setLy(0);
+                windowYCounter = 0;
 
                 // Change mode
                 setModeFlag(OAM_SEARCH);
@@ -582,6 +597,8 @@ void PPU::cycle()
             } else {
                 // increase ly
                 setLy(getLy() + 1);
+                if (bgFifo.isDrawingWindow && getWindowDisplayEnable())
+                    ++windowYCounter;
             }
         }
 
@@ -644,67 +661,89 @@ void PPU::cycle()
         }
     }
 
-    /**
-     * OAM SEARCH - Mode 2
-     *      check here ly==lyc??
-     *
-     *      set lcd mode bit
-     *      la sfarsit trebuie sa caut sprite-urile de pe linie
-     *      cpu nu poate citi oam ram
-     *      se poate face oam dma
-     *      check for LCD STAT Mode 2 interrupt, la sf sau inceput?? cred ca la inceput ca de ex
-     * Vblank isi da trigger la inceput
-     *
-     * DRAW - Mode 3
-     *      set lcd mode bit
-     *      check lcd stat interrupt
-     *      se pun pixeli pe linia curenta
-     *      durata poate fi lungita sau scurtata de bg si oam fifo
-     *      daca display e disabled nu se deseneaza nimic, doar se cicleaza?
-     *      nu se poate accesa oma ram si vram (nu se scrie, citirea returneaza FF)
-     *      get pixels from fifo's and do the mixing
-     *      check sprite fifo penalty, and wait if necessary
-     *      after retrieving pixels from fifos, mix the pixels
-     *
-     *
-     * HBLANK - Mode 0
-     *      set lcd stat bit
-     *      check lcd stat interrupt
-     *      check and do vram hblank dma
-     *      oam dma?
-     *      increase ly at the end
-     *
-     * VBLANK - Mode 1
-     *      check ly==lyc
-     *      set lcd stat bit
-     *      check lcd stat interrupt
-     *      oam dma and vram dma?
-     *      increase ly each line
-     */
+}
 
-    /**
-     * OAM DMA notes:
-     *      poate fi pornit oricand i guess, chiar si in mode 2 si 3 (nush exact cum afecteaza oam
-     * search) cpu poate accesa doar hram dureaza 160 M-cycles sau 640 T-cycles daca se citeste oam
-     * ram in timpul dma, se returneaza 0xFF
-     */
+Color *PPU::mixPixels(FifoPixel *bgPixel, FifoPixel *spritePixel)
+{
+    // If there is no bg pixel, return null by default
+    if (bgPixel == nullptr) {
+        return nullptr;
+    }
 
-    /**
-     * VRAM General purpose dma
-     *      CGB only
-     *      opreste executia programului (ce inseamna asta mai exact?)
-     *      - procesorul nu mai face nimic?, la fel si ppu si celelalte componente?
-     *      s-a terminat cand 0xFF55 contine 0xFF
-     *
-     *
-     *
-     * 16 bytes sunt transferati in 8 M-cycles = 32 T-cycles
-     *
-     *  !!!! CPU processing is halted during a DMA transfer period. !!!
-     *  Deci cand un transfer din asta e activ cycle de procesor nu e apelat?
-     *
-     *
-     */
+    // std::cout << "bg pixel color: " << (uint)bgPixel->color << "\n";
+
+    // TODO: Do I need to check if sprites are enabled?
+    if (spritePixel == nullptr || !getObjDisplayEnable()) {
+        if (emulatorMode == EmulatorMode::DMG && getBgWindowDisplayPriority() == 0) {
+            // Only sprites can be displayed, bg and window become blank (white)
+            return new Color(255, 255, 255);
+        } else {
+            return new Color(getColorFromFifoPixel(bgPixel));
+        }
+    }
+
+    // If there is a bg pixel and a sprite pixel
+    if (emulatorMode == EmulatorMode::DMG) {
+        // Transparent sprite pixel
+        if (spritePixel->color == 0) {
+            if (getBgWindowDisplayPriority() == 0) {
+                return new Color(255, 255, 255);
+            } else {
+                return new Color(getColorFromFifoPixel(bgPixel));
+            }
+        }
+
+        // LCDC.0 = 0, only sprites can be displayed, bg and window become blank
+        if (getBgWindowDisplayPriority() == 0) {
+            return new Color(getColorFromFifoPixel(spritePixel));
+        }
+
+        if (spritePixel->spriteBgAndWindowOverObjPriority == 0) {
+            return new Color(getColorFromFifoPixel(spritePixel));
+        }
+
+        else if (spritePixel->spriteBgAndWindowOverObjPriority == 1) {
+            if (bgPixel->color == 0) {
+                return new Color(getColorFromFifoPixel(spritePixel));
+            } else {
+                return new Color(getColorFromFifoPixel(bgPixel));
+            }
+        }
+    }
+
+    else if (emulatorMode == EmulatorMode::CGB) {
+        // priority order:
+        // LCDC.0 > bg map attr > oam priority
+
+        // Transparent Sprite Pixel
+        if (spritePixel->color == 0) {
+            return new Color(getColorFromFifoPixel(bgPixel));
+        }
+
+        // LCDC.0 = 0
+        if (getBgWindowDisplayPriority() == 0) {
+            return new Color(getColorFromFifoPixel(spritePixel));
+        }
+
+        // Bg Map Attr priority
+        if (bgPixel->bgPriority == 1) {
+            return new Color(getColorFromFifoPixel(bgPixel));
+        }
+
+        if (spritePixel->spriteBgAndWindowOverObjPriority == 0) {
+            return new Color(getColorFromFifoPixel(spritePixel));
+        }
+
+        else if (spritePixel->spriteBgAndWindowOverObjPriority == 1) {
+            if (bgPixel->color == 0) {
+                return new Color(getColorFromFifoPixel(spritePixel));
+            } else {
+                return new Color(getColorFromFifoPixel(bgPixel));
+            }
+        }
+    }
+
+    return nullptr;
 }
 
 // DONE

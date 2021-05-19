@@ -35,11 +35,15 @@ class PPU
     Memory *memory;
     SM83 *cpu;
 
+    uint64_t renderedFrames = 0;
+
     EmulatorMode emulatorMode;
     bool doubleSpeedMode;
     bool readyToDraw;
 
     Color display[PPU_SCREEN_HEIGHT][PPU_SCREEN_WIDTH];
+
+    bool lcdWasShutDown = false;
 
     uint8_t drawModeLength;   // should be set to 172 when entering mode 3
     uint8_t hBlankModeLength; // this should be set to 204 when entering mode 3 and modified based
@@ -47,6 +51,10 @@ class PPU
 
     int8_t spritesOnCurrentLine[PPU_MAX_SPRITES_ON_LINE];
     uint8_t numSpritesOnCurrentLine;
+
+    uint8_t windowYCounter;
+    bool windowYTrigger;
+    bool windowXTrigger;
 
     BgFifo bgFifo;
     SpriteFifo spriteFifo;
@@ -86,7 +94,7 @@ class PPU
      *         - DMG Mode: BG Display: If 0 then both background and window become blank, only
      *                     sprites may be displayed
      *         - CGB Mode: BG & Window Master Priority: If 0, the background and window lose
-     *                                                  priority; ths sprites will be displayed on
+     *                                                  priority; the sprites will be displayed on
      *                                                  top independently of the priority flags
      */
 
@@ -269,6 +277,8 @@ class PPU
     Color getColorFromFifoPixel(FifoPixel *fifoPixel, bool normalizeCgbColor = true);
 
     void cycle();
+
+    Color *mixPixels(FifoPixel *bgPixel, FifoPixel *spritePixel);
 
     // Some other stuff
 

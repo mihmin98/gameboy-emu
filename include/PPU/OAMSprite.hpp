@@ -12,6 +12,8 @@ class OAMSprite
 
     uint8_t tileNumber; // index of the tile
 
+    uint8_t spriteIndex;
+
     // Flags
     bool objToBgPriority;
     bool yFlip;

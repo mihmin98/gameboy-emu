@@ -260,12 +260,22 @@ void Memory::writemem(uint8_t val, uint16_t addr, bool bypass, bool bypassOamDma
             if (addr == 0xFF40) {
                 // LCDC
                 if ((val & 0x80) == 0) {
-                    // When turingin off display, reset position
+                    // When turning off display, reset position
                     ppu->setLy(0);
                     ppu->xPos = 0;
+                    ppu->lcdWasShutDown = true;
                 }
 
                 ioRegisters[addr - MEM_IO_START] = val;
+            }
+
+            if (addr == 0xFF44) {
+                // LY
+                if (ppu->getLcdDisplayEnable() == 1 || bypass) {
+                    ioRegisters[addr - MEM_IO_START] = val;
+                }
+
+                return;
             }
 
             if (addr == 0xFF46) {

@@ -48,6 +48,9 @@ FifoPixel *SpriteFifo::cycle()
         // TODO: should this be moved after stage 1 and before stage 2?
         if (fetcherXPos == 0 && !appliedPenaltyAtXPos0 && xPos0Penalty > 0) {
             --xPos0Penalty;
+            oamPenalty += 1;
+            ppu->drawModeLength += 1;
+            ppu->hBlankModeLength -= 1;
 
             if (xPos0Penalty == 0) {
                 appliedPenaltyAtXPos0 = true;
@@ -146,7 +149,11 @@ FifoPixel *SpriteFifo::cycle()
                     tileNo = !tileNo;
             }
 
-            Tile tile = ppu->getSpriteTile(sprite.tileNumber, tileNo, vramBank);
+            Tile tile;
+            if (ppu->getObjSize() == 0)
+                tile = ppu->getSpriteTile(sprite.tileNumber, tileNo, vramBank);
+            else
+                tile = ppu->getSpriteTile(sprite.tileNumber & 0xFE, tileNo, vramBank);
 
             // Flip tile if necessary
             if (sprite.xFlip)
