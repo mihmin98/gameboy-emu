@@ -16,8 +16,10 @@ FifoPixel *BgFifo::cycle()
     FifoPixel *returnedPixel = nullptr;
 
     // Check for window
-    if (!isDrawingWindow && ppu->getWindowDisplayEnable() &&
-        coordsInsideWindow(pushedPixels, ppu->getLy())) {
+    // if (!isDrawingWindow && ppu->getWindowDisplayEnable() && coordsInsideWindow(pushedPixels,
+    // ppu->getLy())) {
+    if (!isDrawingWindow && ppu->getWindowDisplayEnable() && ppu->windowXTrigger &&
+        ppu->windowYTrigger) {
         isDrawingWindow = true;
 
         // clear the queue
@@ -26,7 +28,7 @@ FifoPixel *BgFifo::cycle()
         // set the fetcher stage and position
         fetcherStage = GET_TILE;
         fetcherStageCycles = 0;
-        fetcherXPos = pushedPixels;
+        fetcherXPos = ppu->getWx() - 7;
 
         // done? TODO: daca exista scrolling pe tile-ul curent (SCX % 8 != 0) si Wx = 0, atunci se
         // scurteaza Mode 3 cu 1 T-cycle
@@ -77,6 +79,12 @@ void BgFifo::cycleFetcher()
         }
 
         if (isDrawingWindow) {
+            if (ppu->getWindowDisplayEnable() == 0) {
+                isDrawingWindow = false;
+                cycleFetcher();
+                return;
+            }
+
             tilemapBaseAddr = ppu->getWindowTileMapDisplaySelect() == 0 ? 0x9800 : 0x9C00;
 
             // done? TODO: This is not the tile pos for the window; window se deseneaza la fel ca
@@ -234,4 +242,6 @@ void BgFifo::prepareForLine(uint8_t line)
     // reset fetcher
     resetFetcher(false);
     fetcherYPos = line;
+
+    clearQueue();
 }
