@@ -768,6 +768,9 @@ void SM83::executeOpcode(uint8_t opcode)
 	case 0xFE:
 		OP_FE();
 		break;
+    case 0xFF:
+        OP_FF();
+        break;
     }
 }
 

@@ -234,11 +234,12 @@ void SM83::op_dec_addr_hl()
  */
 void SM83::op_inc_r8(uint8_t &r8)
 {
+    setHalfCarryFlag((r8 & 0xF) == 0xF);
+
     ++r8;
 
     setZeroFlag(r8 == 0);
     setSubtractFlag(0);
-    setHalfCarryFlag((r8 & 0xF) == 0x0);
 
     endInstruction(1);
 }
@@ -260,13 +261,14 @@ void SM83::op_inc_addr_hl()
     uint16_t hl = (H << 0x8) | L;
     // uint8_t &byte = *(memory + hl);
     uint8_t byte = readmem_u8(hl);
+
+    setHalfCarryFlag((byte & 0xF) == 0xF);
     writemem_u8(++byte, hl);
 
     //++byte;
 
     setZeroFlag(byte == 0);
     setSubtractFlag(0);
-    setHalfCarryFlag((byte & 0xF) == 0x0);
 
     endInstruction(1);
 }
