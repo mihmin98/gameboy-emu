@@ -727,7 +727,11 @@ Color *PPU::mixPixels(FifoPixel *bgPixel, FifoPixel *spritePixel)
 
         // Bg Map Attr priority
         if (bgPixel->bgPriority == 1) {
-            return new Color(getColorFromFifoPixel(bgPixel));
+            if (bgPixel->color == 0) {
+                return new Color(getColorFromFifoPixel(spritePixel));
+            } else {
+                return new Color(getColorFromFifoPixel(bgPixel));
+            }
         }
 
         if (spritePixel->spriteBgAndWindowOverObjPriority == 0) {
