@@ -444,6 +444,10 @@ void PPU::cycle()
 
         ++currentModeTCycles;
 
+        if (xPos + 7 >= getWx()) {
+            windowXTrigger = true;
+        }
+
         spriteFifo.checkForSprite();
 
         spritePixel = spriteFifo.cycle();
@@ -455,10 +459,6 @@ void PPU::cycle()
             display[getLy()][xPos++] = *colorPixel;
 
             spriteFifo.fetcherXPos = xPos;
-
-            if (xPos + 7 >= getWx()) {
-                windowXTrigger = true;
-            }
         }
 
         // put pixels on screen?
