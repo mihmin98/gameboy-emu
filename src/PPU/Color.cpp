@@ -6,9 +6,10 @@ Color::Color(uint8_t red, uint8_t green, uint8_t blue) : red(red), green(green),
 
 Color::Color(uint8_t *colorAddr)
 {
-    red = (colorAddr[0] & 0xF8) >> 3;
-    green = ((colorAddr[0] & 0x07) << 2) | ((colorAddr[1] & 0xC0) >> 6);
-    blue = (colorAddr[1] & 0x3E) >> 1;
+    uint16_t colorWord = (colorAddr[1] << 8) | colorAddr[0];
+    red = colorWord & 0x1F;
+    green = (colorWord & 0x3E0) >> 5;
+    blue = (colorWord & 0x7C00) >> 10;
 }
 
 Color Color::getNormalizedColor()
@@ -52,7 +53,4 @@ bool operator==(const Color &color1, const Color &color2)
     return color1.red == color2.red && color1.green == color2.green && color1.blue == color2.blue;
 }
 
-bool operator!=(const Color &color1, const Color &color2)
-{
-    return !(color1 == color2);
-}
+bool operator!=(const Color &color1, const Color &color2) { return !(color1 == color2); }
