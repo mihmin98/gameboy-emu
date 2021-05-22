@@ -10,6 +10,7 @@ class FifoPixel
     uint8_t color;
     uint8_t palette;
     uint8_t spritePriority;
+    uint8_t spriteIndex;
     uint8_t spriteBgAndWindowOverObjPriority;
     uint8_t bgPriority;
     uint8_t tileIndex;

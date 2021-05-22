@@ -34,6 +34,8 @@ void SpriteFifo::checkForSprite()
                 if (fetcherXPos == 0 && !appliedPenaltyAtXPos0) {
                     xPos0Penalty = ppu->getScrollX() & 7;
                 }
+
+                break;
             }
         }
     }
@@ -174,6 +176,7 @@ FifoPixel *SpriteFifo::cycle()
                 pixels[i].isSprite = true;
                 pixels[i].color = tileRowData[i];
                 pixels[i].spriteBgAndWindowOverObjPriority = sprite.objToBgPriority;
+                pixels[i].spriteIndex = currentSpriteIndex;
                 if (ppu->emulatorMode == EmulatorMode::DMG) {
                     pixels[i].palette = sprite.dmgPaletteNumber;
                     pixels[i].spritePriority = sprite.xPos;
@@ -197,15 +200,47 @@ FifoPixel *SpriteFifo::cycle()
                     // If there are not enough elements, just add the pixel
                     pixelQueueVector.push_back(pixels[i]);
                 } else {
+
                     // Check if the pixel is transparent, if yes then replace
                     // Or if the pixel has a lower priority
-                    if (pixelQueueVector[i].color == 0 ||
-                        pixelQueueVector[i].spritePriority > pixels[i].spritePriority)
+                    // if (pixelQueueVector[i].color == 0 ||
+                    //     pixelQueueVector[i].spritePriority > pixels[i].spritePriority)
+                    //     pixelQueueVector[i] = pixels[i];
+                    if (pixelQueueVector[i].color == 0) {
                         pixelQueueVector[i] = pixels[i];
+                    }
+
+                    else if (pixels[i].color == 0) {
+                        // keep the previous pixel
+                    }
+
+                    else {
+                        // check the sprite priorities
+                        if (ppu->emulatorMode == EmulatorMode::DMG) {
+                            // DMG
+                            // smallest x pos; smallest oam index
+                            if (pixels[i].spritePriority < pixelQueueVector[i].spritePriority) {
+                                pixelQueueVector[i] = pixels[i];
+                            }
+
+                            else if (pixels[i].spritePriority ==
+                                         pixelQueueVector[i].spritePriority &&
+                                     pixels[i].spriteIndex < pixelQueueVector[i].spriteIndex) {
+                                pixelQueueVector[i] = pixels[i];
+                            }
+
+                        } else if (ppu->emulatorMode == EmulatorMode::CGB) {
+                            // CGB
+                            // smallest oam index
+                            if (pixels[i].spritePriority < pixelQueueVector[i].spritePriority) {
+                                pixelQueueVector[i] = pixels[i];
+                            }
+                        }
+                    }
                 }
             }
 
-            for (int i = 0; i < 8; ++i)
+            for (size_t i = 0; i < pixelQueueVector.size(); ++i)
                 pixelQueue.push(pixelQueueVector[i]);
 
             // Discard offscreen pixels and add transparent pixels after
