@@ -1,27 +1,25 @@
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIR})
 
-target_sources(Timer
+target_sources(Audio
     PUBLIC
-        Timer.cpp
+        Audio.cpp
 )
 
-target_include_directories(Timer
+target_include_directories(Audio
     PUBLIC
         "${PROJECT_SOURCE_DIR}/include"
-        "${PROJECT_SOURCE_DIR}/include/CPU"
         "${PROJECT_SOURCE_DIR}/include/Memory"
-        "${PROJECT_SOURCE_DIR}/include/PPU"
         "${PROJECT_SOURCE_DIR}/include/Timer"
-        "${PROJECT_SOURCE_DIR}/include/Joypad"
+        "${PROJECT_SOURCE_DIR}/include/Audio"
 )
 
-target_compile_options(Timer
+target_compile_options(Audio
     PRIVATE
         -Wall -Wextra
 )
 
-target_link_libraries(Timer
+target_link_libraries(Audio
     PRIVATE
         ${SDL2_LIBRARY}
 )

@@ -4,10 +4,10 @@ project(gameboy-emu)
 
 # CPP related
 set(CMAKE_CXX_STANDARD 17)
-add_compile_options(-Wall -Wextra -Wpedantic)
+add_compile_options(-Wall -Wextra -Wpedantic -O2)
 
 # Find required packages
-find_package(Python3 REQUIRED)
+find_package(Python3)
 find_package(Catch2 REQUIRED)
 
 # Add cmake modules path

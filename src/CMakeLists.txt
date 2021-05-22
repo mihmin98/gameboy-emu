@@ -18,12 +18,20 @@ add_subdirectory(PPU)
 add_library(Timer "")
 add_subdirectory(Timer)
 
+add_library(Audio "")
+add_subdirectory(Audio)
+
+add_library(Joypad "")
+add_subdirectory(Joypad)
+
 target_link_libraries(emulator
     PUBLIC
         CPU
         Memory
         PPU    
         Timer
+        Audio
+        Joypad
 )
 
 target_include_directories(emulator

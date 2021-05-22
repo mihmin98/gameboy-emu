@@ -1,34 +1,26 @@
 find_package(SDL2 REQUIRED)
 include_directories(${SDL2_INCLUDE_DIR})
 
-target_sources(PPU
+target_sources(Joypad
     PUBLIC
-        PPU.cpp
-        OAMSprite.cpp
-        Color.cpp
-        Tile.cpp
-        BgFifo.cpp
-        SpriteFifo.cpp
-        FifoPixel.cpp
-        BgMapAttributes.cpp
+        Joypad.cpp
 )
 
-target_include_directories(PPU
+target_include_directories(Joypad
     PUBLIC
         "${PROJECT_SOURCE_DIR}/include"
         "${PROJECT_SOURCE_DIR}/include/CPU"
         "${PROJECT_SOURCE_DIR}/include/Memory"
-        "${PROJECT_SOURCE_DIR}/include/PPU"
         "${PROJECT_SOURCE_DIR}/include/Timer"
         "${PROJECT_SOURCE_DIR}/include/Joypad"
 )
 
-target_compile_options(PPU
+target_compile_options(Joypad
     PRIVATE
         -Wall -Wextra
 )
 
-target_link_libraries(PPU
+target_link_libraries(Joypad
     PRIVATE
         ${SDL2_LIBRARY}
 )

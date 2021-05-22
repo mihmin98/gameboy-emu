@@ -15,6 +15,7 @@ target_include_directories(CPU
         "${PROJECT_SOURCE_DIR}/include/Memory"
         "${PROJECT_SOURCE_DIR}/include/PPU"
         "${PROJECT_SOURCE_DIR}/include/Timer"
+        "${PROJECT_SOURCE_DIR}/include/Joypad"
 )
 
 target_compile_options(CPU
