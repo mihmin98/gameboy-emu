@@ -277,6 +277,8 @@ class PPU
     Color getColorFromFifoPixel(FifoPixel *fifoPixel, bool normalizeCgbColor = true);
 
     void cycle();
+    void oamDmaCycle();
+    void vramDmaCycle();
 
     Color *mixPixels(FifoPixel *bgPixel, FifoPixel *spritePixel);
 

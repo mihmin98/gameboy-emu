@@ -545,7 +545,7 @@ void PPU::cycle()
             }
 
             currentModeTCycles = 0;
-            
+
             if (getLy() == 144) {
                 // Go to VBlank
                 setModeFlag((uint8_t)V_BLANK);
@@ -609,9 +609,10 @@ void PPU::cycle()
     }
 
     ++tCycles;
-    // oare dupa switch ar trebui sa verific alea de dma?
+}
 
-    // OAM DMA
+void PPU::oamDmaCycle()
+{
     if (oamDmaActive) {
         ++oamDmaCurrentCycles;
         if (oamDmaCurrentCycles == PPU_OAM_DMA_T_CYCLES) {
@@ -627,8 +628,10 @@ void PPU::cycle()
             oamDmaCurrentCycles = 0;
         }
     }
+}
 
-    // General VRAM DMA
+void PPU::vramDmaCycle()
+{
     if (vramGeneralDmaActive) {
         // It takes 8 M-cycles in nomral speed mode and 16 M-cycles in double speed
         // 32 T-cycles in normal, or 64 T-cycles in double speed
@@ -660,7 +663,6 @@ void PPU::cycle()
             }
         }
     }
-
 }
 
 Color *PPU::mixPixels(FifoPixel *bgPixel, FifoPixel *spritePixel)
@@ -669,8 +671,6 @@ Color *PPU::mixPixels(FifoPixel *bgPixel, FifoPixel *spritePixel)
     if (bgPixel == nullptr) {
         return nullptr;
     }
-
-    // std::cout << "bg pixel color: " << (uint)bgPixel->color << "\n";
 
     // TODO: Do I need to check if sprites are enabled?
     if (spritePixel == nullptr || !getObjDisplayEnable()) {
