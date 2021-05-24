@@ -43,6 +43,7 @@ class ROM
     bool cartridgeBattery;
     bool cartridgeRam;
     bool cartridgeTimer;
+    bool isMulticart; // TODO
 
     /* MBC VARIABLES */
 
