@@ -25,7 +25,7 @@ class Channel3
     uint64_t cyclesUntilNextStep;
 
     void initCh();  
-    void cycle();
+    void cycle(uint8_t numCycles);
 
     void updateSoundLengthCycles(uint8_t soundLength);
 };

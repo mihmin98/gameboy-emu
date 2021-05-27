@@ -35,7 +35,7 @@ class Channel4
     uint64_t cyclesUntilNextEnvelopeStep;
 
     void initCh();  
-    void cycle();
+    void cycle(uint8_t numCycles);
 
     void updateSoundLengthCycles(uint8_t soundLength);
     uint64_t calcStepCycles(uint8_t shiftClockFrequency, uint8_t dividingRatio);

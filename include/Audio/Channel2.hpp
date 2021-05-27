@@ -32,7 +32,7 @@ class Channel2
     uint64_t cyclesUntilNextEnvelopeStep;
 
     void initCh();  
-    void cycle();
+    void cycle(uint8_t numCycles);
 
     void updateSoundLengthCycles(uint8_t soundLength);
 };

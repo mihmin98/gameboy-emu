@@ -19,11 +19,11 @@ void Channel3::initCh()
     currentCycles = 0;
 }
 
-void Channel3::cycle()
+void Channel3::cycle(uint8_t numCycles)
 {
-    ++currentCycles;
-    if (currentCycles == cyclesUntilNextStep) {
-        currentCycles = 0;
+    currentCycles += numCycles;
+    if (currentCycles >= cyclesUntilNextStep) {
+        currentCycles -= cyclesUntilNextStep;
         cyclesUntilNextStep = 8 * (2048 - audio->getChannel3Frequency());
 
         if (audio->getChannel3Enable()) {
@@ -61,8 +61,9 @@ void Channel3::cycle()
     }
 
     // update remiainig sound length cycles
-    if (remainingSoundLengthCycles > 0)
+    for (uint i = 0; i < numCycles && remainingSoundLengthCycles > 0; ++i) {
         --remainingSoundLengthCycles;
+    }
 
     if ((remainingSoundLengthCycles == 0 && audio->getChannel3CounterSelection() == 1) ||
         audio->getChannel3Enable() == 0) {

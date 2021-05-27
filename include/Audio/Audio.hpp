@@ -43,7 +43,7 @@ class Audio
 
     void initSDL();
 
-    void cycle();
+    void cycle(uint8_t numCycles);
 
     // Channel 1 Sweep - NR10 - 0xFF10
     uint8_t getChannel1Sweep();

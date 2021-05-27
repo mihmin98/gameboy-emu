@@ -33,12 +33,12 @@ void Channel2::initCh()
     }
 }
 
-void Channel2::cycle()
+void Channel2::cycle(uint8_t numCycles)
 {
     // cycle dutystep
-    ++currentCycles;
-    if (currentCycles == cyclesUntilNextStep) {
-        currentCycles = 0;
+    currentCycles += numCycles;;
+    if (currentCycles >= cyclesUntilNextStep) {
+        currentCycles -= cyclesUntilNextStep;
 
         cyclesUntilNextStep = 8 * (2048 - audio->getChannel2Frequency());
         currentDutyStep = (currentDutyStep + 1) % 8;
@@ -46,9 +46,9 @@ void Channel2::cycle()
 
     // cycle envelope
     if (envelopeStepLength != 0) {
-        ++currentEnvelopeCycles;
-        if (currentCycles == cyclesUntilNextEnvelopeStep) {
-            currentEnvelopeCycles = 0;
+        currentEnvelopeCycles += numCycles;
+        if (currentCycles >= cyclesUntilNextEnvelopeStep) {
+            currentEnvelopeCycles -= cyclesUntilNextEnvelopeStep;
 
             if (internalVolume > 0 && internalVolume < 15) {
                 if (envelopeDirection == 0)
@@ -60,8 +60,9 @@ void Channel2::cycle()
     }
 
     // update remiainig sound length cycles
-    if (remainingSoundLengthCycles > 0)
+    for (uint i = 0; i < numCycles && remainingSoundLengthCycles > 0; ++i) {
         --remainingSoundLengthCycles;
+    }
 
     if (remainingSoundLengthCycles == 0 && audio->getChannel2CounterSelection() == 1) {
         audio->setChannel2SoundOn(0);
