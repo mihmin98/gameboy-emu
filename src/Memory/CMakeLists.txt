@@ -15,6 +15,7 @@ target_include_directories(Memory
         "${PROJECT_SOURCE_DIR}/include/PPU"
         "${PROJECT_SOURCE_DIR}/include/Timer"
         "${PROJECT_SOURCE_DIR}/include/Joypad"
+        "${PROJECT_SOURCE_DIR}/include/Audio"
 )
 
 target_compile_options(Memory

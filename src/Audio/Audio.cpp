@@ -1,6 +1,75 @@
 #include "Audio.hpp"
 #include "Memory.hpp"
 
+Audio::Audio()
+{
+
+    currentAudioSamples = 0;
+    currentCyclesUntilSampleCollection = 0;
+    memset(audioBuffer, 0, AUDIO_NUM_SAMPLES * sizeof(float));
+
+    channel1.audio = this;
+    channel2.audio = this;
+    channel3.audio = this;
+    channel4.audio = this;
+
+    // duty pattern 0
+    dutyPatterns[0][0] = 0;
+    for (uint i = 1; i < 8; ++i) {
+        dutyPatterns[0][i] = 1;
+    }
+
+    // duty pattern 1
+    for (uint i = 0; i < 2; ++i) {
+        dutyPatterns[1][i] = 0;
+    }
+
+    for (uint i = 2; i < 8; ++i) {
+        dutyPatterns[1][i] = 1;
+    }
+
+    // duty pattern 2
+    for (uint i = 0; i < 4; ++i) {
+        dutyPatterns[2][i] = 0;
+    }
+
+    for (uint i = 4; i < 8; ++i) {
+        dutyPatterns[2][i] = 1;
+    }
+
+    // duty pattern 3
+    for (uint i = 0; i < 6; ++i) {
+        dutyPatterns[3][i] = 0;
+    }
+
+    for (uint i = 6; i < 8; ++i) {
+        dutyPatterns[3][i] = 1;
+    }
+}
+
+Audio::~Audio()
+{
+    // delete channel2;
+}
+
+void Audio::initSDL()
+{
+    SDL_AudioSpec desiredSpec;
+
+    desiredSpec.freq = AUDIO_FREQUENCY;
+    desiredSpec.format = sdlAudioFormat;
+    desiredSpec.channels = 2;
+    desiredSpec.samples = AUDIO_NUM_SAMPLES;
+    desiredSpec.callback = NULL;
+    desiredSpec.userdata = this;
+
+    SDL_AudioSpec obtainedSpec;
+
+    SDL_OpenAudio(&desiredSpec, &obtainedSpec);
+
+    SDL_PauseAudio(0);
+}
+
 /* CHANNEL 1 */
 /* NR10 - 0xFF10 */
 
@@ -375,48 +444,181 @@ void Audio::setChannel4CounterSelection(uint8_t val) { memory->writebit(val, 6, 
 
 uint8_t Audio::getChannelControl() { return memory->readmem(0xFF24, true); }
 
+uint8_t Audio::getLeftChannelVolume() { return (memory->readmem(0xFF24, true) & 0x70) >> 4; }
+
+uint8_t Audio::getRightChannelVolume() { return memory->readmem(0xFF24, true) & 7; }
+
 void Audio::setChannelControl(uint8_t val) { memory->writemem(val, 0xFF24, true); }
+
+void Audio::setLeftChannelVolume(uint8_t val)
+{
+    uint8_t nr50 = memory->readmem(0xFF24, true);
+    nr50 = nr50 & 0x8F;
+    val = (val & 0x7) << 4;
+    memory->writemem(nr50 | val, 0xFF24, true);
+}
+
+void Audio::setRightChannelVolume(uint8_t val)
+{
+    uint8_t nr50 = memory->readmem(0xFF24, true);
+    nr50 = nr50 & 0xF8;
+    val = val & 0x7;
+    memory->writemem(nr50 | val, 0xFF24, true);
+}
 
 /* NR51 - 0xFF25 */
 
 uint8_t Audio::getSoundOutputSelection() { return memory->readmem(0xFF25, true); }
 
+uint8_t Audio::getChannel4LeftOutput() { return (memory->readmem(0xFF25, true) & 0x80) >> 7; }
+
+uint8_t Audio::getChannel3LeftOutput() { return (memory->readmem(0xFF25, true) & 0x40) >> 6; }
+
+uint8_t Audio::getChannel2LeftOutput() { return (memory->readmem(0xFF25, true) & 0x20) >> 5; }
+
+uint8_t Audio::getChannel1LeftOutput() { return (memory->readmem(0xFF25, true) & 0x10) >> 4; }
+
+uint8_t Audio::getChannel4RightOutput() { return (memory->readmem(0xFF25, true) & 0x8) >> 3; }
+
+uint8_t Audio::getChannel3RightOutput() { return (memory->readmem(0xFF25, true) & 0x4) >> 2; }
+
+uint8_t Audio::getChannel2RightOutput() { return (memory->readmem(0xFF25, true) & 0x2) >> 1; }
+
+uint8_t Audio::getChannel1RightOutput() { return memory->readmem(0xFF25, true) & 0x1; }
+
 void Audio::setSoundOutputSelection(uint8_t val) { memory->writemem(val, 0xFF25, true); }
+
+void Audio::setChannel4LeftOutput(uint8_t val) { memory->writebit(val, 7, 0xFF25, true); }
+
+void Audio::setChannel3LeftOutput(uint8_t val) { memory->writebit(val, 6, 0xFF25, true); }
+
+void Audio::setChannel2LeftOutput(uint8_t val) { memory->writebit(val, 5, 0xFF25, true); }
+
+void Audio::setChannel1LeftOutput(uint8_t val) { memory->writebit(val, 4, 0xFF25, true); }
+
+void Audio::setChannel4RightOutput(uint8_t val) { memory->writebit(val, 3, 0xFF25, true); }
+
+void Audio::setChannel3RightOutput(uint8_t val) { memory->writebit(val, 2, 0xFF25, true); }
+
+void Audio::setChannel2RightOutput(uint8_t val) { memory->writebit(val, 1, 0xFF25, true); }
+
+void Audio::setChannel1RightOutput(uint8_t val) { memory->writebit(val, 0, 0xFF25, true); }
 
 /* NR52 - 0xFF26 */
 
 uint8_t Audio::getSoundOn() { return memory->readmem(0xFF26, true); }
 
+uint8_t Audio::getAllSoundOn() { return (memory->readmem(0xFF26, true) & 0x80) >> 7; }
+
+uint8_t Audio::getChannel4SoundOn() { return (memory->readmem(0xFF26, true) & 0x8) >> 3; }
+
+uint8_t Audio::getChannel3SoundOn() { return (memory->readmem(0xFF26, true) & 0x4) >> 2; }
+
+uint8_t Audio::getChannel2SoundOn() { return (memory->readmem(0xFF26, true) & 0x2) >> 1; }
+
+uint8_t Audio::getChannel1SoundOn() { return memory->readmem(0xFF26, true) & 0x1; }
+
 void Audio::setSoundOn(uint8_t val) { memory->writemem(val, 0xFF26, true); }
+
+void Audio::setAllSoundOn(uint8_t val) { memory->writebit(val, 7, 0xFF26, true); }
+
+void Audio::setChannel4SoundOn(uint8_t val) { memory->writebit(val, 3, 0xFF26, true); }
+
+void Audio::setChannel3SoundOn(uint8_t val) { memory->writebit(val, 2, 0xFF26, true); }
+
+void Audio::setChannel2SoundOn(uint8_t val) { memory->writebit(val, 1, 0xFF26, true); }
+
+void Audio::setChannel1SoundOn(uint8_t val) { memory->writebit(val, 0, 0xFF26, true); }
 
 void Audio::cycle()
 {
-    // cycle FF10
+    if (getAllSoundOn() != 0) {
+        if (!initialInit) {
+            initialInit = true;
+            
+            channel1.initCh();
+            channel2.initCh();
+            channel3.initCh();
+            channel4.initCh();
+        }
 
-    // 0xFF26 bit 7, when 0 clears all sound data
-    // audio can be mixed to left or right channel
-    // channels can be enabled and volume set
+        channel1.cycle();
+        channel2.cycle();
+        channel3.cycle();
+        channel4.cycle();
+    }
 
-    // not affected by double speed mode
-    // if in double speed mode, call it once every 2 cycles
-}
+    ++currentCyclesUntilSampleCollection;
+    if (currentCyclesUntilSampleCollection == AUDIO_CYCLES_UNTIL_SAMPLE_COLLECTION) {
+        currentCyclesUntilSampleCollection = 0;
 
-void Audio::cycleCh1()
-{
-    // TODO
-}
+        float mixedSample = 0;
+        float aux;
 
-void Audio::cycleCh2()
-{
-    // TODO
-}
+        // Left Channel
+        int vol = (getLeftChannelVolume() * SDL_MIX_MAXVOLUME) / 7;
 
-void Audio::cycleCh3()
-{
-    // TODO
-}
+        if (getChannel1LeftOutput()) {
+            aux = ((float)channel1.outputVolume) / SDL_MIX_MAXVOLUME;
+            SDL_MixAudioFormat((uint8_t *)&mixedSample, (uint8_t *)&aux, sdlAudioFormat,
+                               sizeof(float), vol);
+        }
 
-void Audio::cycleCh4()
-{
-    // TODO
+        if (getChannel2LeftOutput()) {
+            aux = ((float)channel2.outputVolume) / SDL_MIX_MAXVOLUME;
+            SDL_MixAudioFormat((uint8_t *)&mixedSample, (uint8_t *)&aux, sdlAudioFormat,
+                               sizeof(float), vol);
+        }
+
+        if (getChannel3LeftOutput()) {
+            aux = ((float)channel3.outputVolume) / SDL_MIX_MAXVOLUME;
+            SDL_MixAudioFormat((uint8_t *)&mixedSample, (uint8_t *)&aux, sdlAudioFormat,
+                               sizeof(float), vol);
+        }
+
+        if (getChannel4LeftOutput()) {
+            aux = ((float)channel4.outputVolume) / SDL_MIX_MAXVOLUME;
+            SDL_MixAudioFormat((uint8_t *)&mixedSample, (uint8_t *)&aux, sdlAudioFormat,
+                               sizeof(float), vol);
+        }
+
+        audioBuffer[currentAudioSamples++] = mixedSample;
+
+        // Right Channel
+        mixedSample = 0;
+        vol = (getRightChannelVolume() * SDL_MIX_MAXVOLUME) / 7;
+
+        if (getChannel1RightOutput()) {
+            aux = ((float)channel1.outputVolume) / SDL_MIX_MAXVOLUME;
+            SDL_MixAudioFormat((uint8_t *)&mixedSample, (uint8_t *)&aux, sdlAudioFormat,
+                               sizeof(float), vol);
+        }
+
+        if (getChannel2RightOutput()) {
+            aux = ((float)channel2.outputVolume) / SDL_MIX_MAXVOLUME;
+            SDL_MixAudioFormat((uint8_t *)&mixedSample, (uint8_t *)&aux, sdlAudioFormat,
+                               sizeof(float), vol);
+        }
+
+        if (getChannel3RightOutput()) {
+            aux = ((float)channel3.outputVolume) / SDL_MIX_MAXVOLUME;
+            SDL_MixAudioFormat((uint8_t *)&mixedSample, (uint8_t *)&aux, sdlAudioFormat,
+                               sizeof(float), vol);
+        }
+
+        if (getChannel4RightOutput()) {
+            aux = ((float)channel4.outputVolume) / SDL_MIX_MAXVOLUME;
+            SDL_MixAudioFormat((uint8_t *)&mixedSample, (uint8_t *)&aux, sdlAudioFormat,
+                               sizeof(float), vol);
+        }
+
+        audioBuffer[currentAudioSamples++] = mixedSample;
+    }
+
+    if (currentAudioSamples == AUDIO_NUM_SAMPLES) {
+        currentAudioSamples = 0;
+        
+        // queue audio
+        SDL_QueueAudio(1, audioBuffer, AUDIO_NUM_SAMPLES * sizeof(float));
+    }
 }

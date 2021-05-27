@@ -4,13 +4,16 @@ include_directories(${SDL2_INCLUDE_DIR})
 target_sources(Audio
     PUBLIC
         Audio.cpp
+        Channel1.cpp
+        Channel2.cpp
+        Channel3.cpp
+        Channel4.cpp
 )
 
 target_include_directories(Audio
     PUBLIC
         "${PROJECT_SOURCE_DIR}/include"
         "${PROJECT_SOURCE_DIR}/include/Memory"
-        "${PROJECT_SOURCE_DIR}/include/Timer"
         "${PROJECT_SOURCE_DIR}/include/Audio"
 )
 
