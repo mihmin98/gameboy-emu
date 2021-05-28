@@ -5,14 +5,8 @@
 Channel1::Channel1()
 {
     internalVolume = 0;
-    outputVolume = 0;
 
     currentCycles = 0;
-
-    sweepTimeCycles[0] = 0;
-    for (uint8_t i = 1; i < 8; ++i) {
-        sweepTimeCycles[i] = (4194304 * i) / 128;
-    }
 }
 
 void Channel1::initCh()
@@ -22,18 +16,19 @@ void Channel1::initCh()
     soundLengthData = audio->getChannel1SoundLengthData();
     updateSoundLengthCycles(soundLengthData);
 
-    cyclesUntilNextStep = 8 * (2048 - audio->getChannel1Frequency());
+    cyclesUntilNextStep = 4 * (2048 - audio->getChannel1Frequency());
     currentCycles = 0;
 
-    // currentSweepFrequency = 4194304 / (8 * (2048 - audio->getChannel1Frequency()));
+    // Sweep parameters
     currentSweepFrequency = audio->getChannel1Frequency();
-    currentSweepCycles = 0;
     sweepShiftNumber = audio->getChannel1SweepShift();
     sweepDirection = audio->getChannel1SweepIncreaseDecrease();
     sweepTime = audio->getChannel1SweepTime();
+
+    remainingSweepCycles = sweepTime == 0 ? 8 : sweepTime;
     sweepOverflow = false;
 
-    // envelope stuff (this stuff remains the same, until reinit)
+    // Envelope parameters (these params remain the same until reinit)
     defaultEnvelopeValue = audio->getChannel1InitialVolumeEnvelope();
     internalVolume = defaultEnvelopeValue;
 
@@ -41,50 +36,41 @@ void Channel1::initCh()
     envelopeStepLength = audio->getChannel1EnvelopeSweep();
 
     if (envelopeStepLength != 0) {
-        cyclesUntilNextEnvelopeStep = (4194304 * envelopeStepLength) / 64;
-        currentEnvelopeCycles = 0;
+        remainingEnvelopeCycles = envelopeStepLength;
     }
+
+    audio->setChannel1SoundOn(1);
 }
 
-void Channel1::cycle(uint8_t numCycles)
+void Channel1::cycleDuty(uint8_t numCycles)
 {
-    // cycle duty step
     currentCycles += numCycles;
     if (currentCycles >= cyclesUntilNextStep) {
         currentCycles -= cyclesUntilNextStep;
 
-        cyclesUntilNextStep = 8 * (2048 - currentSweepFrequency);
-        // cyclesUntilNextStep = 4194304 / currentSweepFrequency;
+        cyclesUntilNextStep = 4 * (2048 - currentSweepFrequency);
         currentDutyStep = (currentDutyStep + 1) % 8;
     }
+}
 
-    // cycle sweep
-    sweepShiftNumber = audio->getChannel1SweepShift();
-    sweepDirection = audio->getChannel1SweepIncreaseDecrease();
-    sweepTime = audio->getChannel1SweepTime();
+void Channel1::cycleLength()
+{
+    if (remainingSoundLengthCycles > 0) {
+        --remainingSoundLengthCycles;
 
-    if (sweepTime != 0) {
-        ++currentSweepCycles;
-        if (currentSweepCycles == sweepTimeCycles[sweepTime]) {
-            currentSweepCycles = 0;
-
-            uint8_t sign = sweepDirection == 0 ? 1 : -1;
-            uint16_t newSweepFrequency =
-                currentSweepFrequency + sign * (currentSweepFrequency >> sweepShiftNumber);
-
-            if ((newSweepFrequency & 0x7FF) != newSweepFrequency) {
-                sweepOverflow = true;
-            } else {
-                currentSweepFrequency = newSweepFrequency;
-            }
+        if (remainingSoundLengthCycles == 0 && audio->getChannel1CounterSelection() == 1) {
+            audio->setChannel1SoundOn(0);
         }
     }
+}
 
-    // cycle envelope
+void Channel1::cycleEnvelope()
+{
     if (envelopeStepLength != 0) {
-        currentEnvelopeCycles += numCycles;
-        if (currentCycles >= cyclesUntilNextEnvelopeStep) {
-            currentEnvelopeCycles -= cyclesUntilNextEnvelopeStep;
+        --remainingEnvelopeCycles;
+
+        if (remainingEnvelopeCycles == 0) {
+            remainingEnvelopeCycles = envelopeStepLength;
 
             if (internalVolume > 0 && internalVolume < 15) {
                 if (envelopeDirection == 0)
@@ -94,31 +80,56 @@ void Channel1::cycle(uint8_t numCycles)
             }
         }
     }
+}
 
-    // set channel ON flag
-    // update remiainig sound length cycles
-    for (uint i = 0; i < numCycles && remainingSoundLengthCycles > 0; ++i) {
-        --remainingSoundLengthCycles;
+void Channel1::cycleSweep()
+{
+    if (remainingSweepCycles > 0)
+        --remainingSweepCycles;
+
+    if (remainingSweepCycles == 0) {
+        remainingSweepCycles = sweepTime == 0 ? 8 : sweepTime;
+
+        if (!sweepOverflow && sweepTime > 0) {
+            uint16_t newSweepFreq = calcNewSweepFreq(sweepOverflow);
+
+            if (!sweepOverflow && sweepShiftNumber != 0) {
+                currentSweepFrequency = newSweepFreq;
+
+                calcNewSweepFreq(sweepOverflow);
+            }
+
+            if (sweepOverflow) {
+                audio->setChannel1SoundOn(0);
+            }
+        }
+    }
+}
+
+uint16_t Channel1::calcNewSweepFreq(bool &overflow)
+{
+    uint8_t sign = sweepDirection == 0 ? 1 : -1;
+    uint16_t newSweepFreq =
+        currentSweepFrequency + sign * (currentSweepFrequency >> sweepShiftNumber);
+
+    if ((newSweepFreq & 0x7FF) != newSweepFreq) {
+        overflow = true;
     }
 
-    if ((remainingSoundLengthCycles == 0 && audio->getChannel1CounterSelection() == 1) ||
-        sweepOverflow) {
-        audio->setChannel1SoundOn(0);
-    } else {
-        audio->setChannel1SoundOn(1);
-    }
+    return newSweepFreq;
+}
 
+uint8_t Channel1::getVolume()
+{
     if (audio->getChannel1SoundOn() == 0) {
-        outputVolume = 0;
-    }
-
-    else {
-        outputVolume = internalVolume *
-                       audio->dutyPatterns[audio->getChannel1WavePatternDuty()][currentDutyStep];
+        return 0;
+    } else {
+        return internalVolume *
+               audio->dutyPatterns[audio->getChannel1WavePatternDuty()][currentDutyStep];
     }
 }
 
 void Channel1::updateSoundLengthCycles(uint8_t soundLength)
 {
-    remainingSoundLengthCycles = (4194304 * (64 - soundLength)) / 256;
+    remainingSoundLengthCycles = 64 - soundLength;
 }

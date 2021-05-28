@@ -14,7 +14,6 @@ class Channel3
     Audio *audio;
 
     uint8_t internalVolume;
-    uint8_t outputVolume;
 
     uint8_t samplePosition;
 
@@ -26,6 +25,8 @@ class Channel3
 
     void initCh();  
     void cycle(uint8_t numCycles);
+    void cycleLength();
+    uint8_t getVolume();
 
     void updateSoundLengthCycles(uint8_t soundLength);
 };

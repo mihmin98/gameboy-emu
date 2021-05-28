@@ -6,7 +6,6 @@
 Channel3::Channel3()
 {
     internalVolume = 0;
-    outputVolume = 0;
 
     currentCycles = 0;
 }
@@ -15,8 +14,10 @@ void Channel3::initCh()
 {
     samplePosition = 0;
 
-    cyclesUntilNextStep = 8 * (2048 - audio->getChannel3Frequency());
+    cyclesUntilNextStep = 4 * (2048 - audio->getChannel3Frequency());
     currentCycles = 0;
+
+    audio->setChannel3SoundOn(1);
 }
 
 void Channel3::cycle(uint8_t numCycles)
@@ -24,7 +25,7 @@ void Channel3::cycle(uint8_t numCycles)
     currentCycles += numCycles;
     if (currentCycles >= cyclesUntilNextStep) {
         currentCycles -= cyclesUntilNextStep;
-        cyclesUntilNextStep = 8 * (2048 - audio->getChannel3Frequency());
+        cyclesUntilNextStep = 4 * (2048 - audio->getChannel3Frequency());
 
         if (audio->getChannel3Enable()) {
             uint16_t byteAddr = 0xFF30 + (samplePosition / 2);
@@ -59,29 +60,29 @@ void Channel3::cycle(uint8_t numCycles)
             samplePosition = (samplePosition + 1) & 0x1F;
         }
     }
+}
 
-    // update remiainig sound length cycles
-    for (uint i = 0; i < numCycles && remainingSoundLengthCycles > 0; ++i) {
+void Channel3::cycleLength()
+{
+    if (remainingSoundLengthCycles > 0) {
         --remainingSoundLengthCycles;
-    }
 
-    if ((remainingSoundLengthCycles == 0 && audio->getChannel3CounterSelection() == 1) ||
-        audio->getChannel3Enable() == 0) {
-        audio->setChannel3SoundOn(0);
-    } else {
-        audio->setChannel3SoundOn(1);
+        if (remainingSoundLengthCycles == 0 && audio->getChannel3CounterSelection() == 1) {
+            audio->setChannel3SoundOn(0);
+        }
     }
+}
 
+uint8_t Channel3::getVolume()
+{
     if (audio->getChannel3SoundOn() == 0) {
-        outputVolume = 0;
-    }
-
-    else {
-        outputVolume = internalVolume;
+        return 0;
+    } else {
+        return internalVolume;
     }
 }
 
 void Channel3::updateSoundLengthCycles(uint8_t soundLength)
 {
-    remainingSoundLengthCycles = (4194304 * (64 - soundLength)) / 256;
+    remainingSoundLengthCycles = 256 - soundLength;
 }

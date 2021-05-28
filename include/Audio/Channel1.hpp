@@ -14,37 +14,38 @@ class Channel1
     Audio *audio;
 
     uint8_t internalVolume;
-    uint8_t outputVolume;
 
     uint8_t soundLengthData;
     uint64_t remainingSoundLengthCycles;
     uint8_t currentDutyStep;
 
-    // sweep
-    uint64_t sweepTimeCycles[8];
-    uint64_t currentSweepCycles;
-
+    // Sweep
     uint8_t sweepShiftNumber;
     uint8_t sweepDirection;
     uint8_t sweepTime;
+    uint8_t remainingSweepCycles;
 
     bool sweepOverflow = false;
 
     uint16_t currentSweepFrequency;
 
-    // envelope
+    // Envelope
     uint8_t defaultEnvelopeValue;
     uint8_t envelopeDirection;
     uint8_t envelopeStepLength;
+    uint8_t remainingEnvelopeCycles;
 
     uint64_t currentCycles;
     uint64_t cyclesUntilNextStep;
 
-    uint64_t currentEnvelopeCycles;
-    uint64_t cyclesUntilNextEnvelopeStep;
-
     void initCh();  
-    void cycle(uint8_t numCycles);
+    void cycleDuty(uint8_t numCycles);
+    void cycleLength();
+    void cycleEnvelope();
+    void cycleSweep();
+    uint8_t getVolume();
+
+    uint16_t calcNewSweepFreq(bool &overflow);
 
     void updateSoundLengthCycles(uint8_t soundLength);
 };

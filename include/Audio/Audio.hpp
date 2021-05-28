@@ -34,7 +34,9 @@ class Audio
     uint16_t currentAudioSamples;
     uint16_t currentCycles;
     uint16_t currentCyclesUntilSampleCollection;
+    
     uint16_t currentWaitCycles;
+    uint8_t frameSequencer;
 
     bool initialInit = false;
 

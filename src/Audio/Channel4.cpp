@@ -5,27 +5,21 @@
 Channel4::Channel4()
 {
     internalVolume = 0;
-    outputVolume = 0;
 
     currentCycles = 0;
 
-    for (uint8_t i = 0; i < 16; ++i) {
-        shiftClockFrequencies[i] = 1 << (i + 1);
-    }
-
-    // start lfsr with all bits set
+    // Start lfsr with all bits set
     lfsr = 0x7FFF;
 }
 
 void Channel4::initCh()
 {
-    // std::cout << "init ch4\n";
     soundLengthData = audio->getChannel4SoundLength();
     updateSoundLengthCycles(soundLengthData);
 
-    // TODO: cycles until next step
     cyclesUntilNextStep =
         calcStepCycles(audio->getChannel4ShiftClockFrequency(), audio->getChannel4DividingRatio());
+    currentCycles = 0;
 
     defaultEnvelopeValue = audio->getChannel4InitialVolumeEnvelope();
     internalVolume = defaultEnvelopeValue;
@@ -34,17 +28,19 @@ void Channel4::initCh()
     envelopeStepLength = audio->getChannel4EnvelopeSweep();
 
     if (envelopeStepLength != 0) {
-        cyclesUntilNextEnvelopeStep = (4194304 * envelopeStepLength) / 64;
-        currentEnvelopeCycles = 0;
+        remainingEnvelopeCycles = envelopeStepLength;
     }
+
+    lfsr = 0x7FFF;
+    audio->setChannel4SoundOn(1);
 }
 
-void Channel4::cycle(uint8_t numCycles)
+void Channel4::cycleLfsr(uint8_t numCycles)
 {
-    // cycle step
     currentCycles += numCycles;
     if (currentCycles >= cyclesUntilNextStep) {
         currentCycles -= cyclesUntilNextStep;
+
         cyclesUntilNextStep = calcStepCycles(audio->getChannel4ShiftClockFrequency(),
                                              audio->getChannel4DividingRatio());
 
@@ -58,12 +54,26 @@ void Channel4::cycle(uint8_t numCycles)
             lfsr = (lfsr & 0x7FBF) | (xorResult << 6);
         }
     }
+}
 
-    // cycle envelope
+void Channel4::cycleLength()
+{
+    if (remainingSoundLengthCycles > 0) {
+        --remainingSoundLengthCycles;
+
+        if (remainingSoundLengthCycles == 0 && audio->getChannel4CounterSelection() == 1) {
+            audio->setChannel4SoundOn(0);
+        }
+    }
+}
+
+void Channel4::cycleEnvelope()
+{
     if (envelopeStepLength != 0) {
-        currentEnvelopeCycles += numCycles;
-        if (currentCycles >= cyclesUntilNextEnvelopeStep) {
-            currentEnvelopeCycles -= cyclesUntilNextEnvelopeStep;
+        --remainingEnvelopeCycles;
+
+        if (remainingEnvelopeCycles == 0) {
+            remainingEnvelopeCycles = envelopeStepLength;
 
             if (internalVolume > 0 && internalVolume < 15) {
                 if (envelopeDirection == 0)
@@ -73,40 +83,26 @@ void Channel4::cycle(uint8_t numCycles)
             }
         }
     }
-
-    // update remiainig sound length cycles
-    for (uint i = 0; i < numCycles && remainingSoundLengthCycles > 0; ++i) {
-        --remainingSoundLengthCycles;
-    }
-
-    if (remainingSoundLengthCycles == 0 && audio->getChannel4CounterSelection() == 1) {
-        audio->setChannel4SoundOn(0);
-    } else {
-        audio->setChannel4SoundOn(1);
-    }
-
-    // output
-    if (audio->getChannel4SoundOn() == 0) {
-        outputVolume = 0;
-    }
-
-    else {
-        uint8_t aux = ((lfsr & 1) == 0) ? 1: 0;
-        outputVolume = internalVolume * (lfsr & 1);
-    }
 }
 
 void Channel4::updateSoundLengthCycles(uint8_t soundLength)
 {
-    remainingSoundLengthCycles = (4194304 * (64 - soundLength)) / 256;
+    remainingSoundLengthCycles = 64 - soundLength;
+}
+
+uint8_t Channel4::getVolume()
+{
+    if (audio->getChannel4SoundOn() == 0) {
+        return 0;
+    }
+
+    else {
+        uint8_t aux = ((lfsr & 1) == 0) ? 1 : 0;
+        return internalVolume * aux;
+    }
 }
 
 uint64_t Channel4::calcStepCycles(uint8_t shiftClockFrequency, uint8_t dividingRatio)
 {
-    uint64_t freq;
-    if (dividingRatio == 0) {
-        return 4194304 / (524228 * 2 / shiftClockFrequencies[shiftClockFrequency]);
-    } else {
-        return 4194304 / (524228 / dividingRatio / shiftClockFrequencies[shiftClockFrequency]);
-    }
+    return divisor[dividingRatio & 7] << shiftClockFrequency;
 }

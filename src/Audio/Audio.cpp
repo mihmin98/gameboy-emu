@@ -3,7 +3,6 @@
 
 Audio::Audio()
 {
-
     currentAudioSamples = 0;
     currentCyclesUntilSampleCollection = 0;
     memset(audioBuffer, 0, AUDIO_NUM_SAMPLES * sizeof(float));
@@ -12,6 +11,9 @@ Audio::Audio()
     channel2.audio = this;
     channel3.audio = this;
     channel4.audio = this;
+
+    currentWaitCycles = 0;
+    frameSequencer = 0;
 
     // duty pattern 0
     dutyPatterns[0][0] = 0;
@@ -49,7 +51,6 @@ Audio::Audio()
 
 Audio::~Audio()
 {
-    // delete channel2;
 }
 
 void Audio::initSDL()
@@ -238,9 +239,15 @@ void Audio::setChannel1Frequency(uint16_t val)
 /* CHANNEL 2 */
 /* NR21 - 0xFF16 */
 
-uint8_t Audio::getChannel2WavePatternDuty() { return (memory->ioRegisters[0xFF16 - MEM_IO_START] & 0xC0) >> 6; }
+uint8_t Audio::getChannel2WavePatternDuty()
+{
+    return (memory->ioRegisters[0xFF16 - MEM_IO_START] & 0xC0) >> 6;
+}
 
-uint8_t Audio::getChannel2SoundLengthData() { return memory->ioRegisters[0xFF16 - MEM_IO_START] & 0x3F; }
+uint8_t Audio::getChannel2SoundLengthData()
+{
+    return memory->ioRegisters[0xFF16 - MEM_IO_START] & 0x3F;
+}
 
 void Audio::setChannel2WavePatternDuty(uint8_t val)
 {
@@ -267,9 +274,15 @@ uint8_t Audio::getChannel2InitialVolumeEnvelope()
     return (memory->ioRegisters[0xFF17 - MEM_IO_START] & 0xF0) >> 4;
 }
 
-uint8_t Audio::getChannel2EnvelopeDirection() { return (memory->ioRegisters[0xFF17 - MEM_IO_START] & 0x8) >> 3; }
+uint8_t Audio::getChannel2EnvelopeDirection()
+{
+    return (memory->ioRegisters[0xFF17 - MEM_IO_START] & 0x8) >> 3;
+}
 
-uint8_t Audio::getChannel2EnvelopeSweep() { return memory->ioRegisters[0xFF17 - MEM_IO_START] & 0x7; }
+uint8_t Audio::getChannel2EnvelopeSweep()
+{
+    return memory->ioRegisters[0xFF17 - MEM_IO_START] & 0x7;
+}
 
 void Audio::setChannel2InitialVolumeEnvelope(uint8_t val)
 {
@@ -298,11 +311,20 @@ void Audio::setChannel2FrequencyLow(uint8_t val) { memory->writemem(val, 0xFF18,
 
 /* NR24 - 0xFF19 */
 
-uint8_t Audio::getChannel2FrequencyHigh() { return memory->ioRegisters[0xFF19 - MEM_IO_START] & 0x7; }
+uint8_t Audio::getChannel2FrequencyHigh()
+{
+    return memory->ioRegisters[0xFF19 - MEM_IO_START] & 0x7;
+}
 
-uint8_t Audio::getChannel2Initial() { return (memory->ioRegisters[0xFF19 - MEM_IO_START] & 0x80) >> 7; }
+uint8_t Audio::getChannel2Initial()
+{
+    return (memory->ioRegisters[0xFF19 - MEM_IO_START] & 0x80) >> 7;
+}
 
-uint8_t Audio::getChannel2CounterSelection() { return (memory->ioRegisters[0xFF19 - MEM_IO_START] & 0x40) >> 6; }
+uint8_t Audio::getChannel2CounterSelection()
+{
+    return (memory->ioRegisters[0xFF19 - MEM_IO_START] & 0x40) >> 6;
+}
 
 void Audio::setChannel2FrequencyHigh(uint8_t val)
 {
@@ -334,7 +356,10 @@ void Audio::setChannel2Frequency(uint16_t val)
 /* CHANNEL 3 */
 /* NR30 - 0xFF1A */
 
-uint8_t Audio::getChannel3Enable() { return (memory->ioRegisters[0xFF1A - MEM_IO_START] & 0x80) >> 7; }
+uint8_t Audio::getChannel3Enable()
+{
+    return (memory->ioRegisters[0xFF1A - MEM_IO_START] & 0x80) >> 7;
+}
 
 void Audio::setChannel3Enable(uint8_t val) { memory->writebit(val, 7, 0xFF1A, true); }
 
@@ -342,33 +367,52 @@ void Audio::setChannel3Enable(uint8_t val) { memory->writebit(val, 7, 0xFF1A, tr
 
 uint8_t Audio::getChannel3SoundLength() { return memory->ioRegisters[0xFF1B - MEM_IO_START]; }
 
-void Audio::setChannel3SoundLength(uint8_t val) { memory->ioRegisters[0xFF1B - MEM_IO_START] = val; }
+void Audio::setChannel3SoundLength(uint8_t val)
+{
+    memory->ioRegisters[0xFF1B - MEM_IO_START] = val;
+}
 
 /* NR32 - 0xFF1C */
 
-uint8_t Audio::getChannel3OutputLevel() { return (memory->ioRegisters[0xFF1C - MEM_IO_START] & 0x60) >> 5; }
+uint8_t Audio::getChannel3OutputLevel()
+{
+    return (memory->ioRegisters[0xFF1C - MEM_IO_START] & 0x60) >> 5;
+}
 
 void Audio::setChannel3OutputLevel(uint8_t val)
 {
     uint8_t nr32 = memory->ioRegisters[0xFF1C - MEM_IO_START];
     nr32 = nr32 & 0x9F;
     val = (val & 0x3) << 5;
-    memory->ioRegisters[0xFF1C - MEM_IO_START] = nr32 | val;;
+    memory->ioRegisters[0xFF1C - MEM_IO_START] = nr32 | val;
+    ;
 }
 
 /* NR33 - 0xFF1D */
 
 uint8_t Audio::getChannel3FrequencyLow() { return memory->ioRegisters[0xFF1D - MEM_IO_START]; }
 
-void Audio::setChannel3FrequencyLow(uint8_t val) { memory->ioRegisters[0xFF1D - MEM_IO_START] = val; }
+void Audio::setChannel3FrequencyLow(uint8_t val)
+{
+    memory->ioRegisters[0xFF1D - MEM_IO_START] = val;
+}
 
 /* NR34 - 0xFF1E */
 
-uint8_t Audio::getChannel3FrequencyHigh() { return memory->ioRegisters[0xFF1E - MEM_IO_START] & 0x7; }
+uint8_t Audio::getChannel3FrequencyHigh()
+{
+    return memory->ioRegisters[0xFF1E - MEM_IO_START] & 0x7;
+}
 
-uint8_t Audio::getChannel3Initial() { return (memory->ioRegisters[0xFF1D - MEM_IO_START] & 0x80) >> 7; }
+uint8_t Audio::getChannel3Initial()
+{
+    return (memory->ioRegisters[0xFF1D - MEM_IO_START] & 0x80) >> 7;
+}
 
-uint8_t Audio::getChannel3CounterSelection() { return (memory->ioRegisters[0xFF1D - MEM_IO_START] & 0x40) >> 6; }
+uint8_t Audio::getChannel3CounterSelection()
+{
+    return (memory->ioRegisters[0xFF1D - MEM_IO_START] & 0x40) >> 6;
+}
 
 void Audio::setChannel3FrequencyHigh(uint8_t val)
 {
@@ -403,7 +447,10 @@ void Audio::setChannel3Frequency(uint16_t val)
 /* CHANNEL 4 */
 /* NR41 - 0xFF20 */
 
-uint8_t Audio::getChannel4SoundLength() { return memory->ioRegisters[0xFF20 - MEM_IO_START] & 0x3F; }
+uint8_t Audio::getChannel4SoundLength()
+{
+    return memory->ioRegisters[0xFF20 - MEM_IO_START] & 0x3F;
+}
 
 void Audio::setChannel4SoundLength(uint8_t val)
 {
@@ -421,9 +468,15 @@ uint8_t Audio::getChannel4InitialVolumeEnvelope()
     return (memory->ioRegisters[0xFF21 - MEM_IO_START] & 0xF0) >> 4;
 }
 
-uint8_t Audio::getChannel4EnvelopeDirection() { return (memory->ioRegisters[0xFF21 - MEM_IO_START] & 0x8) >> 3; }
+uint8_t Audio::getChannel4EnvelopeDirection()
+{
+    return (memory->ioRegisters[0xFF21 - MEM_IO_START] & 0x8) >> 3;
+}
 
-uint8_t Audio::getChannel4EnvelopeSweep() { return memory->ioRegisters[0xFF21 - MEM_IO_START] & 0x7; }
+uint8_t Audio::getChannel4EnvelopeSweep()
+{
+    return memory->ioRegisters[0xFF21 - MEM_IO_START] & 0x7;
+}
 
 void Audio::setChannel4InitialVolumeEnvelope(uint8_t val)
 {
@@ -452,9 +505,15 @@ uint8_t Audio::getChannel4ShiftClockFrequency()
     return (memory->ioRegisters[0xFF22 - MEM_IO_START] & 0xF0) >> 4;
 }
 
-uint8_t Audio::getChannel4CounterStep() { return (memory->ioRegisters[0xFF22 - MEM_IO_START] & 0x8) >> 3; }
+uint8_t Audio::getChannel4CounterStep()
+{
+    return (memory->ioRegisters[0xFF22 - MEM_IO_START] & 0x8) >> 3;
+}
 
-uint8_t Audio::getChannel4DividingRatio() { return memory->ioRegisters[0xFF22 - MEM_IO_START] & 0x7; }
+uint8_t Audio::getChannel4DividingRatio()
+{
+    return memory->ioRegisters[0xFF22 - MEM_IO_START] & 0x7;
+}
 
 void Audio::setChannel4ShiftClockFrequency(uint8_t val)
 {
@@ -478,9 +537,15 @@ void Audio::setChannel4DividingRatio(uint8_t val)
 
 /* NR44 - 0xFF23 */
 
-uint8_t Audio::getChannel4Initial() { return (memory->ioRegisters[0xFF23 - MEM_IO_START] & 0x80) >> 7; }
+uint8_t Audio::getChannel4Initial()
+{
+    return (memory->ioRegisters[0xFF23 - MEM_IO_START] & 0x80) >> 7;
+}
 
-uint8_t Audio::getChannel4CounterSelection() { return (memory->ioRegisters[0xFF23 - MEM_IO_START] & 0x40) >> 6; }
+uint8_t Audio::getChannel4CounterSelection()
+{
+    return (memory->ioRegisters[0xFF23 - MEM_IO_START] & 0x40) >> 6;
+}
 
 void Audio::setChannel4Initial(uint8_t val) { memory->writebit(val, 7, 0xFF23, true); }
 
@@ -491,7 +556,10 @@ void Audio::setChannel4CounterSelection(uint8_t val) { memory->writebit(val, 6, 
 
 uint8_t Audio::getChannelControl() { return memory->ioRegisters[0xFF24 - MEM_IO_START]; }
 
-uint8_t Audio::getLeftChannelVolume() { return (memory->ioRegisters[0xFF24 - MEM_IO_START] & 0x70) >> 4; }
+uint8_t Audio::getLeftChannelVolume()
+{
+    return (memory->ioRegisters[0xFF24 - MEM_IO_START] & 0x70) >> 4;
+}
 
 uint8_t Audio::getRightChannelVolume() { return memory->ioRegisters[0xFF24 - MEM_IO_START] & 7; }
 
@@ -518,23 +586,47 @@ void Audio::setRightChannelVolume(uint8_t val)
 
 uint8_t Audio::getSoundOutputSelection() { return memory->ioRegisters[0xFF25 - MEM_IO_START]; }
 
-uint8_t Audio::getChannel4LeftOutput() { return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x80) >> 7; }
+uint8_t Audio::getChannel4LeftOutput()
+{
+    return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x80) >> 7;
+}
 
-uint8_t Audio::getChannel3LeftOutput() { return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x40) >> 6; }
+uint8_t Audio::getChannel3LeftOutput()
+{
+    return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x40) >> 6;
+}
 
-uint8_t Audio::getChannel2LeftOutput() { return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x20) >> 5; }
+uint8_t Audio::getChannel2LeftOutput()
+{
+    return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x20) >> 5;
+}
 
-uint8_t Audio::getChannel1LeftOutput() { return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x10) >> 4; }
+uint8_t Audio::getChannel1LeftOutput()
+{
+    return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x10) >> 4;
+}
 
-uint8_t Audio::getChannel4RightOutput() { return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x8) >> 3; }
+uint8_t Audio::getChannel4RightOutput()
+{
+    return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x8) >> 3;
+}
 
-uint8_t Audio::getChannel3RightOutput() { return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x4) >> 2; }
+uint8_t Audio::getChannel3RightOutput()
+{
+    return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x4) >> 2;
+}
 
-uint8_t Audio::getChannel2RightOutput() { return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x2) >> 1; }
+uint8_t Audio::getChannel2RightOutput()
+{
+    return (memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x2) >> 1;
+}
 
 uint8_t Audio::getChannel1RightOutput() { return memory->ioRegisters[0xFF25 - MEM_IO_START] & 0x1; }
 
-void Audio::setSoundOutputSelection(uint8_t val) { memory->ioRegisters[0xFF25 - MEM_IO_START] = val; }
+void Audio::setSoundOutputSelection(uint8_t val)
+{
+    memory->ioRegisters[0xFF25 - MEM_IO_START] = val;
+}
 
 void Audio::setChannel4LeftOutput(uint8_t val) { memory->writebit(val, 7, 0xFF25, true); }
 
@@ -558,11 +650,20 @@ uint8_t Audio::getSoundOn() { return memory->ioRegisters[0xFF26 - MEM_IO_START];
 
 uint8_t Audio::getAllSoundOn() { return (memory->ioRegisters[0xFF26 - MEM_IO_START] & 0x80) >> 7; }
 
-uint8_t Audio::getChannel4SoundOn() { return (memory->ioRegisters[0xFF26 - MEM_IO_START] & 0x8) >> 3; }
+uint8_t Audio::getChannel4SoundOn()
+{
+    return (memory->ioRegisters[0xFF26 - MEM_IO_START] & 0x8) >> 3;
+}
 
-uint8_t Audio::getChannel3SoundOn() { return (memory->ioRegisters[0xFF26 - MEM_IO_START] & 0x4) >> 2; }
+uint8_t Audio::getChannel3SoundOn()
+{
+    return (memory->ioRegisters[0xFF26 - MEM_IO_START] & 0x4) >> 2;
+}
 
-uint8_t Audio::getChannel2SoundOn() { return (memory->ioRegisters[0xFF26 - MEM_IO_START] & 0x2) >> 1; }
+uint8_t Audio::getChannel2SoundOn()
+{
+    return (memory->ioRegisters[0xFF26 - MEM_IO_START] & 0x2) >> 1;
+}
 
 uint8_t Audio::getChannel1SoundOn() { return memory->ioRegisters[0xFF26 - MEM_IO_START] & 0x1; }
 
@@ -590,23 +691,71 @@ void Audio::cycle(uint8_t numCycles)
             channel4.initCh();
         }
 
-        channel1.cycle(numCycles);
-        channel2.cycle(numCycles);
+        currentWaitCycles += numCycles;
+
+        channel1.cycleDuty(numCycles);
+        channel2.cycleDuty(numCycles);
         channel3.cycle(numCycles);
-        channel4.cycle(numCycles);
+        channel4.cycleLfsr(numCycles);
+
+        if (currentWaitCycles >= AUDIO_WAIT_CYCLES) {
+            currentWaitCycles -= AUDIO_WAIT_CYCLES;
+            frameSequencer = (frameSequencer + 1) % 8;
+
+            switch (frameSequencer) {
+            case 0:
+                channel1.cycleLength();
+                channel2.cycleLength();
+                channel3.cycleLength();
+                channel4.cycleLength();
+                break;
+            case 2:
+                channel1.cycleLength();
+                channel1.cycleSweep();
+
+                channel2.cycleLength();
+
+                channel3.cycleLength();
+
+                channel4.cycleLength();
+                break;
+            case 4:
+                channel1.cycleLength();
+                channel2.cycleLength();
+                channel3.cycleLength();
+                channel4.cycleLength();
+                break;
+            case 6:
+                channel1.cycleLength();
+                channel1.cycleSweep();
+
+                channel2.cycleLength();
+
+                channel3.cycleLength();
+
+                channel4.cycleLength();
+                break;
+            case 7:
+                channel1.cycleEnvelope();
+                channel2.cycleEnvelope();
+                channel4.cycleEnvelope();
+                break;
+            }
+        }
     }
 
     currentCyclesUntilSampleCollection += numCycles;
     if (currentCyclesUntilSampleCollection >= AUDIO_CYCLES_UNTIL_SAMPLE_COLLECTION) {
         currentCyclesUntilSampleCollection -= AUDIO_CYCLES_UNTIL_SAMPLE_COLLECTION;
 
+        // Collect sample
         float mixedLeftChannel = 0, mixedRightChannel = 0;
         int leftVol = (getLeftChannelVolume() * SDL_MIX_MAXVOLUME) / 7;
         int rightVol = (getRightChannelVolume() * SDL_MIX_MAXVOLUME) / 7;
         float aux;
 
         // Channel 1
-        aux = ((float)channel1.outputVolume) / SDL_MIX_MAXVOLUME;
+        aux = ((float)channel1.getVolume()) / SDL_MIX_MAXVOLUME;
 
         if (getChannel1LeftOutput()) {
             SDL_MixAudioFormat((uint8_t *)&mixedLeftChannel, (uint8_t *)&aux, sdlAudioFormat,
@@ -619,7 +768,7 @@ void Audio::cycle(uint8_t numCycles)
         }
 
         // Channel 2
-        aux = ((float)channel2.outputVolume) / SDL_MIX_MAXVOLUME;
+        aux = ((float)channel2.getVolume()) / SDL_MIX_MAXVOLUME;
 
         if (getChannel2LeftOutput()) {
             SDL_MixAudioFormat((uint8_t *)&mixedLeftChannel, (uint8_t *)&aux, sdlAudioFormat,
@@ -632,7 +781,7 @@ void Audio::cycle(uint8_t numCycles)
         }
 
         // Channel 3
-        aux = ((float)channel3.outputVolume) / SDL_MIX_MAXVOLUME;
+        aux = ((float)channel3.getVolume()) / SDL_MIX_MAXVOLUME;
 
         if (getChannel3LeftOutput()) {
             SDL_MixAudioFormat((uint8_t *)&mixedLeftChannel, (uint8_t *)&aux, sdlAudioFormat,
@@ -645,7 +794,7 @@ void Audio::cycle(uint8_t numCycles)
         }
 
         // Channel 4
-        aux = ((float)channel4.outputVolume) / SDL_MIX_MAXVOLUME;
+        aux = ((float)channel4.getVolume()) / SDL_MIX_MAXVOLUME;
 
         if (getChannel4LeftOutput()) {
             SDL_MixAudioFormat((uint8_t *)&mixedLeftChannel, (uint8_t *)&aux, sdlAudioFormat,
@@ -661,10 +810,10 @@ void Audio::cycle(uint8_t numCycles)
         audioBuffer[currentAudioSamples++] = mixedRightChannel;
     }
 
-    if (currentAudioSamples == AUDIO_NUM_SAMPLES) {
-        currentAudioSamples = 0;
+    if (currentAudioSamples >= AUDIO_NUM_SAMPLES) {
+        currentAudioSamples -= AUDIO_NUM_SAMPLES;
 
-        // queue audio
+        // Queue audio
         SDL_QueueAudio(1, audioBuffer, AUDIO_NUM_SAMPLES * sizeof(float));
     }
 }
