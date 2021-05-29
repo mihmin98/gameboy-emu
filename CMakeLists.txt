@@ -5,6 +5,7 @@ project(gameboy-emu)
 # CPP related
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -Wpedantic -O2)
+add_link_options(-lprofiler)
 
 # Find required packages
 find_package(Python3)
@@ -29,6 +30,7 @@ add_executable(gameboy-emu
 target_link_libraries(gameboy-emu
     PRIVATE
         emulator
+        stdc++fs
 )
 
 target_compile_options(gameboy-emu

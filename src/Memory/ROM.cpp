@@ -10,6 +10,18 @@ ROM::ROM()
     currentRAMBank = 0;
     bankMode = 0;
     isMulticart = false;
+
+    bootromActive = false;
+
+    rtcS = 0;
+    rtcM = 0;
+    rtcH = 0;
+    rtcDL = 0;
+    rtcDH = 0;
+    rtcLatchClockLastWritten = 0;
+    rtcLatch = false;
+    rtcLatchedSeconds = 0;
+    rtcNumCycles = 0;
 }
 
 ROM::~ROM()
@@ -23,6 +35,10 @@ ROM::~ROM()
         delete[] ram;
         ram = nullptr;
     }
+
+    if (saveFile != NULL) {
+        fclose(saveFile);
+    }
 }
 
 /**
@@ -30,6 +46,10 @@ ROM::~ROM()
  */
 bool ROM::loadROM(std::string romPath)
 {
+    romFilePath = romPath;
+    saveFilePath = romPath;
+    saveFilePath.replace_extension(".sav");
+
     FILE *f = fopen(romPath.c_str(), "rb");
 
     if (f != NULL) {
@@ -59,6 +79,9 @@ bool ROM::loadROM(std::string romPath)
         if (cartridgeRam || mbc == MBC::MBC2)
             ram = new uint8_t[ramSize];
 
+        // Load save file
+        loadSaveFile(saveFilePath);
+
         return true;
 
     } else {
@@ -66,6 +89,112 @@ bool ROM::loadROM(std::string romPath)
         return false;
     }
 }
+
+bool ROM::loadSaveFile(fs::path savePath)
+{
+    if ((cartridgeRam || mbc == MBC::MBC2) && cartridgeBattery) {
+        if (fs::exists(savePath)) {
+            // Load the data in ram
+            saveFile = fopen(savePath.c_str(), "r+b");
+            if (saveFile == NULL) {
+                std::cerr << "ERROR: Save file " << savePath.string() << " could not be opened\n";
+                return false;
+            }
+
+            fseek(saveFile, 0, SEEK_END);
+            size_t saveFileSize = ftell(saveFile);
+            fseek(saveFile, 0, SEEK_SET);
+
+            if (mbc == MBC3) {
+                // Read rtc registers and increment time if necessary
+                fread(&rtcS, sizeof(uint8_t), 1, saveFile);
+                fread(&rtcM, sizeof(uint8_t), 1, saveFile);
+                fread(&rtcH, sizeof(uint8_t), 1, saveFile);
+                fread(&rtcDL, sizeof(uint8_t), 1, saveFile);
+                fread(&rtcDH, sizeof(uint8_t), 1, saveFile);
+                fread(&rtcLatchClockLastWritten, sizeof(uint8_t), 1, saveFile);
+                fread(&rtcLatch, sizeof(bool), 1, saveFile);
+                fread(&rtcLatchedSeconds, sizeof(uint64_t), 1, saveFile);
+                fread(&rtcNumCycles, sizeof(uint16_t), 1, saveFile);
+
+                time_t oldTime;
+                fread(&oldTime, sizeof(time_t), 1, saveFile);
+
+                time_t currentTime = time(NULL);
+
+                if ((rtcDH & 0x40) == 0) {
+                    incrementRtc(currentTime - oldTime);
+                }
+            }
+
+            fread(ram, sizeof(uint8_t), ramSize, saveFile);
+
+            return true;
+
+        } else {
+            // Create the file
+            saveFile = fopen(savePath.c_str(), "w+b");
+            if (saveFile == NULL) {
+                std::cerr << "ERROR: Save file " << savePath.string() << " could not be created\n";
+                return false;
+            }
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool ROM::saveRam()
+{
+    if (saveFile == NULL) {
+        return false;
+    }
+
+    fseek(saveFile, 0, SEEK_SET);
+
+    if (mbc == MBC3) {
+        // write rtc registers and current time
+        fwrite(&rtcS, sizeof(uint8_t), 1, saveFile);
+        fwrite(&rtcM, sizeof(uint8_t), 1, saveFile);
+        fwrite(&rtcH, sizeof(uint8_t), 1, saveFile);
+        fwrite(&rtcDL, sizeof(uint8_t), 1, saveFile);
+        fwrite(&rtcDH, sizeof(uint8_t), 1, saveFile);
+        fwrite(&rtcLatchClockLastWritten, sizeof(uint8_t), 1, saveFile);
+        fwrite(&rtcLatch, sizeof(bool), 1, saveFile);
+        fwrite(&rtcLatchedSeconds, sizeof(uint64_t), 1, saveFile);
+        fwrite(&rtcNumCycles, sizeof(uint16_t), 1, saveFile);
+
+        time_t currentTime = time(NULL);
+        fwrite(&currentTime, sizeof(time_t), 1, saveFile);
+    }
+
+    if (fwrite(ram, sizeof(uint8_t), ramSize, saveFile) == 0) {
+        return false;
+    }
+
+    return true;
+}
+
+bool ROM::loadBootrom(std::string bootromPath)
+{
+    FILE *f = fopen(bootromPath.c_str(), "rb");
+
+    if (f == NULL) {
+        std::cerr << "ERROR: Bootorm " << bootromPath << " could not be opened\n";
+        return false;
+    }
+
+    fread(bootrom, sizeof(uint8_t), 256, f);
+
+    fclose(f);
+
+    bootromActive = true;
+    return true;
+}
+
+void ROM::disableBootrom() { bootromActive = false; }
 
 /* ROM CHECKS */
 
@@ -402,6 +531,10 @@ uint8_t ROM::readmem(uint16_t addr)
         return 0xFF;
     }
 
+    if (bootromActive && addr < 0x100) {
+        return bootrom[addr];
+    }
+
     switch (mbc) {
     case MBC::None:
         return readmemNoMBC(addr);
@@ -686,9 +819,19 @@ void ROM::writememMBC3(uint8_t val, uint16_t addr)
 
     // Latch Clock Data
     if (addr >= 0x6000 && addr < 0x8000) {
-        if (val == 0x01 && rtcLatchClockLastWritten == 0x00)
+        if (val == 0x01 && rtcLatchClockLastWritten == 0x00) {
             // Toggle Latch
             rtcLatch = !rtcLatch;
+
+            if (rtcLatch == false) {
+                // Latch reset
+                incrementRtc(rtcLatchedSeconds);
+                rtcLatchedSeconds = 0;
+            } else if (rtcLatch) {
+                // Latch set
+                rtcLatchedSeconds = 0;
+            }
+        }
         rtcLatchClockLastWritten = val;
     }
 
@@ -771,4 +914,53 @@ void ROM::writememMBC5(uint8_t val, uint16_t addr)
         uint32_t acutalAddr = (addr - 0xA000) + 0x2000 * currentRAMBank;
         ram[acutalAddr] = val;
     }
+}
+
+void ROM::cycleRtc()
+{
+    if ((rtcDH & 0x40) != 0) {
+        // Do not increment if halted
+        return;
+    }
+
+    ++rtcNumCycles;
+
+    if (rtcNumCycles == ROM_RTC_TICKS_UNTIL_INCREMENT) {
+        rtcNumCycles = 0;
+
+        if (rtcLatch) {
+            ++rtcLatchedSeconds;
+        } else {
+            incrementRtc(1);
+        }
+    }
+}
+
+void ROM::incrementRtc(uint64_t numSeconds)
+{
+    uint64_t oldTime = rtcS + rtcM * 60 + rtcH * 3600 + (((rtcDH & 1) << 8) | rtcDL) * 86400;
+    uint64_t newTime = oldTime + numSeconds;
+
+    uint16_t numDays = newTime / 86400;
+    if (numDays > 0x1FF) {
+        // set carry bit
+        rtcDH |= 0x80;
+    }
+
+    rtcDH = (rtcDH & 0xC0) | ((numDays & 0x100) >> 8);
+    rtcDL = numDays & 0xFF;
+
+    newTime -= numDays * 86400;
+
+    uint8_t numHours = newTime / 3600;
+    rtcH = numHours;
+
+    newTime -= numHours * 3600;
+
+    uint8_t numMinutes = newTime / 60;
+    rtcM = numMinutes;
+
+    newTime -= numMinutes * 60;
+
+    rtcS = newTime;
 }

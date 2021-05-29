@@ -5,9 +5,16 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
+#include <experimental/filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
+
+#define ROM_RTC_T_CYCLES_UNTIL_TICK 128
+#define ROM_RTC_TICKS_UNTIL_INCREMENT 32678
+
+namespace fs = std::experimental::filesystem;
 
 enum MBC { None, MBC1, MBC2, MMM01, MBC3, MBC5, MBC6, MBC7, HuC1, HuC3 };
 
@@ -17,6 +24,11 @@ class ROM
     uint8_t *rom;
     uint8_t *ram;
     uint32_t romFileSize;
+    fs::path romFilePath;
+    fs::path saveFilePath;
+    FILE *saveFile = NULL;
+    uint8_t bootrom[256];
+    bool bootromActive;
 
     /* ROM CHECK FLAGS */
 
@@ -66,11 +78,17 @@ class ROM
     uint8_t rtcDH;
     uint8_t rtcLatchClockLastWritten;
     bool rtcLatch;
+    uint64_t rtcLatchedSeconds;
+    uint16_t rtcNumCycles;
 
     ROM();
     ~ROM();
 
     bool loadROM(std::string romPath);
+    bool loadSaveFile(fs::path savePath);
+    bool saveRam();
+    bool loadBootrom(std::string bootromPath);
+    void disableBootrom();
 
     /* ROM CHECKS */
 
@@ -111,7 +129,12 @@ class ROM
 
     uint8_t readmemMBC5(uint16_t addr);
     void writememMBC5(uint8_t val, uint16_t addr);
+
+    /* MBC3 RTC FUNCTIONS */
+
+    // Should be called once every ROM_RTC_T_CYCLES_UNTIL_TICK t cycles
+    void cycleRtc();
+    void incrementRtc(uint64_t numSeconds);
 };
 
 #endif // __ROM_H__
-
