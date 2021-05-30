@@ -4,6 +4,7 @@ project(gameboy-emu)
 
 # CPP related
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_C_STANDARD 99)
 add_compile_options(-Wall -Wextra -Wpedantic -O2)
 add_link_options(-lprofiler)
 

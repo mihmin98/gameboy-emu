@@ -415,6 +415,7 @@ void PPU::cycle()
             searchSpritesOnLine();
             setModeFlag(DRAW);
             xPos = 0;
+            windowXCounter = 0;
             currentModeTCycles = 0;
         }
 
@@ -446,6 +447,8 @@ void PPU::cycle()
 
         if (xPos + 7 >= getWx()) {
             windowXTrigger = true;
+        } else {
+            windowXTrigger = false;
         }
 
         spriteFifo.checkForSprite();
@@ -496,6 +499,9 @@ void PPU::cycle()
             setModeFlag(H_BLANK);
             hBlankModeLength = PPU_LINE_T_CYCLES - PPU_OAM_SEARCH_T_CYCLES - currentModeTCycles;
             currentModeTCycles = 0;
+
+            if (lcdWasTurnedOn)
+                lcdWasTurnedOn = false;
         }
 
         break;
@@ -508,6 +514,13 @@ void PPU::cycle()
         }
 
         ++currentModeTCycles;
+
+        if (lcdWasTurnedOn && currentModeTCycles == 76) {
+            setModeFlag((uint8_t)DRAW);
+            currentModeTCycles = 0;
+
+            break;
+        }
 
         // Check for transition to next mode
         if (currentModeTCycles >= hBlankModeLength) {
@@ -538,10 +551,17 @@ void PPU::cycle()
             }
 
             // Increase Line
-            if (!lcdWasShutDown) {
+            if (!lcdWasTurnedOn) {
                 setLy(getLy() + 1);
-            } else {
-                lcdWasShutDown = false;
+
+                // set ly=lyc here?
+                if (getLy() == getLyc()) {
+                    setCoincidenceFlag(1);
+                    if (getLycLyCoincidence())
+                        cpu->setLCDSTATInterruptFlag(1);
+                } else {
+                    setCoincidenceFlag(0);
+                }
             }
 
             currentModeTCycles = 0;
@@ -570,13 +590,15 @@ void PPU::cycle()
 
         if (currentModeTCycles == 0 || currentModeTCycles % PPU_LINE_T_CYCLES == 0) {
             // check ly==lyc
-            if (getLy() == getLyc()) {
-                setCoincidenceFlag(1);
-                if (getLycLyCoincidence())
-                    cpu->setLCDSTATInterruptFlag(1);
-            } else {
-                setCoincidenceFlag(0);
-            }
+            // moved ly==lyc right after increment
+
+            // if (getLy() == getLyc()) {
+            //     setCoincidenceFlag(1);
+            //     if (getLycLyCoincidence())
+            //         cpu->setLCDSTATInterruptFlag(1);
+            // } else {
+            //     setCoincidenceFlag(0);
+            // }
         }
 
         ++currentModeTCycles;
@@ -585,6 +607,15 @@ void PPU::cycle()
             if (currentModeTCycles == PPU_VBLANK_T_CYCLES) {
                 // Set LY to 0
                 setLy(0);
+
+                if (getLy() == getLyc()) {
+                    setCoincidenceFlag(1);
+                    if (getLycLyCoincidence())
+                        cpu->setLCDSTATInterruptFlag(1);
+                } else {
+                    setCoincidenceFlag(0);
+                }
+
                 windowYCounter = 0;
 
                 // Change mode
@@ -597,14 +628,20 @@ void PPU::cycle()
             } else {
                 // increase ly
                 setLy(getLy() + 1);
+
+                if (getLy() == getLyc()) {
+                    setCoincidenceFlag(1);
+                    if (getLycLyCoincidence())
+                        cpu->setLCDSTATInterruptFlag(1);
+                } else {
+                    setCoincidenceFlag(0);
+                }
+
                 if (bgFifo.isDrawingWindow && getWindowDisplayEnable())
                     ++windowYCounter;
             }
         }
 
-        // check for transition to next mode
-        // when reaching end of final line final line, or 4560 t cycles in vblank
-        // already did it??
         break;
     }
 
@@ -749,11 +786,3 @@ Color *PPU::mixPixels(FifoPixel *bgPixel, FifoPixel *spritePixel)
 
     return nullptr;
 }
-
-// DONE
-// TODO: in timpul la oam dma in modurile 2, 3, ppu citeste 0xff
-// cum fac chestia asta? mai bag un flag la readmem? sau nu implementez? (ar fi cam bad sa nu
-// imnplemetnez)
-// cred ca o sa mai bag un flag, bypassOamPpu sau cv de genu, care ar trebui sa fie true by
-// default? sau false? exista cazul in care cpu sau alta componenta sa aib si in getterele si
-// setterele din ppu le dau cu false deja am chestia asta oarecum accesul

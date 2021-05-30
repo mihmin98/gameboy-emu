@@ -17,8 +17,9 @@ class Timer
     Memory *memory;
     SM83 *cpu;
 
-    uint16_t divTicks;
+    uint16_t divCounter;
     uint16_t timaTicks;
+    uint8_t timaSelectedBitPreviousValue;
 
     uint8_t tmaPreviousValue;
     uint8_t timaReloadValue;
@@ -28,12 +29,14 @@ class Timer
     bool timaChangedDuringWait;
 
     uint16_t clockSelectTicks[4];
+    uint16_t clockSelectBitMask[4];
 
     void cycle();
 
     // DIV - 0xFF04
     uint8_t getDividerRegister();
     void setDividerRegister(uint8_t val);
+    void setDividerCounter(uint16_t val);
 
     // TIMA - 0xFF05
     uint8_t getTimerCounter();

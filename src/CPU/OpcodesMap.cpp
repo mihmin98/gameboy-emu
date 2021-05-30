@@ -1,4 +1,5 @@
 #include "SM83.hpp"
+#include <iostream>
 
 void SM83::executeOpcode(uint8_t opcode)
 {
@@ -2182,7 +2183,7 @@ void SM83::OP_D1() { op_pop_r16(D, E); }
 void SM83::OP_D2() { op_jp_cc_n16(getCarryFlag(), 0); }
 
 // Illegal opcode
-void SM83::OP_D3() {}
+void SM83::OP_D3() { op_illegal(); }
 
 // CALL NC, n16
 void SM83::OP_D4() { op_call_cc_n16(getCarryFlag(), 0); }
@@ -2206,13 +2207,13 @@ void SM83::OP_D9() { op_reti(); }
 void SM83::OP_DA() { op_jp_cc_n16(getCarryFlag(), 1); }
 
 // Illegal opcode
-void SM83::OP_DB() {}
+void SM83::OP_DB() { op_illegal(); }
 
 // CALL C, n16
 void SM83::OP_DC() { op_call_cc_n16(getCarryFlag(), 1); }
 
 // Illegal opcode
-void SM83::OP_DD() {}
+void SM83::OP_DD() { op_illegal(); }
 
 // SBC A, n8
 void SM83::OP_DE() { op_sbc_a_n8(); }
@@ -2230,10 +2231,10 @@ void SM83::OP_E1() { op_pop_r16(H, L); }
 void SM83::OP_E2() { op_ldh_addr_c_a(); }
 
 // Illegal opcode
-void SM83::OP_E3() {}
+void SM83::OP_E3() { op_illegal(); }
 
 // Illegal opcode
-void SM83::OP_E4() {}
+void SM83::OP_E4() { op_illegal(); }
 
 // PUSH HL
 void SM83::OP_E5() { op_push_r16(H, L); }
@@ -2254,13 +2255,13 @@ void SM83::OP_E9() { op_jp_hl(); }
 void SM83::OP_EA() { op_ld_addr_n16_a(); }
 
 // Illegal opcode
-void SM83::OP_EB() {}
+void SM83::OP_EB() { op_illegal(); }
 
 // Illegal opcode
-void SM83::OP_EC() {}
+void SM83::OP_EC() { op_illegal(); }
 
 // Illegal opcode
-void SM83::OP_ED() {}
+void SM83::OP_ED() { op_illegal(); }
 
 // XOR n8
 void SM83::OP_EE() { op_xor_a_n8(); }
@@ -2281,7 +2282,7 @@ void SM83::OP_F2() { op_ldh_a_addr_c(); }
 void SM83::OP_F3() { op_di(); }
 
 // Illegal opcode
-void SM83::OP_F4() {}
+void SM83::OP_F4() { op_illegal(); }
 
 // PUSH AF
 void SM83::OP_F5() { op_push_af(); }
@@ -2305,10 +2306,10 @@ void SM83::OP_FA() { op_ld_a_addr_n16(); }
 void SM83::OP_FB() { op_ei(); }
 
 // Illegal opcode
-void SM83::OP_FC() {}
+void SM83::OP_FC() { op_illegal(); }
 
-// Ilegal opcode
-void SM83::OP_FD() {}
+// Illegal opcode
+void SM83::OP_FD() { op_illegal(); }
 
 // CP n8
 void SM83::OP_FE() { op_cp_a_n8(); }

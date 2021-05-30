@@ -16,11 +16,10 @@ FifoPixel *BgFifo::cycle()
     FifoPixel *returnedPixel = nullptr;
 
     // Check for window
-    // if (!isDrawingWindow && ppu->getWindowDisplayEnable() && coordsInsideWindow(pushedPixels,
-    // ppu->getLy())) {
     if (!isDrawingWindow && ppu->getWindowDisplayEnable() && ppu->windowXTrigger &&
         ppu->windowYTrigger) {
         isDrawingWindow = true;
+        scxPixelsToDiscard = 0;
 
         // clear the queue
         clearQueue();
@@ -28,21 +27,16 @@ FifoPixel *BgFifo::cycle()
         // set the fetcher stage and position
         fetcherStage = GET_TILE;
         fetcherStageCycles = 0;
-        fetcherXPos = ppu->getWx() - 7;
 
-        // done? TODO: daca exista scrolling pe tile-ul curent (SCX % 8 != 0) si Wx = 0, atunci se
-        // scurteaza Mode 3 cu 1 T-cycle
         if (ppu->getWx() == 0 && ppu->getScrollX() % 8 != 0) {
             --ppu->drawModeLength;
             ++ppu->hBlankModeLength;
+            ++fetcherStageCycles;
         }
     }
 
-    cycleFetcher();
-
     // check if there are pixels to push, and sprites are not being fetched
-    // TODO: Should pixels be discarded when fetching sprite?
-    if (pixelQueue.size() > 1) {
+    if (pixelQueue.size() > 8) {
         if (!spriteFetchingActive) {
             FifoPixel pixel = pixelQueue.front();
             pixelQueue.pop();
@@ -51,14 +45,21 @@ FifoPixel *BgFifo::cycle()
             if (scxPixelsToDiscard > 0) {
                 --scxPixelsToDiscard;
             } else {
-                returnedPixel = new FifoPixel();
-                *returnedPixel = pixel;
+                returnedPixel = new FifoPixel(pixel);
                 ++pushedPixels;
             }
         } else if (scxPixelsToDiscard > 0) {
             --scxPixelsToDiscard;
         }
     }
+
+    // if bg is disabled push blank(white) pixel
+    if (ppu->emulatorMode == DMG && ppu->getBgWindowDisplayPriority() == 0 &&
+        returnedPixel != nullptr) {
+        *returnedPixel = FifoPixel(0, 0, 0, 0, 0, false);
+    }
+
+    cycleFetcher();
 
     return returnedPixel;
 }
@@ -72,11 +73,6 @@ void BgFifo::cycleFetcher()
 
         // If in dmg mode and bg and window are disabled, then do nothing; a row of blank pixels
         // will be pushed in the PUSH stage
-        if (ppu->getBgWindowDisplayPriority() == 0 && ppu->emulatorMode == EmulatorMode::DMG) {
-            fetcherStage = GET_TILE_DATA_LOW;
-            fetcherStageCycles = 0;
-            break;
-        }
 
         if (isDrawingWindow) {
             if (ppu->getWindowDisplayEnable() == 0) {
@@ -87,22 +83,14 @@ void BgFifo::cycleFetcher()
 
             tilemapBaseAddr = ppu->getWindowTileMapDisplaySelect() == 0 ? 0x9800 : 0x9C00;
 
-            // done? TODO: This is not the tile pos for the window; window se deseneaza la fel ca
-            // bg, probabil fara scroll ar fi fetcher coord - window coord? screen x pos e pozitia
-            // pixelului x de pe ecran screen y pos e pozitia pixelului y de pe ecran ca sa aflu
-            // tile-ul din window: fac scaderea ca sa aflu coord din window;
-            tileXPos = (fetcherXPos - (ppu->getWx() - 7)) / 8;
+            tileXPos = ppu->windowXCounter;
             tileYPos = ppu->windowYCounter / 8;
-
-            // done? TODO: Window X pos is actually x pos + 7, need to test this
-            // the window is drawn from Wx - 7
-
-        } else {
+        } 
+        
+        else {
             tilemapBaseAddr = ppu->getBgTileMapDisplaySelect() == 0 ? 0x9800 : 0x9C00;
 
-            tileXPos = ((ppu->getScrollX() + fetcherXPos) / 8) & 0x1F;
-            // tileYPos = (fetcherYPos + ppu->getScrollY()) & 0xFF;
-            // this should get the line in the 256x256 screen
+            tileXPos = ((ppu->getScrollX() / 8) + fetcherXPos) & 0x1F;
             tileYPos = ((ppu->getScrollY() + fetcherYPos) / 8) & 0x1F;
         }
 
@@ -139,17 +127,6 @@ void BgFifo::cycleFetcher()
     case PUSH:
     push_label:
         // pushes the pixels in the queue
-        // TODO: Check if the entire row is pushed in 1 cycle
-
-        // if in DMG mode and not drawing bg or window, then add a row of blank pixels
-        if (ppu->getBgWindowDisplayPriority() == 0 && ppu->emulatorMode == EmulatorMode::DMG) {
-            FifoPixel blankPixel = FifoPixel(0, 0, 0, 0, 0, false);
-            for (int i = 0; i < 8; ++i) {
-                pixelQueue.push(blankPixel);
-            }
-            break;
-        }
-
         // switch to vram bank 0 to read the tile map
         uint8_t orignialVramBank = ppu->memory->getCurrentVramBank();
         ppu->memory->setCurrentVramBank(0);
@@ -182,8 +159,11 @@ void BgFifo::cycleFetcher()
         // get the row of pixels from the tile
         uint8_t tileRow[8];
 
-        // TODO: not sure if this is the correct formula for the row
-        tile.getTileRow(((fetcherYPos + ppu->getScrollY()) & 0xFF) % 8, tileRow);
+        if (isDrawingWindow) {
+            tile.getTileRow(ppu->windowYCounter % 8, tileRow);
+        } else {
+            tile.getTileRow(((fetcherYPos + ppu->getScrollY()) & 0xFF) % 8, tileRow);
+        }
 
         // push the row of pixels into the queue
         for (uint8_t i = 0; i < 8; ++i) {
@@ -195,8 +175,10 @@ void BgFifo::cycleFetcher()
             pixelQueue.push(pixel);
         }
 
-        // increase fetcher x pos
-        fetcherXPos += 8 - scxPixelsToDiscard;
+        ++fetcherXPos;
+        if (isDrawingWindow)
+            ++ppu->windowXCounter;
+
         fetcherStage = GET_TILE;
 
         break;

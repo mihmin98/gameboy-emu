@@ -252,6 +252,8 @@ class SM83
     void op_scf();
     void op_stop();
 
+    void op_illegal();
+
     /* OPCODES */
     void OP_00();
     void OP_01();

@@ -1,12 +1,17 @@
 #include "SM83.hpp"
+#include "GameBoy.hpp"
 #include "Memory.hpp"
 
-SM83::SM83() 
-{ 
-    int_cycles = -1; 
+SM83::SM83()
+{
+    int_cycles = -1;
+    instructionCycle = 0;
 
+    halted = false;
     halt_bug = false;
     just_started_halt_bug = false;
+
+    ime = 1;
 }
 
 /**
@@ -45,8 +50,9 @@ void SM83::cycle()
     uint8_t opcode = readmem_u8(PC);
 
     // If the halt bug occurs, decrement PC so that it will be used twice
-    if (halt_bug)
+    if (halt_bug) {
         --PC;
+    }
 
     // Decode and execute
     executeOpcode(opcode);
@@ -176,6 +182,10 @@ bool SM83::serviceInterrupt()
 
     // Signal that there is no need to service an interrupt
     int_cycles = -1;
+
+    // Exit halt
+    if (halted)
+        halted = false;
 
     // If IME is 0, do not jump
     if (ime == 0)

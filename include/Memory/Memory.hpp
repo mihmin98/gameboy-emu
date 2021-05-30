@@ -24,6 +24,7 @@
 class GameBoy;
 class PPU;
 class Timer;
+class Audio;
 
 class Memory
 {
@@ -33,6 +34,7 @@ class Memory
     ROM *rom; // Pointer to the ROM
     PPU *ppu;
     Timer *timer;
+    Audio *audio;
 
     /* MEMORY AREAS */
 

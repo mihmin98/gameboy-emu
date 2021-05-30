@@ -17,52 +17,6 @@ void Joypad::cycle()
     bool actionButtonsEnabled = !(joypadRegister & 0x20);
     uint8_t buttonState;
 
-    // // Direction Buttons
-    // for (uint8_t i = 0; i < 4; ++i) {
-    //     buttonState = joypadRegister & (1 << i);
-    //     mask = 0xFF - (1 << i);
-    //     if (keyState[0][i] == 1) {
-    //         if (directionButtonsEnabled) {
-    //             // button pressed and enabled
-    //             if (buttonState == 1) {
-    //                 cpu->setInterruptFlag(1);
-    //             }
-
-    //             joypadRegister &= mask;
-    //         } else {
-    //             // button pressed and not enabled
-    //             joypadRegister = (joypadRegister & mask) | (1 << i);
-    //         }
-    //     } else {
-    //         // button not pressed
-    //         joypadRegister = (joypadRegister & mask) | (1 << i);
-    //     }
-    // }
-
-    //     // Action Buttons
-    // for (uint8_t i = 0; i < 4; ++i) {
-    //     buttonState = joypadRegister & (1 << i);
-    //     mask = 0xFF - (1 << i);
-    //     if (keyState[1][i] == 1) {
-    //         if (actionButtonsEnabled) {
-    //             // button pressed and enabled
-    //             if (buttonState == 1) {
-    //                 cpu->setInterruptFlag(1);
-    //             }
-
-    //             joypadRegister &= mask;
-    //         } else {
-    //             // button pressed and not enabled
-    //             joypadRegister = (joypadRegister & mask) | (1 << i);
-    //         }
-    //     } else {
-    //         // button not pressed
-    //         // if action buttons are enabled then overwrite, if disabled then do nothing?
-    //         if (!directionButtonsEnabled && !keyState[0][i])
-    //             joypadRegister = (joypadRegister & mask) | (1 << i);
-    //     }
-    // }
-
     // Direction Buttons
     // Right Button
     buttonState = joypadRegister & 0x1;

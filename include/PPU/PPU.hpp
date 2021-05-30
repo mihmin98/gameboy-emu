@@ -43,7 +43,7 @@ class PPU
 
     Color display[PPU_SCREEN_HEIGHT][PPU_SCREEN_WIDTH];
 
-    bool lcdWasShutDown = false;
+    bool lcdWasTurnedOn = false;
 
     uint8_t drawModeLength;   // should be set to 172 when entering mode 3
     uint8_t hBlankModeLength; // this should be set to 204 when entering mode 3 and modified based
@@ -53,6 +53,7 @@ class PPU
     uint8_t numSpritesOnCurrentLine;
 
     uint8_t windowYCounter;
+    uint8_t windowXCounter;
     bool windowYTrigger;
     bool windowXTrigger;
 
@@ -281,24 +282,6 @@ class PPU
     void vramDmaCycle();
 
     Color *mixPixels(FifoPixel *bgPixel, FifoPixel *spritePixel);
-
-    // Some other stuff
-
-    // vram bg maps: bg map tile numbers? in VRAM0, bg map attributes cgb only,
-    // in VRAM1 (create a struct for it?) flip tile? sau ar trebui sa fie in
-    // pixel fetcher/pixel fifo;
-
-    // get window tile sau cv de genu?
-
-    // sa ma apuc sa fac loopul principal, in mare am cam facut toate getterele si setterele
-
-    // dma registers, dma flags, and code for cycle copy vram dma registers, and flags
-
-    // pixel fifo: bg fifo si sprite fifo. ar trebui sa fie 2 clase? care mostenesc o clasa parinte
-    // fifo? pixel fetcher:
-
-    // PPU ar trebui sa cicleze odata pe T-cycle (4 MHz), ca unele operatii sunt in functie de
-    // T-cycles nu doar M-cycles create separate src folder for ppu i guess
 };
 
 #endif // __PPU_H__
