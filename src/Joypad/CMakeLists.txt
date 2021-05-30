@@ -13,6 +13,7 @@ target_include_directories(Joypad
         "${PROJECT_SOURCE_DIR}/include/Memory"
         "${PROJECT_SOURCE_DIR}/include/Timer"
         "${PROJECT_SOURCE_DIR}/include/Joypad"
+        "${PROJECT_SOURCE_DIR}/include/inih"
 )
 
 target_compile_options(Joypad

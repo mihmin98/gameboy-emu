@@ -4,6 +4,7 @@ include_directories(${SDL2_INCLUDE_DIR})
 target_sources(emulator
     PUBLIC
         GameBoy.cpp
+        Config.cpp
 )
 
 add_library(CPU "")
@@ -24,6 +25,9 @@ add_subdirectory(Audio)
 add_library(Joypad "")
 add_subdirectory(Joypad)
 
+add_library(inih "")
+add_subdirectory(inih)
+
 target_link_libraries(emulator
     PUBLIC
         CPU
@@ -32,6 +36,7 @@ target_link_libraries(emulator
         Timer
         Audio
         Joypad
+        inih
 )
 
 target_include_directories(emulator

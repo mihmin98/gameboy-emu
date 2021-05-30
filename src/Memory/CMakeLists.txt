@@ -16,6 +16,7 @@ target_include_directories(Memory
         "${PROJECT_SOURCE_DIR}/include/Timer"
         "${PROJECT_SOURCE_DIR}/include/Joypad"
         "${PROJECT_SOURCE_DIR}/include/Audio"
+        "${PROJECT_SOURCE_DIR}/include/inih"
 )
 
 target_compile_options(Memory
