@@ -51,7 +51,7 @@ void Config::setAudioBatchCycles(int audioBatchCycles)
     this->audioBatchCycles = audioBatchCycles;
 }
 
-void Config::setAudioVolume(int audioVolume) { this->audioVolume = audioVolume; }
+void Config::setAudioVolume(float audioVolume) { this->audioVolume = audioVolume; }
 
 void Config::setUseBootrom(bool useBootrom) { this->useBootrom = useBootrom; }
 

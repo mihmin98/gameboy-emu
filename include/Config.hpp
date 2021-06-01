@@ -34,7 +34,7 @@ class Config
 
     void setWindowSize(int windowSize);
     void setAudioBatchCycles(int audioBatchCycles);
-    void setAudioVolume(int audioVolume);
+    void setAudioVolume(float audioVolume);
     void setUseBootrom(bool useBootrom);
     void setBootromPath(std::string bootromPath);
     void setPrintPerformanceInfo(bool printPerformanceInfo);

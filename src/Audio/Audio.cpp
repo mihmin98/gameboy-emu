@@ -1,6 +1,6 @@
 #include "Audio.hpp"
-#include "Memory.hpp"
 #include "Config.hpp"
+#include "Memory.hpp"
 
 Audio::Audio()
 {
@@ -50,9 +50,7 @@ Audio::Audio()
     }
 }
 
-Audio::~Audio()
-{
-}
+Audio::~Audio() {}
 
 void Audio::initSDL()
 {
@@ -752,8 +750,8 @@ void Audio::cycle(uint8_t numCycles)
         // Collect sample
         float mixedLeftChannel = 0, mixedRightChannel = 0;
         float audioVolume = Config::getInstance()->getAudioVolume();
-        int leftVol = (getLeftChannelVolume() * audioVolume * SDL_MIX_MAXVOLUME) / 7;
-        int rightVol = (getRightChannelVolume() * audioVolume * SDL_MIX_MAXVOLUME) / 7;
+        int leftVol = (getLeftChannelVolume() * SDL_MIX_MAXVOLUME) / 7;
+        int rightVol = (getRightChannelVolume() * SDL_MIX_MAXVOLUME) / 7;
         float aux;
 
         // Channel 1
@@ -808,8 +806,8 @@ void Audio::cycle(uint8_t numCycles)
                                sizeof(float), rightVol);
         }
 
-        audioBuffer[currentAudioSamples++] = mixedLeftChannel;
-        audioBuffer[currentAudioSamples++] = mixedRightChannel;
+        audioBuffer[currentAudioSamples++] = mixedLeftChannel * audioVolume;
+        audioBuffer[currentAudioSamples++] = mixedRightChannel * audioVolume;
     }
 
     if (currentAudioSamples >= AUDIO_NUM_SAMPLES) {
