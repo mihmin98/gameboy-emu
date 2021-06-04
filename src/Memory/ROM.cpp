@@ -101,11 +101,9 @@ bool ROM::loadSaveFile(fs::path savePath)
                 return false;
             }
 
-            fseek(saveFile, 0, SEEK_END);
-            size_t saveFileSize = ftell(saveFile);
             fseek(saveFile, 0, SEEK_SET);
 
-            if (mbc == MBC3) {
+            if (mbc == MBC3 && cartridgeTimer) {
                 // Read rtc registers and increment time if necessary
                 fread(&rtcS, sizeof(uint8_t), 1, saveFile);
                 fread(&rtcM, sizeof(uint8_t), 1, saveFile);
@@ -154,7 +152,7 @@ bool ROM::saveRam()
 
     fseek(saveFile, 0, SEEK_SET);
 
-    if (mbc == MBC3) {
+    if (mbc == MBC3 && cartridgeTimer) {
         // write rtc registers and current time
         fwrite(&rtcS, sizeof(uint8_t), 1, saveFile);
         fwrite(&rtcM, sizeof(uint8_t), 1, saveFile);

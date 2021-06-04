@@ -292,7 +292,7 @@ void GameBoy::run()
             }
 
             // ROM RTC Timer
-            if (rom.mbc == MBC::MBC3) {
+            if (rom.mbc == MBC::MBC3 && rom.cartridgeTimer) {
                 if (doubleSpeedMode && currentCycles % (ROM_RTC_T_CYCLES_UNTIL_TICK * 2) == 0) {
                     rom.cycleRtc();
                 } else if (!doubleSpeedMode && currentCycles % ROM_RTC_T_CYCLES_UNTIL_TICK == 0) {
