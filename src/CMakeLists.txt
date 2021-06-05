@@ -42,6 +42,12 @@ target_link_libraries(emulator
 target_include_directories(emulator
     PUBLIC
         "${PROJECT_SOURCE_DIR}/include"
+        "${PROJECT_SOURCE_DIR}/include/CPU"
+        "${PROJECT_SOURCE_DIR}/include/Memory"
+        "${PROJECT_SOURCE_DIR}/include/PPU"
+        "${PROJECT_SOURCE_DIR}/include/Timer"
+        "${PROJECT_SOURCE_DIR}/include/Joypad"
+        "${PROJECT_SOURCE_DIR}/include/inih"
 )
 
 target_compile_options(emulator

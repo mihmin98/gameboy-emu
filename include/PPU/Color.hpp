@@ -3,6 +3,7 @@
 
 #pragma once
 #include <cstdint>
+#include <string>
 
 class Color
 {
@@ -22,6 +23,9 @@ class Color
 
     // Creates a Color from a value that is between 0-3
     static Color getDmgColor(uint8_t colorValue);
+
+    // Creates a color from a string that has the following format: #rrggbb
+    static Color getColorFromHexString(std::string colorString);
 
     friend bool operator== (const Color &color1, const Color &color2);
     friend bool operator!= (const Color &color1, const Color &color2);

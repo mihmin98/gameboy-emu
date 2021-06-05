@@ -180,6 +180,66 @@ bool readConfig(char *execPath)
         if (printPerformanceInfo != config->getPrintPerformanceInfo()) {
             config->setPrintPerformanceInfo(printPerformanceInfo);
         }
+
+        bool useCustomDMGPalette = reader.GetBoolean("General", "useCustomDMGPalette", config->getUseCustomDMGPalette());
+        if (useCustomDMGPalette != config->getUseCustomDMGPalette()) {
+            config->setUseCustomDMGPalette(useCustomDMGPalette);
+        }
+
+        // get colors
+        std::string colorString;
+        Color color;
+
+        // bg
+        colorString = reader.GetString("Colors", "bgColor0", "#ffffff");
+        color = Color::getColorFromHexString(colorString);
+        config->setBgCustomDMGPalette(0, color);
+
+        colorString = reader.GetString("Colors", "bgColor1", "#aaaaaa");
+        color = Color::getColorFromHexString(colorString);
+        config->setBgCustomDMGPalette(1, color);
+
+        colorString = reader.GetString("Colors", "bgColor2", "#555555");
+        color = Color::getColorFromHexString(colorString);
+        config->setBgCustomDMGPalette(2, color);
+
+        colorString = reader.GetString("Colors", "bgColor3", "#000000");
+        color = Color::getColorFromHexString(colorString);
+        config->setBgCustomDMGPalette(3, color);
+
+        // obp1
+        colorString = reader.GetString("Colors", "obp0Color0", "#ffffff");
+        color = Color::getColorFromHexString(colorString);
+        config->setObp0CustomDMGPalette(0, color);
+
+        colorString = reader.GetString("Colors", "obp0Color1", "#aaaaaa");
+        color = Color::getColorFromHexString(colorString);
+        config->setObp0CustomDMGPalette(1, color);
+
+        colorString = reader.GetString("Colors", "obp0Color2", "#555555");
+        color = Color::getColorFromHexString(colorString);
+        config->setObp0CustomDMGPalette(2, color);
+
+        colorString = reader.GetString("Colors", "obp0Color3", "#000000");
+        color = Color::getColorFromHexString(colorString);
+        config->setObp0CustomDMGPalette(3, color);
+
+        // obp2
+        colorString = reader.GetString("Colors", "obp1Color0", "#ffffff");
+        color = Color::getColorFromHexString(colorString);
+        config->setObp1CustomDMGPalette(0, color);
+
+        colorString = reader.GetString("Colors", "obp1Color1", "#aaaaaa");
+        color = Color::getColorFromHexString(colorString);
+        config->setObp1CustomDMGPalette(1, color);
+
+        colorString = reader.GetString("Colors", "obp1Color2", "#555555");
+        color = Color::getColorFromHexString(colorString);
+        config->setObp1CustomDMGPalette(2, color);
+
+        colorString = reader.GetString("Colors", "obp1Color3", "#000000");
+        color = Color::getColorFromHexString(colorString);
+        config->setObp1CustomDMGPalette(3, color);
     }
 
     // else, create it

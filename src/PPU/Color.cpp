@@ -1,4 +1,5 @@
 #include "Color.hpp"
+#include <iostream>
 
 Color::Color() {}
 
@@ -46,6 +47,21 @@ Color Color::getDmgColor(uint8_t colorValue)
 
     uint8_t val = 255 - (colorValue * (255 / 3));
     return Color(val, val, val);
+}
+
+Color Color::getColorFromHexString(std::string colorString)
+{
+    // replace # with 0x
+    colorString[0] = '0';
+    colorString.insert(1, "x");
+
+    std::cout << "replaced color string: " << colorString << "\n";
+
+    ulong colorValue;
+    colorValue = std::stoul(colorString, NULL, 16);
+    std::cout << std::hex << colorValue << "\n";
+
+    return Color((colorValue & 0xFF0000) >> 16, (colorValue & 0x00FF00) >> 8, colorValue & 0x0000FF); 
 }
 
 bool operator==(const Color &color1, const Color &color2)

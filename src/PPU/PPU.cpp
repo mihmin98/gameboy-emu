@@ -1,4 +1,5 @@
 #include "PPU.hpp"
+#include "Config.hpp"
 #include "GameBoy.hpp"
 #include "Memory.hpp"
 #include "SM83.hpp"
@@ -18,6 +19,8 @@ PPU::PPU()
     currentModeTCycles = 0;
     hBlankModeLength = PPU_DEFAULT_HBLANK_T_CYCLES;
     drawModeLength = PPU_DEFAULT_DRAW_T_CYCLES;
+
+    config = Config::getInstance();
 }
 
 /* GETTERS AND SETTERS */
@@ -337,7 +340,12 @@ Color PPU::getColorFromFifoPixel(FifoPixel *fifoPixel, bool normalizeCgbColor)
             // BG/Window Pixel
             uint8_t palette = getBgPaletteData();
             uint8_t color = (palette & (3 << (fifoPixel->color * 2))) >> (fifoPixel->color * 2);
-            return Color::getDmgColor(color);
+
+            if (config->getUseCustomDMGPalette()) {
+                return config->getBgCustomDMGPalette(color);
+            } else {
+                return Color::getDmgColor(color);
+            }
         } else {
             // Sprite Pixel
             uint8_t palette = fifoPixel->palette == 0 ? getObjPalette0Data() : getObjPalette1Data();
@@ -348,7 +356,15 @@ Color PPU::getColorFromFifoPixel(FifoPixel *fifoPixel, bool normalizeCgbColor)
             else
                 color = (palette & (3 << (fifoPixel->color * 2))) >> (fifoPixel->color * 2);
 
-            return Color::getDmgColor(color);
+            if (config->getUseCustomDMGPalette()) {
+                if (palette == 0) {
+                    return config->getObp0CustomDMGPalette(color);
+                } else {
+                    return config->getObp1CustomDMGPalette(color);
+                }
+            } else {
+                return Color::getDmgColor(color);
+            }
         }
     } else {
         // CGB Mode

@@ -4,6 +4,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#include "Color.hpp"
 
 class Config
 {
@@ -17,6 +18,11 @@ class Config
     bool useBootrom = false;
     std::string bootromPath;
     bool printPerformanceInfo;
+    bool useCustomDMGPalette;
+
+    Color bgCustomDMGPalette[4];
+    Color obp0CustomDMGPalette[4];
+    Color obp1CustomDMGPalette[4];
 
     Config();
 
@@ -31,6 +37,10 @@ class Config
     bool getUseBootrom();
     std::string getBootromPath();
     bool getPrintPerformanceInfo();
+    bool getUseCustomDMGPalette();
+    Color getBgCustomDMGPalette(int index);
+    Color getObp0CustomDMGPalette(int index);
+    Color getObp1CustomDMGPalette(int index);
 
     void setWindowSize(int windowSize);
     void setAudioBatchCycles(int audioBatchCycles);
@@ -38,6 +48,10 @@ class Config
     void setUseBootrom(bool useBootrom);
     void setBootromPath(std::string bootromPath);
     void setPrintPerformanceInfo(bool printPerformanceInfo);
+    void setUseCustomDMGPalette(bool useCustomDMGPalette);
+    void setBgCustomDMGPalette(int index, Color color);
+    void setObp0CustomDMGPalette(int index, Color color);
+    void setObp1CustomDMGPalette(int index, Color color);
 };
 
 #endif // __CONFIG_H__

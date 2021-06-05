@@ -15,6 +15,7 @@ target_include_directories(Audio
         "${PROJECT_SOURCE_DIR}/include"
         "${PROJECT_SOURCE_DIR}/include/Memory"
         "${PROJECT_SOURCE_DIR}/include/Audio"
+        "${PROJECT_SOURCE_DIR}/include/PPU"
 )
 
 target_compile_options(Audio

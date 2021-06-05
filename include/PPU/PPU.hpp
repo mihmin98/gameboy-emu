@@ -26,6 +26,7 @@
 class Memory;
 class SM83;
 class GameBoy;
+class Config;
 
 enum LcdMode { H_BLANK = 0, V_BLANK = 1, OAM_SEARCH = 2, DRAW = 3 };
 
@@ -34,6 +35,7 @@ class PPU
   public:
     Memory *memory;
     SM83 *cpu;
+    Config *config;
 
     uint64_t renderedFrames = 0;
 
