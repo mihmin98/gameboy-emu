@@ -72,12 +72,10 @@ void Channel1::cycleEnvelope()
         if (remainingEnvelopeCycles == 0) {
             remainingEnvelopeCycles = envelopeStepLength;
 
-            if (internalVolume > 0 && internalVolume < 15) {
-                if (envelopeDirection == 0)
-                    --internalVolume;
-                else
-                    ++internalVolume;
-            }
+            if (envelopeDirection == 0 && internalVolume > 0)
+                --internalVolume;
+            else if (envelopeDirection == 1 && internalVolume < 15)
+                ++internalVolume;
         }
     }
 }
